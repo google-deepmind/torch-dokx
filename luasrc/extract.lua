@@ -46,7 +46,7 @@ local function parseSource(content)
     local untilCommentStart = (1-commentBlockStart)^0
     local untilCommentEnd = lpeg.C((1-commentBlockEnd)^0)
 
-    local whitespace = lpeg.S(" \t\n")^0 -- TODO more flexible
+    local whitespace = lpeg.S(" \t\n")^0
     local commentBlock = commentBlockStart * untilCommentEnd * commentBlockEnd
     local functionSignature = lpeg.C((1-lpeg.P("("))^1)
 --    local functionSignature = (lpeg.C(1-lpeg.S(":."))^1 * lpeg.S(":."))^-1 * lpeg.C(1-lpeg.P("("))^1
@@ -65,14 +65,30 @@ local function parseSource(content)
 
     local function err(_, i)
         local contextSize = 20
+        local surrounding = content:sub(i - contextSize, i + contextSize)
+        local lines = stringx.splitlines(surrounding)
+        local lineIndex = 1
+        local charIndex = -contextSize
+        local context = lines[1]
+        while charIndex < 0 do
+            local line = lines[lineIndex]
+            charIndex = charIndex + string.len(line) + 1
+            lineIndex = lineIndex + 1
+            context = context .. lines[lineIndex] .. "\n"
+        end
+        context = context .. string.rep(" ", charIndex) .. "^^^\n"
+        while lineIndex < #lines do
+            context = context .. lines[lineIndex] .. "\n"
+            lineIndex = lineIndex + 1
+        end
+
         -- TODO: this is not accurate, due to line breaks
-        local context = content:sub(i - contextSize, i + contextSize) .. "\n" .. string.rep(" ", contextSize-2) .. "^^^\n"
+--        local context = content:sub(i - contextSize, i + contextSize) .. "\n" .. string.rep(" ", contextSize-2) .. "^^^\n"
 
         local errMsg = "failed to parse source at position " .. i .. ":\n " .. context
         error(errMsg)
     end
     local parser = untilCommentStart / 0 * documentedEntity ^ 0 * (-1 + lpeg.P(err))
-
 
     local matched = {lpeg.match(parser, content)}
     return matched
