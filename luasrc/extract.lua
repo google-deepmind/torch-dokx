@@ -43,22 +43,35 @@ local function parseSource(content)
     local commentBlockStart = lpeg.P"--[["
     local commentBlockEnd = lpeg.P"]]"
 
-    local untilCommentStart = lpeg.C((1-commentBlockStart)^0)
+    local untilCommentStart = (1-commentBlockStart)^0
     local untilCommentEnd = lpeg.C((1-commentBlockEnd)^0)
 
+    local whitespace = lpeg.S(" \t\n")^0 -- TODO more flexible
     local commentBlock = commentBlockStart * untilCommentEnd * commentBlockEnd
-    local codeBlock = untilCommentStart -- TODO ?
-    local whitespace = lpeg.P(" ")^0 -- TODO more flexible
+    local functionSignature = lpeg.C((1-lpeg.P("("))^1)
+--    local functionSignature = (lpeg.C(1-lpeg.S(":."))^1 * lpeg.S(":."))^-1 * lpeg.C(1-lpeg.P("("))^1
+    local functionDefinition = lpeg.P("function") * whitespace * functionSignature
+    local entityDefinition = functionDefinition
+    local codeBlock = lpeg.C(entityDefinition * untilCommentStart) -- TODO ?
+--    local codeBlock = untilCommentStart -- TODO ?
 
     -- TODO get entity name
 
-    local function makeEntity(doc, src)
-        return Entity { name = "TODO", doc = doc, src = src }
+    local function makeEntity(doc, src, name)
+        return Entity { name = name, doc = doc, src = src }
     end
 
     local documentedEntity = (commentBlock * whitespace * codeBlock) / makeEntity
 
-    local parser = untilCommentStart / 0 * documentedEntity ^ 0
+    local function err(_, i)
+        local contextSize = 20
+        -- TODO: this is not accurate, due to line breaks
+        local context = content:sub(i - contextSize, i + contextSize) .. "\n" .. string.rep(" ", contextSize-2) .. "^^^\n"
+
+        local errMsg = "failed to parse source at position " .. i .. ":\n " .. context
+        error(errMsg)
+    end
+    local parser = untilCommentStart / 0 * documentedEntity ^ 0 * (-1 + lpeg.P(err))
 
 
     local matched = {lpeg.match(parser, content)}
@@ -88,8 +101,8 @@ function OutputWriter:documentEntity(entity)
     local template = textx.Template([[
 ## Documentation for ${name}
 ${doc}
-## (source code  for ${name})
-    ${src}
+## (source code for ${name})
+${src}
 
 ----
 ]])
