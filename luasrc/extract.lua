@@ -8,7 +8,7 @@ local lpeg = require 'lpeg'
 local path = require 'pl.path'
 local tablex = require 'pl.tablex'
 local class = require 'pl.class'
-local template = require 'pl.template'
+local textx = require 'pl.text'
 
 local function processArgs()
     return  lapp [[
@@ -67,28 +67,38 @@ end
 
 class.OutputWriter()
 
-function OutputWriter:_init(outputPath)
+function OutputWriter:_init(outputPath, packageName)
     self.outputFile = io.open(outputPath, 'w')
+    self.packageName = packageName
     lapp.assert(self.outputFile, "could not open output file " .. outputPath)
+    self:writeHeader()
+end
+
+function OutputWriter:write(text)
+    self.outputFile:write(text)
+end
+
+function OutputWriter:writeHeader()
+    self:write("# Documentation for " .. self.packageName .. "\n")
 end
 
 function OutputWriter:documentEntity(entity)
     logger:debug("Outputting markdown for " .. entity.name)
-    self.outputFile:write(template.substitute(
-    [[
-    ## Doc for entity $(entity.name)
-    $(entity.doc)
-    ## Src for entity $(entity.name)
-    $(entity.src)
 
-    ----
+    local template = textx.Template([[
+## Documentation for ${name}
+${doc}
+## (source code  for ${name})
+    ${src}
 
-    ]], {
-        entity = entity,
-        _escape = "\7" -- We set the escape character to something that will hopefully never appear
-        -- TODO: perhaps find a nicer way of doing this substitution
+----
+]])
+    local outputText = template:substitute {
+        name = entity.name,
+        doc = entity.doc,
+        src = textx.indent(entity.src, 4)
     }
-    ))
+    self:write(outputText)
 end
 
 function OutputWriter:close()
@@ -100,7 +110,9 @@ local function main()
     local content = readFile(args.input)
     local matched = parseSource(content)
 
-    local writer = OutputWriter(args.output)
+    local packageName = "nnd.KLSparsity" -- TODO
+
+    local writer = OutputWriter(args.output, packageName)
     local function handleEntity(entity)
         writer:documentEntity(entity)
     end
