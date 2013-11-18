@@ -1,3 +1,5 @@
+--[[ NB: This will likely be replaced by ldoc ]]--
+
 local lapp = require 'pl.lapp'
 
 require 'logging.console'
@@ -49,13 +51,9 @@ local function parseSource(content)
     local whitespace = lpeg.S(" \t\n")^0
     local commentBlock = commentBlockStart * untilCommentEnd * commentBlockEnd
     local functionSignature = lpeg.C((1-lpeg.P("("))^1)
---    local functionSignature = (lpeg.C(1-lpeg.S(":."))^1 * lpeg.S(":."))^-1 * lpeg.C(1-lpeg.P("("))^1
     local functionDefinition = lpeg.P("function") * whitespace * functionSignature
     local entityDefinition = functionDefinition
-    local codeBlock = lpeg.C(entityDefinition * untilCommentStart) -- TODO ?
---    local codeBlock = untilCommentStart -- TODO ?
-
-    -- TODO get entity name
+    local codeBlock = lpeg.C(entityDefinition * untilCommentStart)
 
     local function makeEntity(doc, src, name)
         return Entity { name = name, doc = doc, src = src }
@@ -81,9 +79,6 @@ local function parseSource(content)
             context = context .. lines[lineIndex] .. "\n"
             lineIndex = lineIndex + 1
         end
-
-        -- TODO: this is not accurate, due to line breaks
---        local context = content:sub(i - contextSize, i + contextSize) .. "\n" .. string.rep(" ", contextSize-2) .. "^^^\n"
 
         local errMsg = "failed to parse source at position " .. i .. ":\n " .. context
         error(errMsg)
@@ -139,7 +134,7 @@ local function main()
     local content = readFile(args.input)
     local matched = parseSource(content)
 
-    local packageName = "nnd.KLSparsity" -- TODO
+    local packageName = "packageName" -- TODO
 
     local writer = OutputWriter(args.output, packageName)
     local function handleEntity(entity)
