@@ -1,11 +1,35 @@
 
+-- TODO
+dokx = {}
+
 -- AST setup
 
 local class = require 'pl.class'
+local stringx = require 'pl.stringx'
+local tablex = require 'pl.tablex'
 
 class.Comment()
 
 function Comment:_init(text)
+    text = stringx.strip(text)
+    if stringx.startswith(text, "[[") then
+        text = stringx.strip(text:sub(3))
+    end
+    if stringx.endswith(text, "]]") then
+        text = stringx.strip(text:sub(1, -3))
+    end
+    local lines = stringx.splitlines(text)
+    tablex.transform(function(line)
+        if stringx.startswith(line, "--") then
+            local chopIndex = 3
+            if stringx.startswith(line, "-- ") then
+                chopIndex = 4
+            end
+            return line:sub(chopIndex)
+        end
+        return line
+    end, lines)
+    text = stringx.join("\n", lines)
     self.text = text
 end
 function Comment:combine(other)
@@ -42,12 +66,19 @@ end
 class.DocumentedFunction()
 
 function DocumentedFunction:_init(func, doc)
-    self.func = func
-    self.doc = doc
+    self._func = func
+    self._doc = doc
+end
+
+function DocumentedFunction:name()
+    return self._func.name
+end
+function DocumentedFunction:doc()
+    return self._doc.text
 end
 
 function DocumentedFunction:str()
-    return "{Documented function: \n   " .. self.func:str() .. "\n   " .. self.doc:str() .. "\n}"
+    return "{Documented function: \n   " .. self._func:str() .. "\n   " .. self._doc:str() .. "\n}"
 end
 
 -- Lua 5.1 parser - based on one from http://lua-users.org/wiki/LpegRecipes
@@ -249,42 +280,56 @@ local lua = P {
          K "not";
 };
 
--- Main - apply to an input file
+function dokx.extractDocs(inputPath)
 
-local inputPath = arg[1]
-local content = io.open(inputPath, "rb"):read("*all")
+    local content = io.open(inputPath, "rb"):read("*all")
 
-local matched = { lpeg.match(lua, content) }
+    local matched = { lpeg.match(lua, content) }
 
-local List = require 'pl.List'
-local merged = List.new()
-local tablex = require 'pl.tablex'
+    local List = require 'pl.List'
+    local merged = List.new()
+    local tablex = require 'pl.tablex'
 
--- Merge adjacent comments
-tablex.foreachi(matched, function(x)
-    if #merged ~= 0 and merged[merged:len()]:is_a(Comment) and x:is_a(Comment) then
-        merged[merged:len()] = merged[merged:len()]:combine(x)
-    else
-        merged:append(x)
+    -- Merge adjacent comments
+    tablex.foreachi(matched, function(x)
+        if #merged ~= 0 and merged[merged:len()]:is_a(Comment) and x:is_a(Comment) then
+            merged[merged:len()] = merged[merged:len()]:combine(x)
+        else
+            merged:append(x)
+        end
+    end)
+
+    -- Remove whitespace
+    merged = tablex.filter(merged, function(x) return not x:is_a(Whitespace) end)
+
+    local merged2 = List.new()
+    tablex.foreachi(merged, function(x)
+        if #merged2 ~= 0 and merged2[merged2:len()]:is_a(Comment) and x:is_a(Function) then
+            merged2[merged2:len()] = DocumentedFunction(x, merged2[merged2:len()])
+        else
+            merged2:append(x)
+        end
+    end)
+
+
+    -- Find comments that immediately precede functions - we assume these are the corresponding docs
+
+    local documentedFunctions = List.new()
+    local undocumentedFunctions = List.new()
+
+    for entity in merged2:iter() do
+        --    print(entity:str())
+        if entity:is_a(DocumentedFunction) then
+            documentedFunctions:append(entity)
+        end
+        if entity:is_a(Function) then
+            undocumentedFunctions:append(entity)
+        end
     end
-end)
 
--- Remove whitespace
-merged = tablex.filter(merged, function(x) return not x:is_a(Whitespace) end)
-
-local merged2 = List.new()
-tablex.foreachi(merged, function(x)
-    if #merged2 ~= 0 and merged2[merged2:len()]:is_a(Comment) and x:is_a(Function) then
-        merged2[merged2:len()] = DocumentedFunction(x, merged2[merged2:len()])
-    else
-        merged2:append(x)
-    end
-end)
-
-
--- Find comments that immediately precede functions - we assume these are the corresponding docs
-
-for entity in merged2:iter() do
-    print(entity:str())
+    print("Undocumented functions:", undocumentedFunctions)
+    return documentedFunctions
 end
+
+
 
