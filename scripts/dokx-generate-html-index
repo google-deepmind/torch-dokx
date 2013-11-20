@@ -1,0 +1,63 @@
+#!/usr/bin/env th
+
+local lapp = require 'pl.lapp'
+local function processArgs()
+    return lapp [[
+Generate a global html index page for a documentation tree.
+    <input> (string) input directory
+]]
+end
+
+require 'logging.console'
+local logger = logging.console()
+logger:setLevel(logging.DEBUG)
+
+local path = require 'pl.path'
+local dir = require 'pl.dir'
+
+local function indexEntry(package)
+    return "<li><a href=\"" .. package .. "/index.html\">" .. package .. "</a></li>"
+end
+
+function main(args)
+    logger:info("Generating global documentation index for " .. args.input)
+
+    if not path.isdir(args.input) then
+        error("Not a directory: " .. args.input)
+    end
+
+    local outputName = "index.html"
+    local outputPath = path.join(args.input, outputName)
+
+    local packageDirs = dir.getdirectories(args.input)
+
+    local output = [[
+<html>
+<head>
+<title>Documentation Index</title>
+</head>
+<body>
+<h1>Packages</h1>
+<ul>
+    ]]
+
+    packageDirs:foreach(function(packageDir)
+        local packageName = path.basename(packageDir)
+        logger:info("Adding " .. packageName .. " to index")
+        output = output .. indexEntry(packageName)
+    end)
+
+    output = output .. [[
+</ul>
+</body>
+</html>
+]]
+
+    logger:info("Writing to " .. outputPath)
+
+    local outputFile = io.open(outputPath, 'w')
+    outputFile:write(output)
+    outputFile:close()
+end
+
+main(processArgs())
