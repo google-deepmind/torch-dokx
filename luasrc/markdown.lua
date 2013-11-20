@@ -36,18 +36,19 @@ end
 
 --[[ Add the package header to the output ]]
 function MarkdownWriter:writeHeader()
-    self:heading("Module " .. self.packageName)
+    self:heading(3, "Module " .. self.packageName)
 end
 
 --[[ Add a heading to the output
 
 Args:
  * `text` :: string; the heading text
+ * `level` :: int; level of the heading (lower means bigger)
 
 Returns: nil
 --]]
-function MarkdownWriter:heading(text)
-    self:write("### ".. text .. "\n\n")
+function MarkdownWriter:heading(level, text)
+    self:write(string.rep("#", level) .. " ".. text .. "\n\n")
 end
 
 --[[ Add markdown for a documented function
@@ -84,7 +85,7 @@ function MarkdownWriter:undocumentedFunction(entity)
         name = entity.name or "{missing name}",
     }
 
-    local outputText = " * " .. valueTable.name .. "\n"
+    local outputText = " * `" .. valueTable.name .. "`\n"
 
     self:write(outputText)
 

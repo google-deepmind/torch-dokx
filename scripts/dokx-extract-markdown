@@ -44,7 +44,7 @@ local function main(args)
 
         -- List undocumented functions, if there are any
         if undocumentedFunctions:len() ~= 0 then
-            writer:heading("Undocumented methods")
+            writer:heading(4, "Undocumented methods")
             local function handleUndocumentedFunction(entity)
                 writer:undocumentedFunction(entity)
             end
