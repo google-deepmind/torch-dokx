@@ -34,9 +34,8 @@ local function handleFile(markdownFile, outputPath)
     outputFile:close()
 end
 
-local function main()
-    local args = processArgs()
+local function main(args)
     handleFile(args.input, args.output)
 end
 
-main()
+main(processArgs())
