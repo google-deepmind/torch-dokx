@@ -31,6 +31,11 @@ function Comment:_init(text)
         return line
     end, lines)
     text = stringx.join("\n", lines)
+
+    -- Ensure we end with a new line
+    if text[#text] ~= '\n' then
+        text = text .. "\n"
+    end
     self.text = text
 end
 function Comment:combine(other)
