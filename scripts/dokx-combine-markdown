@@ -1,0 +1,63 @@
+#!/usr/bin/env th
+
+local lapp = require 'pl.lapp'
+local function processArgs()
+    return lapp [[
+Generate a documentation index page for a package
+    <input> (string) input directory 
+]]
+end
+
+require 'logging.console'
+local path = require 'pl.path'
+local stringx = require 'pl.stringx'
+local dir = require 'pl.dir'
+local logger = logging.console()
+logger:setLevel(logging.DEBUG)
+
+local function makeAnchorName(packageName, sectionName)
+    return packageName .. "." .. sectionName
+end
+
+local function makeSectionMarkdown(packageName, sectionPath)
+    local basename = path.basename(sectionPath)
+    local sectionName = path.splitext(basename)
+    local sectionFile = io.open(sectionPath, 'rb')
+    local sectionMarkdown = sectionFile:read("*all")
+    sectionFile:close()
+    local output = ""
+    output = output .. [[<a name="]] .. makeAnchorName(packageName, sectionName) .. [["></a>\n]]
+    output = output .. sectionMarkdown
+    return output
+end
+
+local function main(args)
+    logger:info("Generating combined markdown for " .. args.input)
+
+    if not path.isdir(args.input) then
+        error("Not a directory: " .. args.input)
+    end
+
+    -- Retrieve package name from path, by looking at the name of the last directory
+    local sectionPaths = dir.getfiles(args.input, "*.md")
+    local split = tablex.filter(stringx.split(path.normpath(args.input), "/"), function(x) return x ~= '' end)
+    local packageName = split[#split]
+    lapp.assert(stringx.strip(packageName) ~= '', "malformed package name")
+
+    local outputName = packageName .. ".md"
+    local outputPath = path.join(args.input, outputName)
+
+    local output = ""
+    sectionPaths:foreach(function(sectionPath)
+        logger:info("Adding " .. sectionPath .. " to index")
+        output = output .. makeSectionMarkdown(packageName, sectionPath)
+    end)
+
+    logger:info("Writing to " .. outputPath)
+
+    local outputFile = io.open(outputPath, 'w')
+    outputFile:write(output)
+    outputFile:close()
+end
+
+main(processArgs())
