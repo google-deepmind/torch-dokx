@@ -1,6 +1,5 @@
 #!/usr/bin/env th
 local lapp = require 'pl.lapp'
-
 local path = require 'pl.path'
 
 dofile("luasrc/parse.lua") -- TODO require
@@ -20,8 +19,11 @@ local function processArgs()
 end
 
 
-local function main()
-    local args = processArgs()
+local function main(args)
+    if not path.isdir(args.output) then
+        logger:info("Directory " .. args.output .. " not found; creating it.")
+        path.mkdir(args.output)
+    end
 
     for i, input in ipairs(args.inputs) do
         logger:info("Processing file " .. input)
@@ -31,17 +33,27 @@ local function main()
         lapp.assert(ext == '.lua', "Expected .lua file for input")
         local outputPath = path.join(args.output, packageName .. ".md")
 
-        local documentedFunctions = dokx.extractDocs(input)
+        local documentedFunctions, undocumentedFunctions = dokx.extractDocs(input)
 
         -- Output markdown
         local writer = MarkdownWriter(outputPath, packageName)
-        local function handleEntity(entity)
+        local function handleDocumentedFunction(entity)
             writer:documentEntity(entity)
         end
-        documentedFunctions:foreach(handleEntity)
+        documentedFunctions:foreach(handleDocumentedFunction)
+
+        -- List undocumented functions, if there are any
+        if undocumentedFunctions:len() ~= 0 then
+            writer:heading("Undocumented methods")
+            local function handleUndocumentedFunction(entity)
+                writer:undocumentedFunction(entity)
+            end
+            undocumentedFunctions:foreach(handleUndocumentedFunction)
+        end
+
         writer:close()
     end
 end
 
-main()
+main(processArgs())
 
