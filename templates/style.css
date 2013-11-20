@@ -1,0 +1,31 @@
+body {
+    background-color: #ccc;
+    font-family: "Gill Sans", sans-serif;
+    margin: 1%;
+}
+
+.content {
+    padding: 3%;
+    background-color: #fff;
+}
+
+h3 {
+    padding: 0.5em;
+    background-color: #36c;
+    color: #fff;
+}
+
+h4 {
+    font-family: monospace;
+    background-color: #ace;
+    padding: 0.5em;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+.docSection {
+    background-color: #eee;
+    padding-left: 1em;
+    padding-right:1em;
+}
+
