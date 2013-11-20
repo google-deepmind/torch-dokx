@@ -1,16 +1,17 @@
 #!/usr/bin/env th
 
 local lapp = require 'pl.lapp'
+local path = require 'pl.path'
 require 'logging.console'
 local logger = logging.console()
 logger:setLevel(logging.DEBUG)
 
 local function processArgs()
     return lapp [[
-    Build HTML documentation from the extracted Markdown, using Sundown.
-    -i,--input  (string) input .md file
-    -o,--output (string) output .html file
-    ]]
+Build HTML documentation from Markdown files.
+   -o,--output (string) output directory
+   <inputs...> (string) input .md files
+]]
 end
 
 function readFile(inputPath)
@@ -35,7 +36,20 @@ local function handleFile(markdownFile, outputPath)
 end
 
 local function main(args)
-    handleFile(args.input, args.output)
+    if not path.isdir(args.output) then
+        logger:info("Directory " .. args.output .. " not found; creating it.")
+        path.mkdir(args.output)
+    end
+
+    for i, input in ipairs(args.inputs) do
+        logger:info("Processing file " .. input)
+        local basename = path.basename(input)
+        local packageName, ext = path.splitext(basename)
+        lapp.assert(ext == '.md', "Expected .md file for input")
+        local outputPath = path.join(args.output, packageName .. ".html")
+
+        handleFile(input, outputPath)
+    end
 end
 
 main(processArgs())
