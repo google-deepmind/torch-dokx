@@ -35,9 +35,10 @@ function main(args)
 <html>
 <head>
 <title>Documentation Index</title>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<h1>Packages</h1>
+<h1>Deepmind Documentation</h1>
 <ul>
     ]]
 
