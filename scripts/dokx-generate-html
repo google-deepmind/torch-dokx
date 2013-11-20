@@ -1,3 +1,5 @@
+#!/usr/bin/env th
+
 local lapp = require 'pl.lapp'
 require 'logging.console'
 local logger = logging.console()

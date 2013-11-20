@@ -1,3 +1,4 @@
+#!/usr/bin/env th
 
 local lapp = require 'pl.lapp'
 
