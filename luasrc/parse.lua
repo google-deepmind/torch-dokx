@@ -1,8 +1,9 @@
+--[[ Facilities for parsing lua 5.1 code, in order to extract documentation and function names ]]
 
 -- TODO
 dokx = {}
 
--- AST setup
+-- AST setup. We don't capture a full AST - only the parts we need.
 
 local class = require 'pl.class'
 local stringx = require 'pl.stringx'
@@ -11,7 +12,7 @@ local tablex = require 'pl.tablex'
 class.Comment()
 
 function Comment:_init(text)
-    text = stringx.strip(text)
+    text = stringx.strip(tostring(text))
     if stringx.startswith(text, "[[") then
         text = stringx.strip(text:sub(3))
     end
@@ -38,21 +39,21 @@ end
 function Comment:str()
     return "{Comment: " .. self.text .. "}"
 end
-function makeComment(text)
-    return Comment(text)
+function makeComment(_, _, text)
+    return true, Comment(text)
 end
 
 class.Function()
 
 function Function:_init(name)
-    self.name = name
+    self.name = tostring(name)
 end
 function Function:str()
     return "{Function: " .. self.name .. "}"
 end
 
-function makeFunction(name)
-    return Function(name)
+function makeFunction(_, _, name)
+    return true, Function(name)
 end
 
 class.Whitespace()
@@ -85,12 +86,16 @@ end
 
 local lpeg = require "lpeg";
 
+-- Increase the max stack depth, since it can legitimately get quite deep, for
+-- syntactically complex programs.
+lpeg.setmaxstack(100000)
+
 local locale = lpeg.locale();
 
 local P, S, V = lpeg.P, lpeg.S, lpeg.V;
 
-local C, Cb, Cc, Cg, Cs, Cmt =
-    lpeg.C, lpeg.Cb, lpeg.Cc, lpeg.Cg, lpeg.Cs, lpeg.Cmt;
+local C, Cb, Cc, Cg, Cs, Cmt, Ct =
+    lpeg.C, lpeg.Cb, lpeg.Cc, lpeg.Cg, lpeg.Cs, lpeg.Cmt, lpeg.Ct;
 
 local shebang = P "#" * (P(1) - P "\n")^0 * P "\n";
 
@@ -98,7 +103,7 @@ local function K (k) -- keyword
   return P(k) * -(locale.alnum + P "_");
 end
 
-local lua = P {
+local lua = Ct(P {
   (shebang)^-1 * V "space" * V "chunk" * V "space" * -P(1);
 
   -- keywords
@@ -121,10 +126,11 @@ local lua = P {
 
   -- comments & whitespace
 
-  comment = (P "--" * C(V "longstring") +
-            P "--" * C((P(1) - P "\n")^0 * (P "\n" + -P(1)))) / makeComment;
+  comment = Cmt(P "--" * C(V "longstring") +
+            P "--" * C((P(1) - P "\n")^0 * (P "\n" + -P(1))), makeComment);
 
-  space = (C(locale.space) / makeWhitespace + V "comment")^0;
+  space = (locale.space + V "comment")^0;
+--  space = (C(locale.space) / makeWhitespace + V "comment")^0;
 
   -- Types and Comments
 
@@ -166,9 +172,9 @@ local lua = P {
          K "for" * V "space" * V "namelist" * V "space" * K "in" * V "space" *
              V "explist" * V "space" * K "do" * V "space" * V "block" *
              V "space" * K "end" +
-         K "function" * V "space" * V "funcname" * V "space" *  V "funcbody" +
-         K "local" * V "space" * K "function" * V "space" * V "Name" *
-             V "space" * V "funcbody" +
+         Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody" +
+         K "local" * V "space" * K "function" * V "space" * C(V "Name") *
+             V "space" * V "funcbody", makeFunction) +
          K "local" * V "space" * V "namelist" *
              (V "space" * P "=" * V "space" * V "explist")^-1 +
          V "varlist" * V "space" * P "=" * V "space" * V "explist" +
@@ -176,8 +182,10 @@ local lua = P {
 
   laststat = K "return" * (V "space" * V "explist")^-1 + K "break";
 
-  funcname = C(V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
-      (V "space" * P ":" * V "space" * V "Name")^-1) / makeFunction;
+--  funcname = C(V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
+--      (V "space" * P ":" * V "space" * V "Name")^-1) / makeFunction;
+  funcname = V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
+      (V "space" * P ":" * V "space" * V "Name")^-1;
 
   namelist = V "Name" * (V "space" * P "," * V "space" * V "Name")^0;
 
@@ -278,46 +286,81 @@ local lua = P {
   unop = P "-" +
          P "#" +
          K "not";
-};
+});
 
-function dokx.extractDocs(inputPath)
+local List = require 'pl.List'
+local tablex = require 'pl.tablex'
 
-    local content = io.open(inputPath, "rb"):read("*all")
+local function removeNonTable(entities)
+    return tablex.filter(entities, function(x) return type(x) == 'table' end)
+end
 
-    local matched = { lpeg.match(lua, content) }
+local function mergeAdjacentComments(entities)
 
-    local List = require 'pl.List'
     local merged = List.new()
-    local tablex = require 'pl.tablex'
 
     -- Merge adjacent comments
-    tablex.foreachi(matched, function(x)
-        if #merged ~= 0 and merged[merged:len()]:is_a(Comment) and x:is_a(Comment) then
+    tablex.foreachi(entities, function(x)
+        if type(x) ~= 'table' then
+            error("Unexpected type for captured data: [" .. tostring(x) .. " :: " .. type(x) .. "]")
+        end
+        if merged:len() ~= 0 and merged[merged:len()]:is_a(Comment) and x:is_a(Comment) then
             merged[merged:len()] = merged[merged:len()]:combine(x)
         else
             merged:append(x)
         end
     end)
+    return merged
+end
 
+local function removeWhitespace(entities)
     -- Remove whitespace
-    merged = tablex.filter(merged, function(x) return not x:is_a(Whitespace) end)
+    return tablex.filter(entities, function(x) return not x:is_a(Whitespace) end)
+end
 
-    local merged2 = List.new()
-    tablex.foreachi(merged, function(x)
-        if #merged2 ~= 0 and merged2[merged2:len()]:is_a(Comment) and x:is_a(Function) then
-            merged2[merged2:len()] = DocumentedFunction(x, merged2[merged2:len()])
+local function associateDocsWithFunctions(entities)
+    -- Find comments that immediately precede functions - we assume these are the corresponding docs
+    local merged = List.new()
+    tablex.foreachi(entities, function(x)
+        if merged:len() ~= 0 and merged[merged:len()]:is_a(Comment) and x:is_a(Function) then
+            merged[merged:len()] = DocumentedFunction(x, merged[merged:len()])
         else
-            merged2:append(x)
+            merged:append(x)
         end
     end)
+    return merged
+end
 
 
-    -- Find comments that immediately precede functions - we assume these are the corresponding docs
+function dokx.extractDocs(inputPath)
 
+    local content = io.open(inputPath, "rb"):read("*all")
+
+    -- Output data
     local documentedFunctions = List.new()
     local undocumentedFunctions = List.new()
 
-    for entity in merged2:iter() do
+    -- Tokenize & extract relevant strings
+    local matched = lpeg.match(lua, content)
+
+    -- TODO handle bad parse
+    if not matched then
+        return documentedFunctions, undocumentedFunctions
+    end
+
+    -- Manipulate our reduced AST to extract a list of functions, possibly with
+    -- docs attached
+    local extractor = tablex.reduce(func.compose, {
+        associateDocsWithFunctions,
+        removeWhitespace,
+        mergeAdjacentComments,
+        removeNonTable,
+    })
+
+    local entities = extractor(matched)
+
+
+    for entity in entities:iter() do
         --    print(entity:str())
         if entity:is_a(DocumentedFunction) then
             documentedFunctions:append(entity)
@@ -328,7 +371,7 @@ function dokx.extractDocs(inputPath)
     end
 
     print("Undocumented functions:", undocumentedFunctions)
-    return documentedFunctions
+    return documentedFunctions, undocumentedFunctions
 end
 
 
