@@ -34,7 +34,6 @@ local function makeSectionHTML(packageName, sectionPath)
 end
 
 local function main(args)
-    print(args)
     logger:info("Generating package documentation index for " .. args.input)
 
     local outputName = "index.html"
@@ -62,6 +61,7 @@ local function main(args)
 
     local toc
 
+    -- Add the generated table of contents from the given file, if provided
     if args.toc and args.toc ~= "none" then
         local tocFile = io.open(args.toc, 'rb')
         if not tocFile then
@@ -82,7 +82,7 @@ local function main(args)
 <h1>]] .. packageName .. [[</h1>]]
 
     if toc then
-        output = output .. [[<div class="docToC"><h3>Contents</h3>]] .. toc .. [[</div>]]
+        output = output .. [[<div class="docToC"><h3>Overview</h3>TODO<h3>Contents</h3>]] .. toc .. [[</div>]]
     end
     output = output .. mainContent .. [[
 </div>
