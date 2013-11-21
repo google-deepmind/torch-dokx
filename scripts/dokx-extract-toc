@@ -1,6 +1,7 @@
 #!/usr/bin/env th
 local lapp = require 'pl.lapp'
 local path = require 'pl.path'
+local stringx = require 'pl.stringx'
 
 dofile("luasrc/parse.lua") -- TODO require
 dofile("luasrc/markdown.lua")-- TODO require
@@ -40,11 +41,16 @@ local function main(args)
         local output = ""
         if documentedFunctions:len() ~= 0 then
             output = output .. "<ul>\n"
-            local function handleDocumentedFunction(entity)
-                anchorName = entity:name()
-                output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:name() .. [[</a></li>]] .. "\n"
+            local function handleFunction(entity)
+                print(entity:name(), stringx.startswith(entity:name(), "_")) --TODO fix
+                if not stringx.startswith(entity:name(), "_") then
+                    anchorName = entity:fullname()
+                    output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:name() .. [[</a></li>]] .. "\n"
+                end
             end
-            documentedFunctions:foreach(handleDocumentedFunction)
+            documentedFunctions:foreach(handleFunction)
+            undocumentedFunctions:foreach(handleFunction)
+
             output = output .. "</ul>\n"
         end
 
