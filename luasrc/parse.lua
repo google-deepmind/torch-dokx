@@ -404,7 +404,6 @@ function dokx.extractDocs(inputPath)
 
 
     for entity in entities:iter() do
-        --    print(entity:str())
         if entity:is_a(DocumentedFunction) then
             documentedFunctions:append(entity)
         end
@@ -413,7 +412,6 @@ function dokx.extractDocs(inputPath)
         end
     end
 
-    print("Undocumented functions:", undocumentedFunctions)
     return documentedFunctions, undocumentedFunctions
 end
 
