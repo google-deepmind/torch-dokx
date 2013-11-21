@@ -1,0 +1,59 @@
+#!/usr/bin/env th
+
+local lapp = require 'pl.lapp'
+local function processArgs()
+    return lapp [[
+Generate a combined ToC for a package
+    <input> (string) input directory 
+]]
+end
+
+require 'logging.console'
+local path = require 'pl.path'
+local stringx = require 'pl.stringx'
+local dir = require 'pl.dir'
+local logger = logging.console()
+logger:setLevel(logging.DEBUG)
+
+
+local function makeSectionTOC(packageName, sectionPath)
+    local sectionName = path.splitext(path.basename(sectionPath))
+    local sectionFile = io.open(sectionPath, 'rb')
+    local sectionHTML = sectionFile:read("*all")
+    sectionFile:close()
+    local output = "<li>" .. sectionName .. "\n" .. sectionHTML .. "</li>\n"
+    return output
+end
+
+local function main(args)
+    logger:info("Generating HTML ToC for " .. args.input)
+
+    local outputName = "toc.html"
+
+    if not path.isdir(args.input) then
+        error("Not a directory: " .. args.input)
+    end
+
+    local outputPath = path.join(args.input, outputName)
+
+    -- Retrieve package name from path, by looking at the name of the last directory
+    local sectionPaths = dir.getfiles(args.input, "*.html")
+    local split = tablex.filter(stringx.split(path.normpath(args.input), "/"), function(x) return x ~= '' end)
+    local packageName = split[#split]
+    lapp.assert(stringx.strip(packageName) ~= '', "malformed package name")
+
+    local toc = "<ul>\n"
+    sectionPaths:foreach(function(sectionPath)
+        logger:info("Adding " .. sectionPath .. " to ToC")
+        toc = toc .. makeSectionTOC(packageName, sectionPath)
+    end)
+    toc = toc .. "</ul>\n"
+
+    logger:info("Writing to " .. outputPath)
+
+    local outputFile = io.open(outputPath, 'w')
+    outputFile:write(toc)
+    outputFile:close()
+end
+
+main(processArgs())
