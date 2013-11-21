@@ -36,7 +36,10 @@ local function main(args)
         local documentedFunctions, undocumentedFunctions = dokx.extractDocs(input)
 
         -- Output markdown
-        local writer = MarkdownWriter(outputPath, packageName)
+        local writer = MarkdownWriter(outputPath)
+        if basename ~= 'init.lua' then
+            writer:heading(3, basename)
+        end
         local function handleDocumentedFunction(entity)
             writer:documentEntity(entity)
         end
