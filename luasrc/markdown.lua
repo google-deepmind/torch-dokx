@@ -12,15 +12,12 @@ class.MarkdownWriter()
 
 Args:
  * `outputPath` - string; path to write to
- * `packageName` - string; name of package being documented
 
 Returns: new MarkdownWriter object
 --]]
-function MarkdownWriter:_init(outputPath, packageName)
+function MarkdownWriter:_init(outputPath)
     self.outputFile = io.open(outputPath, 'w')
-    self.packageName = packageName
     lapp.assert(self.outputFile, "could not open output file " .. outputPath)
-    self:writeHeader()
 end
 
 --[[ Append a string to the output
@@ -32,11 +29,6 @@ Returns: nil
 --]]
 function MarkdownWriter:write(text)
     self.outputFile:write(text)
-end
-
---[[ Add the package header to the output ]]
-function MarkdownWriter:writeHeader()
-    self:heading(3, "Module " .. self.packageName)
 end
 
 --[[ Add a heading to the output
