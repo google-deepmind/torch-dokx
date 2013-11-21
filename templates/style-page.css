@@ -6,14 +6,38 @@ body {
 
 .docToC {
     background-color: #eee;
+    padding-bottom: 1em;
 }
 
 .docToC ul {
+    margin: 0px;
+    padding:1em;
     list-style-type:none;
+    -moz-column-width: 15em;
+    -moz-column-gap: 1em;
+    column-width: 15em;
+    column-gap: 1em;
+    -webkit-column-width: 15em;
+    -webkit-column-gap: 1em;
+}
+
+.docToC > ul > li > a {
+    color: #fff;
+    background-color: #36c;
+    padding: 0.3em;
+    display:block;
+}
+.docToC > ul > li  {
+    -webkit-column-break-inside:avoid;
+}
+
+.docToC > ul > li > ul > li > a{
+    color: #333;
+    font-size: 0.9em;
 }
 
 .docToC li {
-    padding: 0.1em;
+    background-color: #fff;
 }
 
 .docToC a {
