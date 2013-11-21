@@ -296,10 +296,24 @@ local lua = Ct(P {
 local List = require 'pl.List'
 local tablex = require 'pl.tablex'
 
+--[[ Given a list, filter out any items that are not tables.
+
+Args:
+ - `entities :: pl.List` - AST objects extracted from the source code
+
+Returns: a new list of entities
+--]]
 local function removeNonTable(entities)
     return tablex.filter(entities, function(x) return type(x) == 'table' end)
 end
 
+--[[ Given a list of entities, combine runs of adjacent Comment objects
+
+Args:
+ - `entities :: pl.List` - AST objects extracted from the source code
+
+Returns: a new list of entities
+--]]
 local function mergeAdjacentComments(entities)
 
     local merged = List.new()
@@ -318,11 +332,25 @@ local function mergeAdjacentComments(entities)
     return merged
 end
 
+--[[ Given a list of entities, remove all whitespace elements
+
+Args:
+ - `entities :: pl.List` - AST objects extracted from the source code
+
+Returns: a new list of entities
+--]]
 local function removeWhitespace(entities)
     -- Remove whitespace
     return tablex.filter(entities, function(x) return not x:is_a(Whitespace) end)
 end
 
+--[[ Given a list of entities, combine adjacent (Comment, Function) pairs into DocumentedFunction objects
+
+Args:
+ - `entities :: pl.List` - AST objects extracted from the source code
+
+Returns: a new list of entities
+--]]
 local function associateDocsWithFunctions(entities)
     -- Find comments that immediately precede functions - we assume these are the corresponding docs
     local merged = List.new()
@@ -337,6 +365,16 @@ local function associateDocsWithFunctions(entities)
 end
 
 
+--[[ Extract functions and documentation from lua source code
+
+Args:
+ - `inputPath` :: string - path to .lua file
+
+Returns:
+- `documentedFunctions` - a table of DocumentedFunction objects
+- `undocumentedFunctions` - a table of Function objects
+
+--]]
 function dokx.extractDocs(inputPath)
 
     local content = io.open(inputPath, "rb"):read("*all")
