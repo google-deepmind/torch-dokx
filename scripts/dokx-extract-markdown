@@ -12,8 +12,9 @@ logger:setLevel(logging.DEBUG)
 
 local function processArgs()
     return  lapp [[
-    Extract inline documentation from Lua source
-    -o,--output (string)    output directory
+Extract inline documentation from Lua source
+    -p,--package (string)    package name
+    -o,--output  (string)    output directory
     <inputs...>  (string)    input .lua files
     ]]
 end
@@ -33,7 +34,7 @@ local function main(args)
         lapp.assert(ext == '.lua', "Expected .lua file for input")
         local outputPath = path.join(args.output, packageName .. ".md")
 
-        local documentedFunctions, undocumentedFunctions = dokx.extractDocs(input)
+        local documentedFunctions, undocumentedFunctions = dokx.extractDocs(args.package, input)
 
         -- Output markdown
         local writer = MarkdownWriter(outputPath)
@@ -41,7 +42,7 @@ local function main(args)
             writer:heading(3, basename)
         end
         local function handleDocumentedFunction(entity)
-            writer:documentEntity(entity)
+            writer:documentedFunction(entity)
         end
         documentedFunctions:foreach(handleDocumentedFunction)
 

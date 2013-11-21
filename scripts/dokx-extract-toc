@@ -12,9 +12,10 @@ logger:setLevel(logging.DEBUG)
 
 local function processArgs()
     return  lapp [[
-    Extract inline documentation from Lua source
+Extract inline documentation from Lua source
+    -p,--package (string)    package name
     -o,--output (string)    output directory
-    <inputs...>  (string)    input .lua files
+    <inputs...>  (string)   input .lua files
     ]]
 end
 
@@ -33,7 +34,7 @@ local function main(args)
         lapp.assert(ext == '.lua', "Expected .lua file for input")
         local outputPath = path.join(args.output, packageName .. ".html")
 
-        local documentedFunctions, undocumentedFunctions = dokx.extractDocs(input)
+        local documentedFunctions, undocumentedFunctions = dokx.extractDocs(args.package, input)
 
         -- Output markdown
         local output = ""

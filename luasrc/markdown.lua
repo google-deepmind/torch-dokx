@@ -50,7 +50,7 @@ Args:
 
 Returns: nil
 --]]
-function MarkdownWriter:documentEntity(entity)
+function MarkdownWriter:documentedFunction(entity)
     logger:debug("Outputting markdown for " .. entity:name())
 
     local valueTable = {
@@ -58,7 +58,9 @@ function MarkdownWriter:documentEntity(entity)
         doc = entity:doc() or "{missing docs}",
     }
 
-    local outputText = "#### " .. valueTable.name .. "\n" .. valueTable.doc
+    local anchorName = entity:fullname()
+    local outputText = [[<a name="]] .. anchorName .. [["/>]] .. "\n"
+    outputText = outputText .. "### " .. valueTable.name .. "\n" .. valueTable.doc
 
     self:write(outputText)
 end
@@ -71,10 +73,10 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:undocumentedFunction(entity)
-    logger:debug("Outputting markdown for " .. entity.name)
+    logger:debug("Outputting markdown for " .. entity:name())
 
     local valueTable = {
-        name = entity.name or "{missing name}",
+        name = entity:name() or "{missing name}",
     }
 
     local outputText = " * `" .. valueTable.name .. "`\n"

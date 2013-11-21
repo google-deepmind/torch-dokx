@@ -9,9 +9,33 @@ local class = require 'pl.class'
 local stringx = require 'pl.stringx'
 local tablex = require 'pl.tablex'
 
-class.Comment()
+class.Entity()
 
-function Comment:_init(text)
+function Entity:_init(package, file, lineNo)
+    assert(package)
+    assert(file)
+    assert(lineNo)
+    self._package = package
+    self._file = file
+    self._lineNo = lineNo
+end
+
+function Entity:package()
+    return self._package
+end
+
+function Entity:file()
+    return self._file
+end
+
+function Entity:lineNo()
+    return self._lineNo
+end
+
+class.Comment(Entity)
+
+function Comment:_init(text, ...)
+    self:super(...)
     text = stringx.strip(tostring(text))
     if stringx.startswith(text, "[[") then
         text = stringx.strip(text:sub(3))
@@ -39,259 +63,294 @@ function Comment:_init(text)
     self.text = text
 end
 function Comment:combine(other)
-    return Comment(self.text .. other.text)
+    return Comment(self.text .. other.text, self._package, self._file, self._lineNo)
 end
 function Comment:str()
     return "{Comment: " .. self.text .. "}"
 end
-function makeComment(_, _, text)
-    return true, Comment(text)
+
+class.Function(Entity)
+
+function Function:_init(name, ...)
+    self:super(...)
+    local pos = name:find(":") or name:find("%.")
+    if pos then
+        self._className = name:sub(1, pos-1)
+        self._name = name:sub(pos+1, -1)
+    else
+        self._className = false
+        self._name = name
+    end
 end
-
-class.Function()
-
-function Function:_init(name)
-    self.name = tostring(name)
+function Function:name()
+    return self._name
+end
+function Function:fullname()
+    local name = self._name
+    if self._className then
+        name = self._className .. "." .. name
+    end
+    name = self._package .. "." .. name
+    return name
 end
 function Function:str()
-    return "{Function: " .. self.name .. "}"
+    return "{Function: " .. self._name .. "}"
 end
 
-function makeFunction(_, _, name)
-    return true, Function(name)
-end
-
-class.Whitespace()
-function makeWhitespace()
-    return Whitespace()
-end
+class.Whitespace(Entity)
 function Whitespace:str()
     return "{Whitespace}"
 end
 
-class.DocumentedFunction()
+class.DocumentedFunction(Entity)
 
 function DocumentedFunction:_init(func, doc)
+    local package = func:package()
+    local file = func:file()
+    local lineNo = func:lineNo()
+
+    self:super(package, file, lineNo)
     self._func = func
     self._doc = doc
 end
 
-function DocumentedFunction:name()
-    return self._func.name
-end
-function DocumentedFunction:doc()
-    return self._doc.text
-end
+function DocumentedFunction:name() return self._func:name() end
+function DocumentedFunction:fullname() return self._func:fullname() end
+function DocumentedFunction:doc() return self._doc.text end
 
 function DocumentedFunction:str()
     return "{Documented function: \n   " .. self._func:str() .. "\n   " .. self._doc:str() .. "\n}"
 end
 
--- Lua 5.1 parser - based on one from http://lua-users.org/wiki/LpegRecipes
-
-local lpeg = require "lpeg";
-
--- Increase the max stack depth, since it can legitimately get quite deep, for
--- syntactically complex programs.
-lpeg.setmaxstack(100000)
-
-local locale = lpeg.locale();
-
-local P, S, V = lpeg.P, lpeg.S, lpeg.V;
-
-local C, Cb, Cc, Cg, Cs, Cmt, Ct =
-    lpeg.C, lpeg.Cb, lpeg.Cc, lpeg.Cg, lpeg.Cs, lpeg.Cmt, lpeg.Ct;
-
-local shebang = P "#" * (P(1) - P "\n")^0 * P "\n";
-
-local function K (k) -- keyword
-  return P(k) * -(locale.alnum + P "_");
+local function calcLineNo(text, pos)
+	local line = 1
+	for _ in text:sub(1, pos):gmatch("\n") do
+		line = line+1
+	end
+    return line
 end
 
-local lua = Ct(P {
-  (shebang)^-1 * V "space" * V "chunk" * V "space" * -P(1);
+-- Lua 5.1 parser - based on one from http://lua-users.org/wiki/LpegRecipes
+local function createParser(packageName, file)
+    assert(packageName)
+    assert(file)
+    local function makeComment(pos, _, text)
+        local lineNo = calcLineNo(pos)
+        return true, Comment(text, packageName, file, lineNo)
+    end
+    local function makeFunction(pos, _, name)
+        local lineNo = calcLineNo(pos)
+        return true, Function(name, packageName, file, lineNo)
+    end
+    local function makeWhitespace()
+        local lineNo = 0
+        return Whitespace()
+    end
 
-  -- keywords
+    local lpeg = require "lpeg";
 
-  keywords = K "and" + K "break" + K "do" + K "else" + K "elseif" +
-             K "end" + K "false" + K "for" + K "function" + K "if" +
-             K "in" + K "local" + K "nil" + K "not" + K "or" + K "repeat" +
-             K "return" + K "then" + K "true" + K "until" + K "while";
+    -- Increase the max stack depth, since it can legitimately get quite deep, for
+    -- syntactically complex programs.
+    lpeg.setmaxstack(100000)
 
-  -- longstrings
+    local locale = lpeg.locale();
+    local P, S, V = lpeg.P, lpeg.S, lpeg.V;
+    local C, Cb, Cc, Cg, Cs, Cmt, Ct = lpeg.C, lpeg.Cb, lpeg.Cc, lpeg.Cg, lpeg.Cs, lpeg.Cmt, lpeg.Ct;
 
-  longstring = P { -- from Roberto Ierusalimschy's lpeg examples
-    V "open" * C((P(1) - V "closeeq")^0) *
-        V "close" / function (o, s) return s end;
+    local shebang = P "#" * (P(1) - P "\n")^0 * P "\n";
 
-    open = "[" * Cg((P "=")^0, "init") * P "[" * (P "\n")^-1;
-    close = "]" * C((P "=")^0) * "]";
-    closeeq = Cmt(V "close" * Cb "init", function (s, i, a, b) return a == b end)
-  };
+    -- keyword
+    local function K (k) return P(k) * -(locale.alnum + P "_"); end
 
-  -- comments & whitespace
+    local lua = Ct(P {
+        (shebang)^-1 * V "space" * V "chunk" * V "space" * -P(1);
 
-  comment = Cmt(P "--" * C(V "longstring") +
-            P "--" * C((P(1) - P "\n")^0 * (P "\n" + -P(1))), makeComment);
+        -- keywords
 
-  space = (locale.space + V "comment")^0;
---  space = (C(locale.space) / makeWhitespace + V "comment")^0;
+        keywords = K "and" + K "break" + K "do" + K "else" + K "elseif" +
+        K "end" + K "false" + K "for" + K "function" + K "if" +
+        K "in" + K "local" + K "nil" + K "not" + K "or" + K "repeat" +
+        K "return" + K "then" + K "true" + K "until" + K "while";
 
-  -- Types and Comments
+        -- longstrings
 
-  Name = (locale.alpha + P "_") * (locale.alnum + P "_")^0 - V "keywords";
-  Number = (P "-")^-1 * V "space" * P "0x" * locale.xdigit^1 *
-               -(locale.alnum + P "_") +
-           (P "-")^-1 * V "space" * locale.digit^1 *
-               (P "." * locale.digit^1)^-1 * (S "eE" * (P "-")^-1 *
-                   locale.digit^1)^-1 * -(locale.alnum + P "_") +
-           (P "-")^-1 * V "space" * P "." * locale.digit^1 *
-               (S "eE" * (P "-")^-1 * locale.digit^1)^-1 *
-               -(locale.alnum + P "_");
-  String = P "\"" * (P "\\" * P(1) + (1 - P "\""))^0 * P "\"" +
-           P "'" * (P "\\" * P(1) + (1 - P "'"))^0 * P "'" +
-           V "longstring";
+        longstring = P { -- from Roberto Ierusalimschy's lpeg examples
+            V "open" * C((P(1) - V "closeeq")^0) *
+            V "close" / function (o, s) return s end;
 
-  -- Lua Complete Syntax
+            open = "[" * Cg((P "=")^0, "init") * P "[" * (P "\n")^-1;
+            close = "]" * C((P "=")^0) * "]";
+            closeeq = Cmt(V "close" * Cb "init", function (s, i, a, b) return a == b end)
+        };
 
-  chunk = (V "space" * V "stat" * (V "space" * P ";")^-1)^0 *
-              (V "space" * V "laststat" * (V "space" * P ";")^-1)^-1;
+        -- comments & whitespace
 
-  block = V "chunk";
+        comment = Cmt(P "--" * C(V "longstring") +
+        P "--" * C((P(1) - P "\n")^0 * (P "\n" + -P(1))), makeComment);
 
-  stat = K "do" * V "space" * V "block" * V "space" * K "end" +
-         K "while" * V "space" * V "exp" * V "space" * K "do" * V "space" *
-             V "block" * V "space" * K "end" +
-         K "repeat" * V "space" * V "block" * V "space" * K "until" *
-             V "space" * V "exp" +
-         K "if" * V "space" * V "exp" * V "space" * K "then" *
-             V "space" * V "block" * V "space" *
-             (K "elseif" * V "space" * V "exp" * V "space" * K "then" *
-              V "space" * V "block" * V "space"
-             )^0 *
-             (K "else" * V "space" * V "block" * V "space")^-1 * K "end" +
-         K "for" * V "space" * V "Name" * V "space" * P "=" * V "space" *
-             V "exp" * V "space" * P "," * V "space" * V "exp" *
-             (V "space" * P "," * V "space" * V "exp")^-1 * V "space" *
-             K "do" * V "space" * V "block" * V "space" * K "end" +
-         K "for" * V "space" * V "namelist" * V "space" * K "in" * V "space" *
-             V "explist" * V "space" * K "do" * V "space" * V "block" *
-             V "space" * K "end" +
-         Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody" +
-         K "local" * V "space" * K "function" * V "space" * C(V "Name") *
-             V "space" * V "funcbody", makeFunction) +
-         K "local" * V "space" * V "namelist" *
-             (V "space" * P "=" * V "space" * V "explist")^-1 +
-         V "varlist" * V "space" * P "=" * V "space" * V "explist" +
-         V "functioncall";
+        space = (locale.space + V "comment")^0;
+        --  space = (C(locale.space) / makeWhitespace + V "comment")^0;
 
-  laststat = K "return" * (V "space" * V "explist")^-1 + K "break";
+        -- Types and Comments
 
---  funcname = C(V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
---      (V "space" * P ":" * V "space" * V "Name")^-1) / makeFunction;
-  funcname = V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
-      (V "space" * P ":" * V "space" * V "Name")^-1;
+        Name = (locale.alpha + P "_") * (locale.alnum + P "_")^0 - V "keywords";
+        Number = (P "-")^-1 * V "space" * P "0x" * locale.xdigit^1 *
+        -(locale.alnum + P "_") +
+        (P "-")^-1 * V "space" * locale.digit^1 *
+        (P "." * locale.digit^1)^-1 * (S "eE" * (P "-")^-1 *
+        locale.digit^1)^-1 * -(locale.alnum + P "_") +
+        (P "-")^-1 * V "space" * P "." * locale.digit^1 *
+        (S "eE" * (P "-")^-1 * locale.digit^1)^-1 *
+        -(locale.alnum + P "_");
+        String = P "\"" * (P "\\" * P(1) + (1 - P "\""))^0 * P "\"" +
+        P "'" * (P "\\" * P(1) + (1 - P "'"))^0 * P "'" +
+        V "longstring";
 
-  namelist = V "Name" * (V "space" * P "," * V "space" * V "Name")^0;
+        -- Lua Complete Syntax
 
-  varlist = V "var" * (V "space" * P "," * V "space" * V "var")^0;
+        chunk = (V "space" * V "stat" * (V "space" * P ";")^-1)^0 *
+        (V "space" * V "laststat" * (V "space" * P ";")^-1)^-1;
 
-  -- Let's come up with a syntax that does not use left recursion
-  -- (only listing changes to Lua 5.1 extended BNF syntax)
-  -- value ::= nil | false | true | Number | String | '...' | function |
-  --           tableconstructor | functioncall | var | '(' exp ')'
-  -- exp ::= unop exp | value [binop exp]
-  -- prefix ::= '(' exp ')' | Name
-  -- index ::= '[' exp ']' | '.' Name
-  -- call ::= args | ':' Name args
-  -- suffix ::= call | index
-  -- var ::= prefix {suffix} index | Name
-  -- functioncall ::= prefix {suffix} call
+        block = V "chunk";
 
-  -- Something that represents a value (or many values)
-  value = K "nil" +
-          K "false" +
-          K "true" +
-          V "Number" +
-          V "String" +
-          P "..." +
-          V "function" +
-          V "tableconstructor" +
-          V "functioncall" +
-          V "var" +
-          P "(" * V "space" * V "exp" * V "space" * P ")";
+        stat = K "do" * V "space" * V "block" * V "space" * K "end" +
+        K "while" * V "space" * V "exp" * V "space" * K "do" * V "space" *
+        V "block" * V "space" * K "end" +
+        K "repeat" * V "space" * V "block" * V "space" * K "until" *
+        V "space" * V "exp" +
+        K "if" * V "space" * V "exp" * V "space" * K "then" *
+        V "space" * V "block" * V "space" *
+        (K "elseif" * V "space" * V "exp" * V "space" * K "then" *
+        V "space" * V "block" * V "space"
+        )^0 *
+        (K "else" * V "space" * V "block" * V "space")^-1 * K "end" +
+        K "for" * V "space" * V "Name" * V "space" * P "=" * V "space" *
+        V "exp" * V "space" * P "," * V "space" * V "exp" *
+        (V "space" * P "," * V "space" * V "exp")^-1 * V "space" *
+        K "do" * V "space" * V "block" * V "space" * K "end" +
+        K "for" * V "space" * V "namelist" * V "space" * K "in" * V "space" *
+        V "explist" * V "space" * K "do" * V "space" * V "block" *
+        V "space" * K "end" +
+        Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody" +
+        K "local" * V "space" * K "function" * V "space" * C(V "Name") *
+        V "space" * V "funcbody", makeFunction) +
+        K "local" * V "space" * V "namelist" *
+        (V "space" * P "=" * V "space" * V "explist")^-1 +
+        V "varlist" * V "space" * P "=" * V "space" * V "explist" +
+        V "functioncall";
 
-  -- An expression operates on values to produce a new value or is a value
-  exp = V "unop" * V "space" * V "exp" +
+        laststat = K "return" * (V "space" * V "explist")^-1 + K "break";
+
+        --  funcname = C(V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
+        --      (V "space" * P ":" * V "space" * V "Name")^-1) / makeFunction;
+        funcname = V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
+        (V "space" * P ":" * V "space" * V "Name")^-1;
+
+        namelist = V "Name" * (V "space" * P "," * V "space" * V "Name")^0;
+
+        varlist = V "var" * (V "space" * P "," * V "space" * V "var")^0;
+
+        -- Let's come up with a syntax that does not use left recursion
+        -- (only listing changes to Lua 5.1 extended BNF syntax)
+        -- value ::= nil | false | true | Number | String | '...' | function |
+        --           tableconstructor | functioncall | var | '(' exp ')'
+        -- exp ::= unop exp | value [binop exp]
+        -- prefix ::= '(' exp ')' | Name
+        -- index ::= '[' exp ']' | '.' Name
+        -- call ::= args | ':' Name args
+        -- suffix ::= call | index
+        -- var ::= prefix {suffix} index | Name
+        -- functioncall ::= prefix {suffix} call
+
+        -- Something that represents a value (or many values)
+        value = K "nil" +
+        K "false" +
+        K "true" +
+        V "Number" +
+        V "String" +
+        P "..." +
+        V "function" +
+        V "tableconstructor" +
+        V "functioncall" +
+        V "var" +
+        P "(" * V "space" * V "exp" * V "space" * P ")";
+
+        -- An expression operates on values to produce a new value or is a value
+        exp = V "unop" * V "space" * V "exp" +
         V "value" * (V "space" * V "binop" * V "space" * V "exp")^-1;
 
-  -- Index and Call
-  index = P "[" * V "space" * V "exp" * V "space" * P "]" +
-          P "." * V "space" * V "Name";
-  call = V "args" +
-         P ":" * V "space" * V "Name" * V "space" * V "args";
+        -- Index and Call
+        index = P "[" * V "space" * V "exp" * V "space" * P "]" +
+        P "." * V "space" * V "Name";
+        call = V "args" +
+        P ":" * V "space" * V "Name" * V "space" * V "args";
 
-  -- A Prefix is a the leftmost side of a var(iable) or functioncall
-  prefix = P "(" * V "space" * V "exp" * V "space" * P ")" +
-           V "Name";
-  -- A Suffix is a Call or Index
-  suffix = V "call" +
-           V "index";
-
-  var = V "prefix" * (V "space" * V "suffix" * #(V "space" * V "suffix"))^0 *
-            V "space" * V "index" +
+        -- A Prefix is a the leftmost side of a var(iable) or functioncall
+        prefix = P "(" * V "space" * V "exp" * V "space" * P ")" +
         V "Name";
-  functioncall = V "prefix" *
-                     (V "space" * V "suffix" * #(V "space" * V "suffix"))^0 *
-                 V "space" * V "call";
+        -- A Suffix is a Call or Index
+        suffix = V "call" +
+        V "index";
 
-  explist = V "exp" * (V "space" * P "," * V "space" * V "exp")^0;
+        var = V "prefix" * (V "space" * V "suffix" * #(V "space" * V "suffix"))^0 *
+        V "space" * V "index" +
+        V "Name";
+        functioncall = V "prefix" *
+        (V "space" * V "suffix" * #(V "space" * V "suffix"))^0 *
+        V "space" * V "call";
 
-  args = P "(" * V "space" * (V "explist" * V "space")^-1 * P ")" +
-         V "tableconstructor" +
-         V "String";
+        explist = V "exp" * (V "space" * P "," * V "space" * V "exp")^0;
 
-  ["function"] = K "function" * V "space" * V "funcbody";
+        args = P "(" * V "space" * (V "explist" * V "space")^-1 * P ")" +
+        V "tableconstructor" +
+        V "String";
 
-  funcbody = P "(" * V "space" * (V "parlist" * V "space")^-1 * P ")" *
-                 V "space" *  V "block" * V "space" * K "end";
+        ["function"] = K "function" * V "space" * V "funcbody";
 
-  parlist = V "namelist" * (V "space" * P "," * V "space" * P "...")^-1 +
-            P "...";
+        funcbody = P "(" * V "space" * (V "parlist" * V "space")^-1 * P ")" *
+        V "space" *  V "block" * V "space" * K "end";
 
-  tableconstructor = P "{" * V "space" * (V "fieldlist" * V "space")^-1 * P "}";
+        parlist = V "namelist" * (V "space" * P "," * V "space" * P "...")^-1 +
+        P "...";
 
-  fieldlist = V "field" * (V "space" * V "fieldsep" * V "space" * V "field")^0
-                  * (V "space" * V "fieldsep")^-1;
+        tableconstructor = P "{" * V "space" * (V "fieldlist" * V "space")^-1 * P "}";
 
-  field = P "[" * V "space" * V "exp" * V "space" * P "]" * V "space" * P "=" *
-              V "space" * V "exp" +
-          V "Name" * V "space" * P "=" * V "space" * V "exp" +
-          V "exp";
+        fieldlist = V "field" * (V "space" * V "fieldsep" * V "space" * V "field")^0
+        * (V "space" * V "fieldsep")^-1;
 
-  fieldsep = P "," +
-             P ";";
+        field = P "[" * V "space" * V "exp" * V "space" * P "]" * V "space" * P "=" *
+        V "space" * V "exp" +
+        V "Name" * V "space" * P "=" * V "space" * V "exp" +
+        V "exp";
 
-  binop = K "and" + -- match longest token sequences first
-          K "or" +
-          P ".." +
-          P "<=" +
-          P ">=" +
-          P "==" +
-          P "~=" +
-          P "+" +
-          P "-" +
-          P "*" +
-          P "/" +
-          P "^" +
-          P "%" +
-          P "<" +
-          P ">";
+        fieldsep = P "," +
+        P ";";
 
-  unop = P "-" +
-         P "#" +
-         K "not";
-});
+        binop = K "and" + -- match longest token sequences first
+        K "or" +
+        P ".." +
+        P "<=" +
+        P ">=" +
+        P "==" +
+        P "~=" +
+        P "+" +
+        P "-" +
+        P "*" +
+        P "/" +
+        P "^" +
+        P "%" +
+        P "<" +
+        P ">";
+
+        unop = P "-" +
+        P "#" +
+        K "not";
+    });
+
+    return function(content)
+        return lpeg.match(lua, content)
+    end
+end
 
 local List = require 'pl.List'
 local tablex = require 'pl.tablex'
@@ -368,6 +427,7 @@ end
 --[[ Extract functions and documentation from lua source code
 
 Args:
+ - `packageName` :: string - name of package from which we're extracting
  - `inputPath` :: string - path to .lua file
 
 Returns:
@@ -375,7 +435,7 @@ Returns:
 - `undocumentedFunctions` - a table of Function objects
 
 --]]
-function dokx.extractDocs(inputPath)
+function dokx.extractDocs(packageName, inputPath)
 
     local content = io.open(inputPath, "rb"):read("*all")
 
@@ -383,8 +443,10 @@ function dokx.extractDocs(inputPath)
     local documentedFunctions = List.new()
     local undocumentedFunctions = List.new()
 
+    local parser = createParser(packageName, inputPath)
+
     -- Tokenize & extract relevant strings
-    local matched = lpeg.match(lua, content)
+    local matched = parser(content)
 
     -- TODO handle bad parse
     if not matched then
@@ -395,7 +457,7 @@ function dokx.extractDocs(inputPath)
     -- docs attached
     local extractor = tablex.reduce(func.compose, {
         associateDocsWithFunctions,
-        removeWhitespace,
+--        removeWhitespace,
         mergeAdjacentComments,
         removeNonTable,
     })

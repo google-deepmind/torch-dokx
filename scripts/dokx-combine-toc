@@ -15,13 +15,12 @@ local dir = require 'pl.dir'
 local logger = logging.console()
 logger:setLevel(logging.DEBUG)
 
-
 local function makeSectionTOC(packageName, sectionPath)
     local sectionName = path.splitext(path.basename(sectionPath))
     local sectionFile = io.open(sectionPath, 'rb')
     local sectionHTML = sectionFile:read("*all")
     sectionFile:close()
-    local output = "<li>" .. sectionName .. "\n" .. sectionHTML .. "</li>\n"
+    local output = [[<li><a href="#]] .. packageName .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
     return output
 end
 
