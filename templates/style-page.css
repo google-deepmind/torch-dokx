@@ -4,6 +4,23 @@ body {
     margin: 1%;
 }
 
+.docToC {
+    background-color: #eee;
+}
+
+.docToC ul {
+    list-style-type:none;
+}
+
+.docToC a {
+
+}
+
+.docToC a:link {text-decoration:none;}
+.docToC a:visited {text-decoration:none;}
+.docToC a:hover {text-decoration:underline;}
+.docToC a:active {text-decoration:underline;}
+
 .content {
     padding: 3%;
     background-color: #fff;
@@ -19,8 +36,6 @@ h4 {
     font-family: monospace;
     background-color: #ace;
     padding: 0.5em;
-/*    margin-left: 1em;*/
-/*    margin-right: 1em;*/
 }
 
 .docSection {

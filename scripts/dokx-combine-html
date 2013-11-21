@@ -3,8 +3,9 @@
 local lapp = require 'pl.lapp'
 local function processArgs()
     return lapp [[
-Generate a documentation index page for a package
-    <input> (string) input directory 
+Combine per-lua-file HTML sections into one documentation page for the whole package.
+    -t,--toc (default none) path to table of contents HTML
+    <input>  (string) input directory
 ]]
 end
 
@@ -32,14 +33,8 @@ local function makeSectionHTML(packageName, sectionPath)
     return output
 end
 
-local function makeSectionTOC(packageName, sectionPath)
-    local output = [[<ul>]]
-    -- TODO 
-    output = output .. [[</ul>]]
-    return output
-end
-
 local function main(args)
+    print(args)
     logger:info("Generating package documentation index for " .. args.input)
 
     local outputName = "index.html"
@@ -57,13 +52,24 @@ local function main(args)
     local packageName = split[#split]
     lapp.assert(stringx.strip(packageName) ~= '', "malformed package name")
 
+    -- TODO sort sectionPaths, but with init.lua at the front
+
     local mainContent = ""
-    local toc = ""
     sectionPaths:foreach(function(sectionPath)
         logger:info("Adding " .. sectionPath .. " to index")
         mainContent = mainContent .. makeSectionHTML(packageName, sectionPath)
-        toc = toc .. makeSectionTOC(packageName, sectionPath)
     end)
+
+    local toc
+
+    if args.toc and args.toc ~= "none" then
+        local tocFile = io.open(args.toc, 'rb')
+        if not tocFile then
+            error("Cannot read ToC file " .. tocFile)
+        end
+        toc = tocFile:read("*all")
+        tocFile:close()
+    end
 
     local output = [[
 <html>
@@ -73,7 +79,12 @@ local function main(args)
 </head>
 <body>
 <div class="content">
-<h1>]] .. packageName .. [[</h1>]] .. toc .. [[<hrule />]] ..  mainContent .. [[
+<h1>]] .. packageName .. [[</h1>]]
+
+    if toc then
+        output = output .. [[<div class="docToC"><h3>Contents</h3>]] .. toc .. [[</div>]]
+    end
+    output = output .. mainContent .. [[
 </div>
 </body>
 </html>
