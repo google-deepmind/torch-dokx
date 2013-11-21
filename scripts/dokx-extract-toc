@@ -42,7 +42,6 @@ local function main(args)
         if documentedFunctions:len() ~= 0 then
             output = output .. "<ul>\n"
             local function handleFunction(entity)
-                print(entity:name(), stringx.startswith(entity:name(), "_")) --TODO fix
                 if not stringx.startswith(entity:name(), "_") then
                     anchorName = entity:fullname()
                     output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:name() .. [[</a></li>]] .. "\n"
