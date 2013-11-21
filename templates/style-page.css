@@ -12,8 +12,12 @@ body {
     list-style-type:none;
 }
 
-.docToC a {
+.docToC li {
+    padding: 0.1em;
+}
 
+.docToC a {
+    color: #006;
 }
 
 .docToC a:link {text-decoration:none;}
