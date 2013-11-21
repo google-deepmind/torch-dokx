@@ -4,6 +4,7 @@ local lapp = require 'pl.lapp'
 local function processArgs()
     return lapp [[
 Generate a combined ToC for a package
+    -p,--package (string)    package name
     <input> (string) input directory 
 ]]
 end
@@ -44,7 +45,7 @@ local function main(args)
     local toc = "<ul>\n"
     sectionPaths:foreach(function(sectionPath)
         logger:info("Adding " .. sectionPath .. " to ToC")
-        toc = toc .. makeSectionTOC(packageName, sectionPath)
+        toc = toc .. makeSectionTOC(args.package, sectionPath)
     end)
     toc = toc .. "</ul>\n"
 

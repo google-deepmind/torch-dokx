@@ -79,7 +79,9 @@ function MarkdownWriter:undocumentedFunction(entity)
         name = entity:name() or "{missing name}",
     }
 
-    local outputText = " * `" .. valueTable.name .. "`\n"
+    local anchorName = entity:fullname()
+    local outputText = [[<a name="]] .. anchorName .. [["/>]] .. "\n"
+    local outputText = outputText .. " * `" .. valueTable.name .. "`\n"
 
     self:write(outputText)
 
