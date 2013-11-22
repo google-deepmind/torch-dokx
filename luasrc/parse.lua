@@ -22,14 +22,17 @@ function dokx.Entity:_init(package, file, lineNo)
     self._lineNo = lineNo
 end
 
+-- Return the name of the package from which this documentation entity was extracted
 function dokx.Entity:package()
     return self._package
 end
 
+-- Return the name of the source file from which this documentation entity was extracted
 function dokx.Entity:file()
     return self._file
 end
 
+-- Return the (last) line number of this documentation entity in the source file
 function dokx.Entity:lineNo()
     return self._lineNo
 end
@@ -64,12 +67,15 @@ function dokx.Comment:_init(text, ...)
     end
     self._text = text
 end
+-- Return a new dokx.Comment by concatenating this with another comment
 function dokx.Comment:combine(other)
     return dokx.Comment(self._text .. other._text, self._package, self._file, self._lineNo)
 end
+-- Return a string representation of this Comment entity
 function dokx.Comment:str()
     return "{Comment: " .. self._text .. "}"
 end
+-- Return this comment's text
 function dokx.Comment:text()
     return self._text
 end
@@ -87,8 +93,11 @@ function dokx.Function:_init(name, ...)
         self._name = name
     end
 end
+-- Return the name of this function
 function dokx.Function:name() return self._name end
+-- Return the name of the class to which this function belongs, or false if it's not a method at all
 function dokx.Function:class() return self._className end
+-- Return the full (package[.class].function) name of this function
 function dokx.Function:fullname()
     local name = self._name
     if self._className then
@@ -97,14 +106,17 @@ function dokx.Function:fullname()
     name = self._package .. "." .. name
     return name
 end
+-- Return a string representation of this Function entity
 function dokx.Function:str() return "{Function: " .. self._name .. "}" end
 
+
+--[[ Information about a region of whitespace, as extracted from lua source ]]
 dokx.Whitespace = class(dokx.Entity)
+-- String representation of this Whitespace entity
 function dokx.Whitespace:str() return "{Whitespace}" end
 
-
+--[[ Information about a function together with a comment, as extracted from lua source ]]
 dokx.DocumentedFunction = class(dokx.Entity)
-
 function dokx.DocumentedFunction:_init(func, doc)
     local package = doc:package()
     local file = doc:file()
@@ -232,11 +244,16 @@ function dokx.createParser(packageName, file)
         K "for" * V "space" * V "namelist" * V "space" * K "in" * V "space" *
         V "explist" * V "space" * K "do" * V "space" * V "block" *
         V "space" * K "end" +
+
+        -- Define a function - we'll create a Function entity!
         Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody" +
         K "local" * V "space" * K "function" * V "space" * C(V "Name") *
         V "space" * V "funcbody", makeFunction) +
+
+        -- Assign to local vars
         K "local" * V "space" * V "namelist" *
         (V "space" * P "=" * V "space" * V "explist")^-1 +
+
         V "varlist" * V "space" * P "=" * V "space" * V "explist" +
         V "functioncall";
 
