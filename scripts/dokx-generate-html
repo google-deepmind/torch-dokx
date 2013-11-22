@@ -1,10 +1,8 @@
 #!/usr/bin/env th
 
 local lapp = require 'pl.lapp'
+require 'dokx'
 local path = require 'pl.path'
-require 'logging.console'
-local logger = logging.console()
-logger:setLevel(logging.DEBUG)
 
 local function processArgs()
     return lapp [[
@@ -16,7 +14,7 @@ end
 
 function readFile(inputPath)
     lapp.assert(path.isfile(inputPath), "Not a file: " .. tostring(inputPath))
-    logger:debug("Opening " .. tostring(inputPath))
+    dokx.logger:debug("Opening " .. tostring(inputPath))
     local inputFile = io.open(inputPath, "rb")
     lapp.assert(inputFile, "Could not open: " .. tostring(inputPath))
     local content = inputFile:read("*all")
@@ -29,7 +27,7 @@ local function handleFile(markdownFile, outputPath)
     local content = readFile(markdownFile)
     local rendered = sundown.render(content)
     local outputFile = io.open(outputPath, 'w')
-    logger:debug("Writing to " .. outputPath)
+    dokx.logger:debug("Writing to " .. outputPath)
     lapp.assert(outputFile, "Could not open: " .. outputPath)
     outputFile:write(rendered)
     outputFile:close()
@@ -37,12 +35,12 @@ end
 
 local function main(args)
     if not path.isdir(args.output) then
-        logger:info("Directory " .. args.output .. " not found; creating it.")
+        dokx.logger:info("Directory " .. args.output .. " not found; creating it.")
         path.mkdir(args.output)
     end
 
     for i, input in ipairs(args.inputs) do
-        logger:info("Processing file " .. input)
+        dokx.logger:info("Processing file " .. input)
         local basename = path.basename(input)
         local packageName, ext = path.splitext(basename)
         lapp.assert(ext == '.md', "Expected .md file for input")

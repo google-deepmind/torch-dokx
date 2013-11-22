@@ -4,11 +4,6 @@ local path = require 'pl.path'
 
 require 'dokx'
 
--- TODO debug mode
-require 'logging.console'
-local logger = logging.console()
-logger:setLevel(logging.DEBUG)
-
 local function processArgs()
     return  lapp [[
 Extract inline documentation from Lua source
@@ -21,12 +16,12 @@ end
 
 local function main(args)
     if not path.isdir(args.output) then
-        logger:info("Directory " .. args.output .. " not found; creating it.")
+        dokx.logger:info("Directory " .. args.output .. " not found; creating it.")
         path.mkdir(args.output)
     end
 
     for i, input in ipairs(args.inputs) do
-        logger:info("Processing file " .. input)
+        dokx.logger:info("Processing file " .. input)
 
         local basename = path.basename(input)
         local packageName, ext = path.splitext(basename)

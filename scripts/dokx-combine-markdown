@@ -8,12 +8,9 @@ Generate a documentation index page for a package
 ]]
 end
 
-require 'logging.console'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 local dir = require 'pl.dir'
-local logger = logging.console()
-logger:setLevel(logging.DEBUG)
 
 local function makeAnchorName(packageName, sectionName)
     return packageName .. "." .. sectionName
@@ -32,7 +29,7 @@ local function makeSectionMarkdown(packageName, sectionPath)
 end
 
 local function main(args)
-    logger:info("Generating combined markdown for " .. args.input)
+    dokx.logger:info("Generating combined markdown for " .. args.input)
 
     if not path.isdir(args.input) then
         error("Not a directory: " .. args.input)
@@ -49,11 +46,11 @@ local function main(args)
 
     local output = ""
     sectionPaths:foreach(function(sectionPath)
-        logger:info("Adding " .. sectionPath .. " to index")
+        dokx.logger:info("Adding " .. sectionPath .. " to index")
         output = output .. makeSectionMarkdown(packageName, sectionPath)
     end)
 
-    logger:info("Writing to " .. outputPath)
+    dokx.logger:info("Writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')
     outputFile:write(output)

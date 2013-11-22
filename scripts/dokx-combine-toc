@@ -1,6 +1,7 @@
 #!/usr/bin/env th
 
 local lapp = require 'pl.lapp'
+require 'dokx'
 local function processArgs()
     return lapp [[
 Generate a combined ToC for a package
@@ -9,12 +10,9 @@ Generate a combined ToC for a package
 ]]
 end
 
-require 'logging.console'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 local dir = require 'pl.dir'
-local logger = logging.console()
-logger:setLevel(logging.DEBUG)
 
 local function makeSectionTOC(packageName, sectionPath)
     local sectionName = path.splitext(path.basename(sectionPath))
@@ -26,7 +24,7 @@ local function makeSectionTOC(packageName, sectionPath)
 end
 
 local function main(args)
-    logger:info("Generating HTML ToC for " .. args.input)
+    dokx.logger:info("Generating HTML ToC for " .. args.input)
 
     local outputName = "toc.html"
 
@@ -44,12 +42,12 @@ local function main(args)
 
     local toc = "<ul>\n"
     sectionPaths:foreach(function(sectionPath)
-        logger:info("Adding " .. sectionPath .. " to ToC")
+        dokx.logger:info("Adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(args.package, sectionPath)
     end)
     toc = toc .. "</ul>\n"
 
-    logger:info("Writing to " .. outputPath)
+    dokx.logger:info("Writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')
     outputFile:write(toc)

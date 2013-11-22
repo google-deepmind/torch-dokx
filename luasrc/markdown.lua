@@ -1,9 +1,5 @@
 --- Handle Markdown generation
 
-require 'logging.console'
-local logger = logging.console()
-logger:setLevel(logging.DEBUG)
-
 local textx = require 'pl.text'
 
 class.MarkdownWriter()
@@ -51,7 +47,7 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:documentedFunction(entity)
-    logger:debug("Outputting markdown for " .. entity:name())
+    dokx.logger:debug("Outputting markdown for " .. entity:name())
 
     local valueTable = {
         name = entity:name() or "{missing name}",
@@ -73,7 +69,7 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:undocumentedFunction(entity)
-    logger:debug("Outputting markdown for " .. entity:name())
+    dokx.logger:debug("Outputting markdown for " .. entity:name())
 
     local valueTable = {
         name = entity:name() or "{missing name}",

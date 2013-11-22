@@ -1,16 +1,13 @@
 #!/usr/bin/env th
 
 local lapp = require 'pl.lapp'
+require 'dokx'
 local function processArgs()
     return lapp [[
 Generate a global html index page for a documentation tree.
     <input> (string) input directory
 ]]
 end
-
-require 'logging.console'
-local logger = logging.console()
-logger:setLevel(logging.DEBUG)
 
 local path = require 'pl.path'
 local dir = require 'pl.dir'
@@ -20,7 +17,7 @@ local function indexEntry(package)
 end
 
 function main(args)
-    logger:info("Generating global documentation index for " .. args.input)
+    dokx.logger:info("Generating global documentation index for " .. args.input)
 
     if not path.isdir(args.input) then
         error("Not a directory: " .. args.input)
@@ -44,7 +41,7 @@ function main(args)
 
     packageDirs:foreach(function(packageDir)
         local packageName = path.basename(packageDir)
-        logger:info("Adding " .. packageName .. " to index")
+        dokx.logger:info("Adding " .. packageName .. " to index")
         output = output .. indexEntry(packageName)
     end)
 
@@ -54,7 +51,7 @@ function main(args)
 </html>
 ]]
 
-    logger:info("Writing to " .. outputPath)
+    dokx.logger:info("Writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')
     outputFile:write(output)

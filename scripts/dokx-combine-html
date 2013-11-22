@@ -1,6 +1,7 @@
 #!/usr/bin/env th
 
 local lapp = require 'pl.lapp'
+require 'dokx'
 local function processArgs()
     return lapp [[
 Combine per-lua-file HTML sections into one documentation page for the whole package.
@@ -9,12 +10,9 @@ Combine per-lua-file HTML sections into one documentation page for the whole pac
 ]]
 end
 
-require 'logging.console'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 local dir = require 'pl.dir'
-local logger = logging.console()
-logger:setLevel(logging.DEBUG)
 
 local function makeAnchorName(packageName, sectionName)
     return packageName .. "." .. sectionName .. ".dok"
@@ -34,7 +32,7 @@ local function makeSectionHTML(packageName, sectionPath)
 end
 
 local function main(args)
-    logger:info("Generating package documentation index for " .. args.input)
+    dokx.logger:info("Generating package documentation index for " .. args.input)
 
     local outputName = "index.html"
     local stylePath = "style.css"
@@ -55,7 +53,7 @@ local function main(args)
 
     local mainContent = ""
     sectionPaths:foreach(function(sectionPath)
-        logger:info("Adding " .. sectionPath .. " to index")
+        dokx.logger:info("Adding " .. sectionPath .. " to index")
         mainContent = mainContent .. makeSectionHTML(packageName, sectionPath)
     end)
 
@@ -90,7 +88,7 @@ local function main(args)
 </html>
 ]]
 
-    logger:info("Writing to " .. outputPath)
+    dokx.logger:info("Writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')
     outputFile:write(output)
