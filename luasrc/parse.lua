@@ -109,6 +109,40 @@ end
 -- Return a string representation of this Function entity
 function dokx.Function:str() return "{Function: " .. self._name .. "}" end
 
+--[[ Information about a torch Class, as extracted from lua source ]]
+dokx.Class = class(dokx.Entity)
+--[[ Constructor for a Class entity
+
+Args:
+ - `name` - the name of the class
+ - `class` - the name of the parent class, or false if there is none
+
+--]]
+function dokx.Class:_init(name, parent, ...)
+    self:super(...)
+    self._parent = parent
+    local pos = name:find("%.")
+    if pos then
+        local package = name:sub(1, pos-1)
+        self._name = name:sub(pos+1, -1)
+        if package ~= self._package then
+            dokx.logger:error("Class " .. name ..
+                " is defined in the wrong module!? Expected " .. self._package .. "." .. self._name
+                )
+        end
+    else
+        dokx.logger:error("Class " .. name ..
+            " should be defined in the " .. self._package .. " namespace! Expected " .. self._package .. "." .. self._name
+            )
+        self._name = name
+    end
+end
+-- Return the name of this class
+function dokx.Class:name() return self._name end
+-- Return the name of the parent class to this one, or false if there is none
+function dokx.Class:parent() return self._parent end
+-- Return the full (package.class) name of this class
+function dokx.Class:fullname() return self._package .. "." .. self._name end
 
 --[[ Information about a region of whitespace, as extracted from lua source ]]
 dokx.Whitespace = class(dokx.Entity)
@@ -154,6 +188,29 @@ function dokx.createParser(packageName, file)
     local function makeFunction(content, pos, name)
         local lineNo = _calcLineNo(content, pos)
         return true, dokx.Function(name, packageName, file, lineNo)
+    end
+    local function makeClass(content, pos, funcname, classArgsString, ...)
+        if funcname == 'torch.class' then
+            local classArgs = loadstring("return " .. classArgsString:sub(2, -2))
+            local valid = true
+            if not classArgs then
+                valid = false
+            end
+            if valid then
+                local name, parent = classArgs()
+                if not name or not parent then
+                    valid = false
+                else
+                    local lineNo = _calcLineNo(content, pos)
+                    return true, dokx.Class(name, parent, packageName, file, lineNo)
+                end
+                if valid then
+                    logger:error("Could not understand class declaration " .. funcname .. classArgsString)
+                    return true
+                end
+            end
+        end
+        return true
     end
     local function makeWhitespace()
         local lineNo = 0
@@ -313,9 +370,11 @@ function dokx.createParser(packageName, file)
         var = V "prefix" * (V "space" * V "suffix" * #(V "space" * V "suffix"))^0 *
         V "space" * V "index" +
         V "Name";
-        functioncall = V "prefix" *
-        (V "space" * V "suffix" * #(V "space" * V "suffix"))^0 *
-        V "space" * V "call";
+
+        -- Function call - check for torch.class definitions!
+        functioncall = Cmt(C(V "prefix" *
+        (V "space" * V "suffix" * #(V "space" * V "suffix"))^0) *
+        V "space" * C(V "call"), makeClass);
 
         explist = V "exp" * (V "space" * P "," * V "space" * V "exp")^0;
 
