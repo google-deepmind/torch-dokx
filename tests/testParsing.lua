@@ -25,6 +25,15 @@ local function _checkComment(entity, text, line)
     tester:asserteq(entity:file(), "dummySourceFile", "should have expected source file")
     tester:asserteq(entity:lineNo(), line, "should have expected line number")
 end
+-- Check that the result is a Class with the expected name, parent and line number
+local function _checkClass(entity, name, parent, line)
+    tester:assert(entity:is_a(dokx.Class), "should be a class")
+    tester:asserteq(entity:name(), name, "should have expected name")
+    tester:asserteq(entity:parent(), parent, "should have expected parent")
+    tester:asserteq(entity:package(), "dummyPackageName", "should have expected package name")
+    tester:asserteq(entity:file(), "dummySourceFile", "should have expected source file")
+    tester:asserteq(entity:lineNo(), line, "should have expected line number")
+end
 
 -- Unit tests
 function myTests:testParseWhitespace()
@@ -87,6 +96,22 @@ function myTests:testParseSeparateComments()
     _checkTableSize(result, 2)
     _checkComment(result[1], "first comment\n    lorem ipsum\n", 4)
     _checkComment(result[2], "second comment\n", 6)
+end
+function myTests:testParseClass()
+    local parser = dokx.createParser("dummyPackageName", "dummySourceFile")
+    local testInput = [=[
+--[[
+
+This is a dummy class.
+
+--]]
+local MyClass, parent = torch.class('dummyPackageName.MyClass', 'otherPackage.Parent')
+]=]
+
+    local result = parser(testInput)
+    _checkTableSize(result, 2)
+    _checkComment(result[1], "This is a dummy class.\n\n\n", 6)
+    _checkClass(result[2], "MyClass", "otherPackage.Parent", 7)
 end
 
 tester:add(myTests)
