@@ -1,17 +1,19 @@
 --[[ Facilities for parsing lua 5.1 code, in order to extract documentation and function names ]]
 
--- TODO
-dokx = {}
-
 -- AST setup. We don't capture a full AST - only the parts we need.
 
 local class = require 'pl.class'
 local stringx = require 'pl.stringx'
 local tablex = require 'pl.tablex'
 
-class.Entity()
+dokx.Entity = class()
 
-function Entity:_init(package, file, lineNo)
+--[[ Abstract Base Class for items extracted from lua source.
+
+Fields `_package`, `_file` and `_lineNo` keep track of where the item was extracted from.
+
+--]]
+function dokx.Entity:_init(package, file, lineNo)
     assert(package)
     assert(file)
     assert(lineNo)
@@ -20,21 +22,21 @@ function Entity:_init(package, file, lineNo)
     self._lineNo = lineNo
 end
 
-function Entity:package()
+function dokx.Entity:package()
     return self._package
 end
 
-function Entity:file()
+function dokx.Entity:file()
     return self._file
 end
 
-function Entity:lineNo()
+function dokx.Entity:lineNo()
     return self._lineNo
 end
 
-class.Comment(Entity)
-
-function Comment:_init(text, ...)
+--[[ Information about a comment string, as extracted from lua source ]]
+dokx.Comment = class(dokx.Entity)
+function dokx.Comment:_init(text, ...)
     self:super(...)
     text = stringx.strip(tostring(text))
     if stringx.startswith(text, "[[") then
@@ -60,18 +62,21 @@ function Comment:_init(text, ...)
     if text[#text] ~= '\n' then
         text = text .. "\n"
     end
-    self.text = text
+    self._text = text
 end
-function Comment:combine(other)
-    return Comment(self.text .. other.text, self._package, self._file, self._lineNo)
+function dokx.Comment:combine(other)
+    return dokx.Comment(self._text .. other._text, self._package, self._file, self._lineNo)
 end
-function Comment:str()
-    return "{Comment: " .. self.text .. "}"
+function dokx.Comment:str()
+    return "{Comment: " .. self._text .. "}"
+end
+function dokx.Comment:text()
+    return self._text
 end
 
-class.Function(Entity)
-
-function Function:_init(name, ...)
+--[[ Information about a Function, as extracted from lua source ]]
+dokx.Function = class(dokx.Entity)
+function dokx.Function:_init(name, ...)
     self:super(...)
     local pos = name:find(":") or name:find("%.")
     if pos then
@@ -82,10 +87,9 @@ function Function:_init(name, ...)
         self._name = name
     end
 end
-function Function:name()
-    return self._name
-end
-function Function:fullname()
+function dokx.Function:name() return self._name end
+function dokx.Function:class() return self._className end
+function dokx.Function:fullname()
     local name = self._name
     if self._className then
         name = self._className .. "." .. name
@@ -93,36 +97,33 @@ function Function:fullname()
     name = self._package .. "." .. name
     return name
 end
-function Function:str()
-    return "{Function: " .. self._name .. "}"
-end
+function dokx.Function:str() return "{Function: " .. self._name .. "}" end
 
-class.Whitespace(Entity)
-function Whitespace:str()
-    return "{Whitespace}"
-end
+dokx.Whitespace = class(dokx.Entity)
+function dokx.Whitespace:str() return "{Whitespace}" end
 
-class.DocumentedFunction(Entity)
 
-function DocumentedFunction:_init(func, doc)
-    local package = func:package()
-    local file = func:file()
-    local lineNo = func:lineNo()
+dokx.DocumentedFunction = class(dokx.Entity)
+
+function dokx.DocumentedFunction:_init(func, doc)
+    local package = doc:package()
+    local file = doc:file()
+    local lineNo = doc:lineNo()
 
     self:super(package, file, lineNo)
     self._func = func
     self._doc = doc
 end
 
-function DocumentedFunction:name() return self._func:name() end
-function DocumentedFunction:fullname() return self._func:fullname() end
-function DocumentedFunction:doc() return self._doc.text end
+function dokx.DocumentedFunction:name() return self._func:name() end
+function dokx.DocumentedFunction:fullname() return self._func:fullname() end
+function dokx.DocumentedFunction:doc() return self._doc._text end
 
-function DocumentedFunction:str()
+function dokx.DocumentedFunction:str()
     return "{Documented function: \n   " .. self._func:str() .. "\n   " .. self._doc:str() .. "\n}"
 end
 
-local function calcLineNo(text, pos)
+local function _calcLineNo(text, pos)
 	local line = 1
 	for _ in text:sub(1, pos):gmatch("\n") do
 		line = line+1
@@ -131,20 +132,20 @@ local function calcLineNo(text, pos)
 end
 
 -- Lua 5.1 parser - based on one from http://lua-users.org/wiki/LpegRecipes
-local function createParser(packageName, file)
+function dokx.createParser(packageName, file)
     assert(packageName)
     assert(file)
-    local function makeComment(pos, _, text)
-        local lineNo = calcLineNo(pos)
-        return true, Comment(text, packageName, file, lineNo)
+    local function makeComment(content, pos, text)
+        local lineNo = _calcLineNo(content, pos)
+        return true, dokx.Comment(text, packageName, file, lineNo)
     end
-    local function makeFunction(pos, _, name)
-        local lineNo = calcLineNo(pos)
-        return true, Function(name, packageName, file, lineNo)
+    local function makeFunction(content, pos, name)
+        local lineNo = _calcLineNo(content, pos)
+        return true, dokx.Function(name, packageName, file, lineNo)
     end
     local function makeWhitespace()
         local lineNo = 0
-        return Whitespace()
+        return dokx.Whitespace()
     end
 
     local lpeg = require "lpeg";
@@ -382,7 +383,7 @@ local function mergeAdjacentComments(entities)
         if type(x) ~= 'table' then
             error("Unexpected type for captured data: [" .. tostring(x) .. " :: " .. type(x) .. "]")
         end
-        if merged:len() ~= 0 and merged[merged:len()]:is_a(Comment) and x:is_a(Comment) then
+        if merged:len() ~= 0 and merged[merged:len()]:is_a(dokx.Comment) and x:is_a(dokx.Comment) then
             merged[merged:len()] = merged[merged:len()]:combine(x)
         else
             merged:append(x)
@@ -414,8 +415,8 @@ local function associateDocsWithFunctions(entities)
     -- Find comments that immediately precede functions - we assume these are the corresponding docs
     local merged = List.new()
     tablex.foreachi(entities, function(x)
-        if merged:len() ~= 0 and merged[merged:len()]:is_a(Comment) and x:is_a(Function) then
-            merged[merged:len()] = DocumentedFunction(x, merged[merged:len()])
+        if merged:len() ~= 0 and merged[merged:len()]:is_a(dokx.Comment) and x:is_a(dokx.Function) then
+            merged[merged:len()] = dokx.DocumentedFunction(x, merged[merged:len()])
         else
             merged:append(x)
         end
@@ -443,7 +444,7 @@ function dokx.extractDocs(packageName, inputPath)
     local documentedFunctions = List.new()
     local undocumentedFunctions = List.new()
 
-    local parser = createParser(packageName, inputPath)
+    local parser = dokx.createParser(packageName, inputPath)
 
     -- Tokenize & extract relevant strings
     local matched = parser(content)
@@ -466,10 +467,10 @@ function dokx.extractDocs(packageName, inputPath)
 
 
     for entity in entities:iter() do
-        if entity:is_a(DocumentedFunction) then
+        if entity:is_a(dokx.DocumentedFunction) then
             documentedFunctions:append(entity)
         end
-        if entity:is_a(Function) then
+        if entity:is_a(dokx.Function) then
             undocumentedFunctions:append(entity)
         end
     end

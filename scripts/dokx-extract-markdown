@@ -2,8 +2,7 @@
 local lapp = require 'pl.lapp'
 local path = require 'pl.path'
 
-dofile("luasrc/parse.lua") -- TODO require
-dofile("luasrc/markdown.lua")-- TODO require
+require 'dokx'
 
 -- TODO debug mode
 require 'logging.console'
