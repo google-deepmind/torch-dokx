@@ -528,6 +528,7 @@ Args:
  - `input` :: string - lua source code
 
 Returns:
+- `classes` - a table of Class objects
 - `documentedFunctions` - a table of DocumentedFunction objects
 - `undocumentedFunctions` - a table of Function objects
 
@@ -535,6 +536,7 @@ Returns:
 function dokx.extractDocs(packageName, sourceName, input)
 
     -- Output data
+    local classes = List.new()
     local documentedFunctions = List.new()
     local undocumentedFunctions = List.new()
 
@@ -545,7 +547,7 @@ function dokx.extractDocs(packageName, sourceName, input)
 
     -- TODO handle bad parse
     if not matched then
-        return documentedFunctions, undocumentedFunctions
+        return classes, documentedFunctions, undocumentedFunctions
     end
 
     -- Manipulate our reduced AST to extract a list of functions, possibly with
@@ -558,9 +560,10 @@ function dokx.extractDocs(packageName, sourceName, input)
     })
 
     local entities = extractor(matched)
-
-
     for entity in entities:iter() do
+        if dokx._is_a(entity, 'dokx.Class') then
+            classes:append(entity)
+        end
         if dokx._is_a(entity, 'dokx.DocumentedFunction') then
             documentedFunctions:append(entity)
         end
@@ -569,7 +572,7 @@ function dokx.extractDocs(packageName, sourceName, input)
         end
     end
 
-    return documentedFunctions, undocumentedFunctions
+    return classes, documentedFunctions, undocumentedFunctions
 end
 
 
