@@ -2,7 +2,8 @@
 
 local textx = require 'pl.text'
 
-class.MarkdownWriter()
+-- This class opens and writes to a markdown file
+local MarkdownWriter = torch.class("dokx.MarkdownWriter")
 
 --[[ Constructor for MarkdownWriter
 
@@ -11,7 +12,7 @@ Args:
 
 Returns: new MarkdownWriter object
 --]]
-function MarkdownWriter:_init(outputPath)
+function MarkdownWriter:__init(outputPath)
     self.outputFile = io.open(outputPath, 'w')
     lapp.assert(self.outputFile, "could not open output file " .. outputPath)
 end

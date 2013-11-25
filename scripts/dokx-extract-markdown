@@ -32,7 +32,7 @@ local function main(args)
         local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(args.package, input, content)
 
         -- Output markdown
-        local writer = MarkdownWriter(outputPath)
+        local writer = dokx.MarkdownWriter(outputPath)
         if basename ~= 'init.lua' then
             writer:heading(3, basename)
         end
