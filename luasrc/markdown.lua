@@ -28,6 +28,17 @@ function MarkdownWriter:write(text)
     self.outputFile:write(text)
 end
 
+--[[ Add an anchor to the output
+
+Args:
+ * `name` :: string; name for the anchor
+
+Returns: nil
+--]]
+function MarkdownWriter:anchor(name)
+    self:write([[<a name="]] .. name .. [["/>]] .. "\n")
+end
+
 --[[ Add a heading to the output
 
 Args:
@@ -36,8 +47,22 @@ Args:
 
 Returns: nil
 --]]
-function MarkdownWriter:heading(level, text)
-    self:write(string.rep("#", level) .. " ".. text .. "\n\n")
+function MarkdownWriter:heading(level, text, rhs)
+    self:write(string.rep("#", level) .. " ".. text .. " " .. string.rep("#", level) .. "\n\n")
+end
+
+--[[ Add markdown for a documented class
+
+Args:
+ * `entity` :: dokx.Class object
+
+Returns: nil
+--]]
+function MarkdownWriter:class(entity)
+    dokx.logger:debug("Outputting markdown for " .. entity:name())
+    self:anchor(entity:fullname() .. ".dok")
+    self:heading(3, entity:name())
+    self:write(entity:doc())
 end
 
 --[[ Add markdown for a documented function
@@ -49,17 +74,9 @@ Returns: nil
 --]]
 function MarkdownWriter:documentedFunction(entity)
     dokx.logger:debug("Outputting markdown for " .. entity:name())
-
-    local valueTable = {
-        name = entity:name() or "{missing name}",
-        doc = entity:doc() or "{missing docs}",
-    }
-
-    local anchorName = entity:fullname()
-    local outputText = [[<a name="]] .. anchorName .. [["/>]] .. "\n"
-    outputText = outputText .. "### " .. valueTable.name .. "\n" .. valueTable.doc
-
-    self:write(outputText)
+    self:anchor(entity:fullname())
+    self:heading(4, entity:name())
+    self:write(entity:doc())
 end
 
 --[[ Add markdown for an undocumented function
@@ -71,17 +88,8 @@ Returns: nil
 --]]
 function MarkdownWriter:undocumentedFunction(entity)
     dokx.logger:debug("Outputting markdown for " .. entity:name())
-
-    local valueTable = {
-        name = entity:name() or "{missing name}",
-    }
-
-    local anchorName = entity:fullname()
-    local outputText = [[<a name="]] .. anchorName .. [["/>]] .. "\n"
-    local outputText = outputText .. " * `" .. valueTable.name .. "`\n"
-
-    self:write(outputText)
-
+    self:anchor(entity:fullname())
+    self:write(" * `" .. entity:name() .. "`\n")
 end
 
 --[[ Close the writer. _Must be called before exiting_. ]]
