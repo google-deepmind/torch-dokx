@@ -2,171 +2,190 @@
 
 -- AST setup. We don't capture a full AST - only the parts we need.
 
+-- Penlight libraries
 local class = require 'pl.class'
 local stringx = require 'pl.stringx'
 local tablex = require 'pl.tablex'
+local func = require 'pl.func'
 
-dokx.Entity = class()
-
---[[ Abstract Base Class for items extracted from lua source.
-
-Fields `_package`, `_file` and `_lineNo` keep track of where the item was extracted from.
-
---]]
-function dokx.Entity:_init(package, file, lineNo)
-    assert(package)
-    assert(file)
-    assert(lineNo)
-    self._package = package
-    self._file = file
-    self._lineNo = lineNo
+function dokx._is_a(x, className)
+    return torch.typename(x) == className
 end
 
--- Return the name of the package from which this documentation entity was extracted
-function dokx.Entity:package()
-    return self._package
-end
+do
+    local Entity, parent = torch.class('dokx.Entity')
 
--- Return the name of the source file from which this documentation entity was extracted
-function dokx.Entity:file()
-    return self._file
-end
+    --[[ Abstract Base Class for items extracted from lua source.
 
--- Return the (last) line number of this documentation entity in the source file
-function dokx.Entity:lineNo()
-    return self._lineNo
+    Fields `_package`, `_file` and `_lineNo` keep track of where the item was extracted from.
+
+    --]]
+    function Entity:__init(package, file, lineNo)
+        assert(package)
+        assert(file)
+        assert(lineNo)
+        self._package = package
+        self._file = file
+        self._lineNo = lineNo
+    end
+
+    -- Return the name of the package from which this documentation entity was extracted
+    function Entity:package()
+        return self._package
+    end
+
+    -- Return the name of the source file from which this documentation entity was extracted
+    function Entity:file()
+        return self._file
+    end
+
+    -- Return the (last) line number of this documentation entity in the source file
+    function Entity:lineNo()
+        return self._lineNo
+    end
 end
 
 --[[ Information about a comment string, as extracted from lua source ]]
-dokx.Comment = class(dokx.Entity)
-function dokx.Comment:_init(text, ...)
-    self:super(...)
-    text = stringx.strip(tostring(text))
-    if stringx.startswith(text, "[[") then
-        text = stringx.strip(text:sub(3))
-    end
-    if stringx.endswith(text, "]]") then
-        text = stringx.strip(text:sub(1, -3))
-    end
-    local lines = stringx.splitlines(text)
-    tablex.transform(function(line)
-        if stringx.startswith(line, "--") then
-            local chopIndex = 3
-            if stringx.startswith(line, "-- ") then
-                chopIndex = 4
-            end
-            return line:sub(chopIndex)
+do
+    local Comment, parent = torch.class("dokx.Comment", "dokx.Entity")
+    function Comment:__init(text, ...)
+        parent.__init(self, ...)
+        text = stringx.strip(tostring(text))
+        if stringx.startswith(text, "[[") then
+            text = stringx.strip(text:sub(3))
         end
-        return line
-    end, lines)
-    text = stringx.join("\n", lines)
+        if stringx.endswith(text, "]]") then
+            text = stringx.strip(text:sub(1, -3))
+        end
+        local lines = stringx.splitlines(text)
+        tablex.transform(function(line)
+            if stringx.startswith(line, "--") then
+                local chopIndex = 3
+                if stringx.startswith(line, "-- ") then
+                    chopIndex = 4
+                end
+                return line:sub(chopIndex)
+            end
+            return line
+        end, lines)
+        text = stringx.join("\n", lines)
 
-    -- Ensure we end with a new line
-    if text[#text] ~= '\n' then
-        text = text .. "\n"
+        -- Ensure we end with a new line
+        if text[#text] ~= '\n' then
+            text = text .. "\n"
+        end
+        self._text = text
     end
-    self._text = text
-end
--- Return a new dokx.Comment by concatenating this with another comment
-function dokx.Comment:combine(other)
-    return dokx.Comment(self._text .. other._text, self._package, self._file, self._lineNo)
-end
--- Return a string representation of this Comment entity
-function dokx.Comment:str()
-    return "{Comment: " .. self._text .. "}"
-end
--- Return this comment's text
-function dokx.Comment:text()
-    return self._text
-end
-
---[[ Information about a Function, as extracted from lua source ]]
-dokx.Function = class(dokx.Entity)
-function dokx.Function:_init(name, ...)
-    self:super(...)
-    local pos = name:find(":") or name:find("%.")
-    if pos then
-        self._className = name:sub(1, pos-1)
-        self._name = name:sub(pos+1, -1)
-    else
-        self._className = false
-        self._name = name
+    -- Return a new dokx.Comment by concatenating this with another comment
+    function Comment:combine(other)
+        return dokx.Comment(self._text .. other._text, self._package, self._file, self._lineNo)
+    end
+    -- Return a string representation of this Comment entity
+    function Comment:str()
+        return "{Comment: " .. self._text .. "}"
+    end
+    -- Return this comment's text
+    function Comment:text()
+        return self._text
     end
 end
--- Return the name of this function
-function dokx.Function:name() return self._name end
--- Return the name of the class to which this function belongs, or false if it's not a method at all
-function dokx.Function:class() return self._className end
--- Return the full (package[.class].function) name of this function
-function dokx.Function:fullname()
-    local name = self._name
-    if self._className then
-        name = self._className .. "." .. name
+
+do
+    --[[ Information about a Function, as extracted from lua source ]]
+    local Function, parent = torch.class("dokx.Function", "dokx.Entity")
+    function Function:__init(name, ...)
+        parent.__init(self, ...)
+        assert(name)
+        local pos = name:find(":") or name:find("%.")
+        if pos then
+            self._className = name:sub(1, pos-1)
+            self._name = name:sub(pos+1, -1)
+        else
+            self._className = false
+            self._name = name
+        end
     end
-    name = self._package .. "." .. name
-    return name
+    -- Return the name of this function
+    function Function:name() return self._name end
+    -- Return the name of the class to which this function belongs, or false if it's not a method at all
+    function Function:class() return self._className end
+    -- Return the full (package[.class].function) name of this function
+    function Function:fullname()
+        local name = self._name
+        if self._className then
+            name = self._className .. "." .. name
+        end
+        name = self._package .. "." .. name
+        return name
+    end
+    -- Return a string representation of this Function entity
+    function Function:str() return "{Function: " .. self._name .. "}" end
 end
--- Return a string representation of this Function entity
-function dokx.Function:str() return "{Function: " .. self._name .. "}" end
 
---[[ Information about a torch Class, as extracted from lua source ]]
-dokx.Class = class(dokx.Entity)
---[[ Constructor for a Class entity
+do
+    --[[ Information about a torch Class, as extracted from lua source ]]
+    local Class, parent = torch.class("dokx.Class", "dokx.Entity")
+    --[[ Constructor for a Class entity
 
-Args:
- - `name` - the name of the class
- - `class` - the name of the parent class, or false if there is none
+    Args:
+    - `name` - the name of the class
+    - `class` - the name of the parent class, or false if there is none
 
---]]
-function dokx.Class:_init(name, parent, ...)
-    self:super(...)
-    self._parent = parent
-    local pos = name:find("%.")
-    if pos then
-        local package = name:sub(1, pos-1)
-        self._name = name:sub(pos+1, -1)
-        if package ~= self._package then
-            dokx.logger:error("Class " .. name ..
+    --]]
+    function Class:__init(name, parentName, ...)
+        parent.__init(self, ...)
+        self._parent = parentName
+        local pos = name:find("%.")
+        if pos then
+            local package = name:sub(1, pos-1)
+            self._name = name:sub(pos+1, -1)
+            if package ~= self._package then
+                dokx.logger:error("Class " .. name ..
                 " is defined in the wrong module!? Expected " .. self._package .. "." .. self._name
                 )
-        end
-    else
-        dokx.logger:error("Class " .. name ..
-            " should be defined in the " .. self._package .. " namespace! Expected " .. self._package .. "." .. self._name
+            end
+        else
+            dokx.logger:error("Class " .. name ..
+            " should be defined in the " .. self._package .. " namespace! Expected " .. self._package .. "." .. name
             )
-        self._name = name
+            self._name = name
+        end
     end
-end
--- Return the name of this class
-function dokx.Class:name() return self._name end
--- Return the name of the parent class to this one, or false if there is none
-function dokx.Class:parent() return self._parent end
--- Return the full (package.class) name of this class
-function dokx.Class:fullname() return self._package .. "." .. self._name end
-
---[[ Information about a region of whitespace, as extracted from lua source ]]
-dokx.Whitespace = class(dokx.Entity)
--- String representation of this Whitespace entity
-function dokx.Whitespace:str() return "{Whitespace}" end
-
---[[ Information about a function together with a comment, as extracted from lua source ]]
-dokx.DocumentedFunction = class(dokx.Entity)
-function dokx.DocumentedFunction:_init(func, doc)
-    local package = doc:package()
-    local file = doc:file()
-    local lineNo = doc:lineNo()
-
-    self:super(package, file, lineNo)
-    self._func = func
-    self._doc = doc
+    -- Return the name of this class
+    function Class:name() return self._name end
+    -- Return the name of the parent class to this one, or false if there is none
+    function Class:parent() return self._parent end
+    -- Return the full (package.class) name of this class
+    function Class:fullname() return self._package .. "." .. self._name end
 end
 
-function dokx.DocumentedFunction:name() return self._func:name() end
-function dokx.DocumentedFunction:fullname() return self._func:fullname() end
-function dokx.DocumentedFunction:doc() return self._doc._text end
+do
+    --[[ Information about a region of whitespace, as extracted from lua source ]]
+    local Whitespace, parent = torch.class("dokx.Whitespace", "dokx.Entity")
+    -- String representation of this Whitespace entity
+    function Whitespace:str() return "{Whitespace}" end
+end
 
-function dokx.DocumentedFunction:str()
-    return "{Documented function: \n   " .. self._func:str() .. "\n   " .. self._doc:str() .. "\n}"
+do
+    --[[ Information about a function together with a comment, as extracted from lua source ]]
+    local DocumentedFunction, parent = torch.class("dokx.DocumentedFunction", "dokx.Entity")
+    function DocumentedFunction:__init(func, doc)
+        local package = doc:package()
+        local file = doc:file()
+        local lineNo = doc:lineNo()
+
+        parent.__init(self, package, file, lineNo)
+        self._func = func
+        self._doc = doc
+    end
+
+    function DocumentedFunction:name() return self._func:name() end
+    function DocumentedFunction:fullname() return self._func:fullname() end
+    function DocumentedFunction:doc() return self._doc._text end
+
+    function DocumentedFunction:str()
+        return "{Documented function: \n   " .. self._func:str() .. "\n   " .. self._doc:str() .. "\n}"
+    end
 end
 
 local function _calcLineNo(text, pos)
@@ -459,7 +478,7 @@ local function mergeAdjacentComments(entities)
         if type(x) ~= 'table' then
             error("Unexpected type for captured data: [" .. tostring(x) .. " :: " .. type(x) .. "]")
         end
-        if merged:len() ~= 0 and merged[merged:len()]:is_a(dokx.Comment) and x:is_a(dokx.Comment) then
+        if merged:len() ~= 0 and dokx._is_a(merged[merged:len()], 'dokx.Comment') and dokx._is_a(x, 'dokx.Comment') then
             merged[merged:len()] = merged[merged:len()]:combine(x)
         else
             merged:append(x)
@@ -477,7 +496,7 @@ Returns: a new list of entities
 --]]
 local function removeWhitespace(entities)
     -- Remove whitespace
-    return tablex.filter(entities, function(x) return not x:is_a(Whitespace) end)
+    return tablex.filter(entities, function(x) return not dokx._is_a(x, 'dokx.Whitespace') end)
 end
 
 --[[ Given a list of entities, combine adjacent (Comment, Function) pairs into DocumentedFunction objects
@@ -491,7 +510,7 @@ local function associateDocsWithFunctions(entities)
     -- Find comments that immediately precede functions - we assume these are the corresponding docs
     local merged = List.new()
     tablex.foreachi(entities, function(x)
-        if merged:len() ~= 0 and merged[merged:len()]:is_a(dokx.Comment) and x:is_a(dokx.Function) then
+        if merged:len() ~= 0 and dokx._is_a(merged[merged:len()], 'dokx.Comment') and dokx._is_a(x, 'dokx.Function') then
             merged[merged:len()] = dokx.DocumentedFunction(x, merged[merged:len()])
         else
             merged:append(x)
@@ -505,25 +524,24 @@ end
 
 Args:
  - `packageName` :: string - name of package from which we're extracting
- - `inputPath` :: string - path to .lua file
+ - `sourceName` :: string - name of source file with which to tag extracted elements
+ - `input` :: string - lua source code
 
 Returns:
 - `documentedFunctions` - a table of DocumentedFunction objects
 - `undocumentedFunctions` - a table of Function objects
 
 --]]
-function dokx.extractDocs(packageName, inputPath)
-
-    local content = io.open(inputPath, "rb"):read("*all")
+function dokx.extractDocs(packageName, sourceName, input)
 
     -- Output data
     local documentedFunctions = List.new()
     local undocumentedFunctions = List.new()
 
-    local parser = dokx.createParser(packageName, inputPath)
+    local parser = dokx.createParser(packageName, sourceName)
 
     -- Tokenize & extract relevant strings
-    local matched = parser(content)
+    local matched = parser(input)
 
     -- TODO handle bad parse
     if not matched then
@@ -543,10 +561,10 @@ function dokx.extractDocs(packageName, inputPath)
 
 
     for entity in entities:iter() do
-        if entity:is_a(dokx.DocumentedFunction) then
+        if dokx._is_a(entity, 'dokx.DocumentedFunction') then
             documentedFunctions:append(entity)
         end
-        if entity:is_a(dokx.Function) then
+        if dokx._is_a(entity, 'dokx.Function') then
             undocumentedFunctions:append(entity)
         end
     end
