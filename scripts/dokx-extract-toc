@@ -28,7 +28,8 @@ local function main(args)
         lapp.assert(ext == '.lua', "Expected .lua file for input")
         local outputPath = path.join(args.output, packageName .. ".html")
 
-        local documentedFunctions, undocumentedFunctions = dokx.extractDocs(args.package, input)
+        local content = dokx._readFile(input)
+        local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(args.package, input, content)
 
         -- Output markdown
         local output = ""

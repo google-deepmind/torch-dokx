@@ -16,9 +16,7 @@ local dir = require 'pl.dir'
 
 local function makeSectionTOC(packageName, sectionPath)
     local sectionName = path.splitext(path.basename(sectionPath))
-    local sectionFile = io.open(sectionPath, 'rb')
-    local sectionHTML = sectionFile:read("*all")
-    sectionFile:close()
+    local sectionHTML = dokx._readFile(sectionPath)
     local output = [[<li><a href="#]] .. packageName .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
     return output
 end

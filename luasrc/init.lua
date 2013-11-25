@@ -12,3 +12,4 @@ dokx.logger:setLevel(logging.DEBUG)
 
 torch.include('dokx', 'markdown.lua')
 torch.include('dokx', 'parse.lua')
+torch.include('dokx', 'utils.lua')

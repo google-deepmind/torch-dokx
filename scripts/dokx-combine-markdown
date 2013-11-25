@@ -19,9 +19,7 @@ end
 local function makeSectionMarkdown(packageName, sectionPath)
     local basename = path.basename(sectionPath)
     local sectionName = path.splitext(basename)
-    local sectionFile = io.open(sectionPath, 'rb')
-    local sectionMarkdown = sectionFile:read("*all")
-    sectionFile:close()
+    local sectionMarkdown = dokx._readFile(sectionPath)
     local output = ""
     output = output .. [[<a name="]] .. makeAnchorName(packageName, sectionName) .. [["></a>\n]]
     output = output .. sectionMarkdown

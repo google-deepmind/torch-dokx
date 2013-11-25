@@ -21,9 +21,7 @@ end
 local function makeSectionHTML(packageName, sectionPath)
     local basename = path.basename(sectionPath)
     local sectionName = path.splitext(basename)
-    local sectionFile = io.open(sectionPath, 'rb')
-    local sectionHTML = sectionFile:read("*all")
-    sectionFile:close()
+    local sectionHTML = dokx._readFile(sectionPath)
     local output = [[<div class='docSection'>]]
     output = output .. [[<a name="]] .. makeAnchorName(packageName, sectionName) .. [[">]]
     output = output .. sectionHTML
@@ -61,12 +59,7 @@ local function main(args)
 
     -- Add the generated table of contents from the given file, if provided
     if args.toc and args.toc ~= "none" then
-        local tocFile = io.open(args.toc, 'rb')
-        if not tocFile then
-            error("Cannot read ToC file " .. tocFile)
-        end
-        toc = tocFile:read("*all")
-        tocFile:close()
+        toc = dokx._readFile(args.toc)
     end
 
     local output = [[

@@ -12,19 +12,9 @@ Build HTML documentation from Markdown files.
 ]]
 end
 
-function readFile(inputPath)
-    lapp.assert(path.isfile(inputPath), "Not a file: " .. tostring(inputPath))
-    dokx.logger:debug("Opening " .. tostring(inputPath))
-    local inputFile = io.open(inputPath, "rb")
-    lapp.assert(inputFile, "Could not open: " .. tostring(inputPath))
-    local content = inputFile:read("*all")
-    inputFile:close()
-    return content
-end
-
 local function handleFile(markdownFile, outputPath)
     local sundown = require 'sundown'
-    local content = readFile(markdownFile)
+    local content = dokx._readFile(markdownFile)
     local rendered = sundown.render(content)
     local outputFile = io.open(outputPath, 'w')
     dokx.logger:debug("Writing to " .. outputPath)
