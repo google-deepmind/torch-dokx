@@ -112,6 +112,12 @@ header ul {
     line-height: 1em;
 }
 
+.entityLink
+{
+    float: right;
+    font-size: 0.8em;
+}
+
 #navcontainer a
 {
 display: block;

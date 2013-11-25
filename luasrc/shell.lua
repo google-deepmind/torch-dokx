@@ -216,7 +216,7 @@ function dokx.combineTOC(package, input, config)
     outputFile:close()
 end
 
-function dokx.extractMarkdown(package, output, inputs)
+function dokx.extractMarkdown(package, output, inputs, config)
 
     if not path.isdir(output) then
         dokx.logger:info("dokx.extractMarkdown: directory " .. output .. " not found; creating it.")
@@ -250,7 +250,26 @@ function dokx.extractMarkdown(package, output, inputs)
         end
 
         classes:foreach(func.bind1(writer.class, writer))
-        documentedFunctions:foreach(func.bind1(writer.documentedFunction, writer))
+
+        local gitCommit
+        if config and config.githubURL then
+            local gitProcess = io.popen("cd " .. path.dirname(input) .. " && git rev-parse HEAD", 'r')
+            gitCommit = stringx.strip(gitProcess:read("*line"))
+            gitProcess:close()
+        end
+
+        local function addGithubLink(entity)
+            if gitCommit then
+                local filename = path.basename(entity:file())
+                local githubProjectRoot = "https://github.com/" .. config.githubURL
+                local githubURL = githubProjectRoot .. "/blob/" .. gitCommit .. "/nnd/" .. filename
+                githubURL = githubURL .. "#L" .. entity:lineNo()
+                writer:write('\n<a class="entityLink" href="' .. githubURL .. '">' .. filename .. "</a>\n")
+            end
+            return entity
+        end
+
+        documentedFunctions:foreach(func.compose(func.bind1(writer.documentedFunction, writer), addGithubLink))
 
         -- List undocumented functions, if there are any
         if undocumentedFunctions:len() ~= 0 then
@@ -345,7 +364,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
 
     path.mkdir(outputPackageDir)
 
-    dokx.extractMarkdown(packageName, docTmp, luaFiles)
+    dokx.extractMarkdown(packageName, docTmp, luaFiles, config)
     dokx.extractTOC(packageName, tocTmp, luaFiles, config)
     dokx.combineTOC(packageName, tocTmp, config)
     dokx.generateHTML(outputPackageDir, markdownFiles)
