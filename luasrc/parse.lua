@@ -217,14 +217,14 @@ function dokx.createParser(packageName, file)
             end
             if valid then
                 local name, parent = classArgs()
-                if not name or not parent then
+                if not name then
                     valid = false
                 else
                     local lineNo = _calcLineNo(content, pos)
-                    return true, dokx.Class(name, parent, packageName, file, lineNo)
+                    return true, dokx.Class(name, parent or false, packageName, file, lineNo)
                 end
-                if valid then
-                    logger:error("Could not understand class declaration " .. funcname .. classArgsString)
+                if not valid then
+                    dokx.logger:error("Could not understand class declaration " .. funcname .. classArgsString)
                     return true
                 end
             end
