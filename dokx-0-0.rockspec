@@ -14,7 +14,7 @@ description = {
   maintainer = "Dan Horgan <danhgn+github@gmail.com>"
 }
 
-dependencies = { 'torch >= 7.0', 'ldoc', 'sundown'}
+dependencies = { 'torch >= 7.0', 'sundown', 'lualogging' }
 build = {
    type = "command",
    build_command = [[
