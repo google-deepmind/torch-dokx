@@ -231,9 +231,9 @@ function dokx.createParser(packageName, file)
         end
         return true
     end
-    local function makeWhitespace()
-        local lineNo = 0
-        return dokx.Whitespace()
+    local function makeWhitespace(content, pos, text)
+        local lineNo = _calcLineNo(content, pos)
+        return dokx.Whitespace(packageName, file, lineNo)
     end
 
     local lpeg = require "lpeg";
@@ -252,7 +252,7 @@ function dokx.createParser(packageName, file)
     local function K (k) return P(k) * -(locale.alnum + P "_"); end
 
     local lua = Ct(P {
-        (shebang)^-1 * V "space" * V "chunk" * V "space" * -P(1);
+        (shebang)^-1 * V "capturespace" * V "chunk" * V "capturespace" * -P(1);
 
         -- keywords
 
@@ -278,7 +278,7 @@ function dokx.createParser(packageName, file)
         P "--" * C((P(1) - P "\n")^0 * (P "\n" + -P(1))), makeComment);
 
         space = (locale.space + V "comment")^0;
-        --  space = (C(locale.space) / makeWhitespace + V "comment")^0;
+        capturespace = (C(locale.space^1) / makeWhitespace + V "comment")^0;
 
         -- Types and Comments
 
@@ -297,33 +297,39 @@ function dokx.createParser(packageName, file)
 
         -- Lua Complete Syntax
 
-        chunk = (V "space" * V "stat" * (V "space" * P ";")^-1)^0 *
-        (V "space" * V "laststat" * (V "space" * P ";")^-1)^-1;
+        chunk = (V "capturespace" * V "stat" * (V "space" * P ";")^-1)^0 *
+        (V "capturespace" * V "laststat" * (V "space" * P ";")^-1)^-1;
 
         block = V "chunk";
 
         stat = K "do" * V "space" * V "block" * V "space" * K "end" +
+
         K "while" * V "space" * V "exp" * V "space" * K "do" * V "space" *
         V "block" * V "space" * K "end" +
+
         K "repeat" * V "space" * V "block" * V "space" * K "until" *
         V "space" * V "exp" +
+
         K "if" * V "space" * V "exp" * V "space" * K "then" *
         V "space" * V "block" * V "space" *
         (K "elseif" * V "space" * V "exp" * V "space" * K "then" *
         V "space" * V "block" * V "space"
         )^0 *
         (K "else" * V "space" * V "block" * V "space")^-1 * K "end" +
+
         K "for" * V "space" * V "Name" * V "space" * P "=" * V "space" *
         V "exp" * V "space" * P "," * V "space" * V "exp" *
         (V "space" * P "," * V "space" * V "exp")^-1 * V "space" *
+
         K "do" * V "space" * V "block" * V "space" * K "end" +
+
         K "for" * V "space" * V "namelist" * V "space" * K "in" * V "space" *
         V "explist" * V "space" * K "do" * V "space" * V "block" *
         V "space" * K "end" +
 
         -- Define a function - we'll create a Function entity!
-        Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody" +
-        K "local" * V "space" * K "function" * V "space" * C(V "Name") *
+        Cmt(K "function" * ((V "space")/0) * C(V "funcname") * ((V "space")/0) *  V "funcbody" +
+        K "local" * ((V "space")/0) * K "function" * ((V "space")/0) * C(V "Name") *
         V "space" * V "funcbody", makeFunction) +
 
         -- Assign to local vars
@@ -554,7 +560,7 @@ function dokx.extractDocs(packageName, sourceName, input)
     -- docs attached
     local extractor = tablex.reduce(func.compose, {
         associateDocsWithFunctions,
---        removeWhitespace,
+        removeWhitespace,
         mergeAdjacentComments,
         removeNonTable,
     })
