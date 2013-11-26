@@ -1,7 +1,5 @@
 --[[ Facilities for parsing lua 5.1 code, in order to extract documentation and function names ]]
 
--- AST setup. We don't capture a full AST - only the parts we need.
-
 -- Penlight libraries
 local class = require 'pl.class'
 local stringx = require 'pl.stringx'
@@ -46,31 +44,7 @@ do
     local Comment, parent = torch.class("dokx.Comment", "dokx.Entity")
     function Comment:__init(text, ...)
         parent.__init(self, ...)
-        text = stringx.strip(tostring(text))
-        if stringx.startswith(text, "[[") then
-            text = stringx.strip(text:sub(3))
-        end
-        if stringx.endswith(text, "]]") then
-            text = stringx.strip(text:sub(1, -3))
-        end
-        local lines = stringx.splitlines(text)
-        tablex.transform(function(line)
-            if stringx.startswith(line, "--") then
-                local chopIndex = 3
-                if stringx.startswith(line, "-- ") then
-                    chopIndex = 4
-                end
-                return line:sub(chopIndex)
-            end
-            return line
-        end, lines)
-        text = stringx.join("\n", lines)
-
-        -- Ensure we end with a new line
-        if text[#text] ~= '\n' then
-            text = text .. "\n"
-        end
-        self._text = text
+        self._text = dokx._normalizeComment(text)
     end
     -- Return a new dokx.Comment by concatenating this with another comment
     function Comment:combine(other)
@@ -82,6 +56,22 @@ do
     end
     -- Return this comment's text
     function Comment:text()
+        return self._text
+    end
+end
+
+do
+    local File, parent = torch.class("dokx.File", "dokx.Entity")
+    function File:__init(text, ...)
+        parent.__init(self, ...)
+        self._text = dokx._normalizeComment(text)
+    end
+    -- Return a string representation of this File entity
+    function File:str()
+        return "{File: " .. self._text .. "}"
+    end
+    -- Return this file's docString
+    function File:text()
         return self._text
     end
 end
@@ -146,6 +136,7 @@ do
             )
             self._name = name
         end
+        self._doc = false
     end
     -- Return the name of this class
     function Class:name() return self._name end
@@ -153,6 +144,10 @@ do
     function Class:parent() return self._parent end
     -- Return the full (package.class) name of this class
     function Class:fullname() return self._package .. "." .. self._name end
+    -- Set the doc string for the class to the given text
+    function Class:setDoc(text) self._doc = text end
+    -- Return the docstring associated with this class, or false if there is none
+    function Class:doc() return self._doc end
 end
 
 do
@@ -521,6 +516,36 @@ local function associateDocsWithFunctions(entities)
     return merged
 end
 
+--[[ Given a list of entities, combine adjacent (Comment, Class) pairs
+
+Args:
+ - `entities :: pl.List` - AST objects extracted from the source code
+
+Returns: a new list of entities
+--]]
+local function associateDocsWithClasses(entities)
+    -- Find comments that immediately precede classes - we assume these are the corresponding docs
+    local merged = List.new()
+    tablex.foreachi(entities, function(x)
+        if merged:len() ~= 0 and dokx._is_a(merged[merged:len()], 'dokx.Comment') and dokx._is_a(x, 'dokx.Class') then
+            x:setDoc(merged[merged:len()]:text())
+            merged[merged:len()] = x
+        else
+            merged:append(x)
+        end
+    end)
+    return merged
+end
+
+-- TODO
+function getFileString(entities)
+    if entities:len() ~= 0 and dokx._is_a(entities[1], 'dokx.Comment') then
+        local fileComment = entities[1]
+        entities[1] = dokx.File(fileComment:text(), fileComment:package(), fileComment:file(), fileComment:lineNo())
+    end
+    return entities
+end
+
 
 --[[ Extract functions and documentation from lua source code
 
@@ -541,28 +566,35 @@ function dokx.extractDocs(packageName, sourceName, input)
     local classes = List.new()
     local documentedFunctions = List.new()
     local undocumentedFunctions = List.new()
+    local fileString = false
 
     local parser = dokx.createParser(packageName, sourceName)
 
     -- Tokenize & extract relevant strings
     local matched = parser(input)
 
-    -- TODO handle bad parse
     if not matched then
-        return classes, documentedFunctions, undocumentedFunctions
+        return classes, documentedFunctions, undocumentedFunctions, fileString
     end
 
     -- Manipulate our reduced AST to extract a list of functions, possibly with
     -- docs attached
     local extractor = tablex.reduce(func.compose, {
+        -- note: order of application is bottom to top!
+        getFileString,
+        associateDocsWithClasses,
         associateDocsWithFunctions,
         removeWhitespace,
         mergeAdjacentComments,
-        removeNonTable,
+--        removeNonTable,
     })
 
     local entities = extractor(matched)
+    local files = {}
     for entity in entities:iter() do
+        if dokx._is_a(entity, 'dokx.File') then
+            files[1] = entity
+        end
         if dokx._is_a(entity, 'dokx.Class') then
             classes:append(entity)
         end
@@ -573,8 +605,11 @@ function dokx.extractDocs(packageName, sourceName, input)
             undocumentedFunctions:append(entity)
         end
     end
+    if #files ~= 0 then
+        fileString = files[1]:text()
+    end
 
-    return classes, documentedFunctions, undocumentedFunctions
+    return classes, documentedFunctions, undocumentedFunctions, fileString
 end
 
 

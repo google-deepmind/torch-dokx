@@ -46,3 +46,34 @@ function dokx._getLastDirName(dirPath)
     end
     return packageName
 end
+
+
+--[[ Given a comment string, remove extraneous symbols and spacing ]]
+function dokx._normalizeComment(text)
+    text = stringx.strip(tostring(text))
+    if stringx.startswith(text, "[[") then
+        text = stringx.strip(text:sub(3))
+    end
+    if stringx.endswith(text, "]]") then
+        text = stringx.strip(text:sub(1, -3))
+    end
+    local lines = stringx.splitlines(text)
+    tablex.transform(function(line)
+        if stringx.startswith(line, "--") then
+            local chopIndex = 3
+            if stringx.startswith(line, "-- ") then
+                chopIndex = 4
+            end
+            return line:sub(chopIndex)
+        end
+        return line
+    end, lines)
+    text = stringx.join("\n", lines)
+
+    -- Ensure we end with a new line
+    if text[#text] ~= '\n' then
+        text = text .. "\n"
+    end
+    return text
+end
+
