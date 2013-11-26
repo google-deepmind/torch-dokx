@@ -7,13 +7,6 @@ local filex = require 'pl.file'
 local stringx = require 'pl.stringx'
 local package = "testData"
 
-local function mkTemp()
-    local file = io.popen("mktemp -d -t dokxTest")
-    local name = stringx.strip(file:read("*all"))
-    file:close()
-    return name
-end
-
 function myTests.testExtractMarkdown()
     local tmpDir = mkTemp()
     local inputPath = "tests/data/testInput1.lua"

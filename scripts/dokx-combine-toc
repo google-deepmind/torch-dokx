@@ -10,46 +10,8 @@ Generate a combined ToC for a package
 ]]
 end
 
-local path = require 'pl.path'
-local stringx = require 'pl.stringx'
-local dir = require 'pl.dir'
-
-local function makeSectionTOC(packageName, sectionPath)
-    local sectionName = path.splitext(path.basename(sectionPath))
-    local sectionHTML = dokx._readFile(sectionPath)
-    local output = [[<li><a href="#]] .. packageName .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
-    return output
-end
-
 local function main(args)
-    dokx.logger:info("Generating HTML ToC for " .. args.input)
-
-    local outputName = "toc.html"
-
-    if not path.isdir(args.input) then
-        error("Not a directory: " .. args.input)
-    end
-
-    local outputPath = path.join(args.input, outputName)
-
-    -- Retrieve package name from path, by looking at the name of the last directory
-    local sectionPaths = dir.getfiles(args.input, "*.html")
-    local split = tablex.filter(stringx.split(path.normpath(args.input), "/"), function(x) return x ~= '' end)
-    local packageName = split[#split]
-    lapp.assert(stringx.strip(packageName) ~= '', "malformed package name")
-
-    local toc = "<ul>\n"
-    sectionPaths:foreach(function(sectionPath)
-        dokx.logger:info("Adding " .. sectionPath .. " to ToC")
-        toc = toc .. makeSectionTOC(args.package, sectionPath)
-    end)
-    toc = toc .. "</ul>\n"
-
-    dokx.logger:info("Writing to " .. outputPath)
-
-    local outputFile = io.open(outputPath, 'w')
-    outputFile:write(toc)
-    outputFile:close()
+    dokx.combineTOC(args.package, args.input)
 end
 
 main(processArgs())

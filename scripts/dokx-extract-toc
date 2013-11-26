@@ -15,42 +15,7 @@ end
 
 
 local function main(args)
-    if not path.isdir(args.output) then
-        dokx.logger:info("Directory " .. args.output .. " not found; creating it.")
-        path.mkdir(args.output)
-    end
-
-    for i, input in ipairs(args.inputs) do
-        dokx.logger:info("Processing file " .. input)
-
-        local basename = path.basename(input)
-        local packageName, ext = path.splitext(basename)
-        lapp.assert(ext == '.lua', "Expected .lua file for input")
-        local outputPath = path.join(args.output, packageName .. ".html")
-
-        local content = dokx._readFile(input)
-        local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(args.package, input, content)
-
-        -- Output markdown
-        local output = ""
-        if documentedFunctions:len() ~= 0 then
-            output = output .. "<ul>\n"
-            local function handleFunction(entity)
-                if not stringx.startswith(entity:name(), "_") then
-                    anchorName = entity:fullname()
-                    output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:name() .. [[</a></li>]] .. "\n"
-                end
-            end
-            documentedFunctions:foreach(handleFunction)
-            undocumentedFunctions:foreach(handleFunction)
-
-            output = output .. "</ul>\n"
-        end
-
-        local outputFile = io.open(outputPath, 'w')
-        outputFile:write(output)
-        outputFile:close()
-    end
+    dokx.extractTOC(args.package, args.output, args.inputs)
 end
 
 main(processArgs())

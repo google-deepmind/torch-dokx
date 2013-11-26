@@ -10,82 +10,8 @@ Combine per-lua-file HTML sections into one documentation page for the whole pac
 ]]
 end
 
-local path = require 'pl.path'
-local stringx = require 'pl.stringx'
-local dir = require 'pl.dir'
-
-local function makeAnchorName(packageName, sectionName)
-    return packageName .. "." .. sectionName .. ".dok"
-end
-
-local function makeSectionHTML(packageName, sectionPath)
-    local basename = path.basename(sectionPath)
-    local sectionName = path.splitext(basename)
-    local sectionHTML = dokx._readFile(sectionPath)
-    local output = [[<div class='docSection'>]]
-    output = output .. [[<a name="]] .. makeAnchorName(packageName, sectionName) .. [[">]]
-    output = output .. sectionHTML
-    output = output .. [[</div>]]
-    return output
-end
-
 local function main(args)
-    dokx.logger:info("Generating package documentation index for " .. args.input)
-
-    local outputName = "index.html"
-    local stylePath = "style.css"
-
-    if not path.isdir(args.input) then
-        error("Not a directory: " .. args.input)
-    end
-
-    local outputPath = path.join(args.input, outputName)
-
-    -- Retrieve package name from path, by looking at the name of the last directory
-    local sectionPaths = dir.getfiles(args.input, "*.html")
-    local split = tablex.filter(stringx.split(path.normpath(args.input), "/"), function(x) return x ~= '' end)
-    local packageName = split[#split]
-    lapp.assert(stringx.strip(packageName) ~= '', "malformed package name")
-
-    -- TODO sort sectionPaths, but with init.lua at the front
-
-    local mainContent = ""
-    sectionPaths:foreach(function(sectionPath)
-        dokx.logger:info("Adding " .. sectionPath .. " to index")
-        mainContent = mainContent .. makeSectionHTML(packageName, sectionPath)
-    end)
-
-    local toc
-
-    -- Add the generated table of contents from the given file, if provided
-    if args.toc and args.toc ~= "none" then
-        toc = dokx._readFile(args.toc)
-    end
-
-    local output = [[
-<html>
-<head>
-<link rel="stylesheet" type="text/css" href="]] .. stylePath .. [[">
-<title>Documentation for ]] .. packageName .. [[</title>
-</head>
-<body>
-<div class="content">
-<h1>]] .. packageName .. [[</h1>]]
-
-    if toc then
-        output = output .. [[<div class="docToC"><h3>Overview</h3>TODO<h3>Contents</h3>]] .. toc .. [[</div>]]
-    end
-    output = output .. mainContent .. [[
-</div>
-</body>
-</html>
-]]
-
-    dokx.logger:info("Writing to " .. outputPath)
-
-    local outputFile = io.open(outputPath, 'w')
-    outputFile:write(output)
-    outputFile:close()
+    dokx.combineHTML(args.toc or false, args.input)
 end
 
 main(processArgs())

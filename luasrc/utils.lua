@@ -1,3 +1,13 @@
+local stringx = require 'pl.stringx'
+local path = require 'pl.path'
+
+--[[ Create a temporary directory and return its path ]]
+function dokx._mkTemp()
+    local file = io.popen("mktemp -d -t dokxTest")
+    local name = stringx.strip(file:read("*all"))
+    file:close()
+    return name
+end
 
 --[[ Read the whole of the given file's contents, and return it as a string.
 
@@ -21,3 +31,13 @@ function dokx._readFile(inputPath)
     return content
 end
 
+
+--[[ Given the path to a directory, return the name of the last component ]]
+function dokx._getLastDirName(dirPath)
+    local split = tablex.filter(stringx.split(path.normpath(path.abspath(dirPath)), "/"), function(x) return x ~= '' end)
+    local packageName = split[#split]
+    if stringx.strip(packageName) == '' then
+        error("malformed package name for " .. dirPath)
+    end
+    return packageName
+end

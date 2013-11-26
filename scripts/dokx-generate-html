@@ -2,7 +2,6 @@
 
 local lapp = require 'pl.lapp'
 require 'dokx'
-local path = require 'pl.path'
 
 local function processArgs()
     return lapp [[
@@ -12,32 +11,8 @@ Build HTML documentation from Markdown files.
 ]]
 end
 
-local function handleFile(markdownFile, outputPath)
-    local sundown = require 'sundown'
-    local content = dokx._readFile(markdownFile)
-    local rendered = sundown.render(content)
-    local outputFile = io.open(outputPath, 'w')
-    dokx.logger:debug("Writing to " .. outputPath)
-    lapp.assert(outputFile, "Could not open: " .. outputPath)
-    outputFile:write(rendered)
-    outputFile:close()
-end
-
 local function main(args)
-    if not path.isdir(args.output) then
-        dokx.logger:info("Directory " .. args.output .. " not found; creating it.")
-        path.mkdir(args.output)
-    end
-
-    for i, input in ipairs(args.inputs) do
-        dokx.logger:info("Processing file " .. input)
-        local basename = path.basename(input)
-        local packageName, ext = path.splitext(basename)
-        lapp.assert(ext == '.md', "Expected .md file for input")
-        local outputPath = path.join(args.output, packageName .. ".html")
-
-        handleFile(input, outputPath)
-    end
+    dokx.generateHTML(args.output, args.inputs)
 end
 
 main(processArgs())

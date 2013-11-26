@@ -15,43 +15,7 @@ end
 
 
 local function main(args)
-    if not path.isdir(args.output) then
-        dokx.logger:info("Directory " .. args.output .. " not found; creating it.")
-        path.mkdir(args.output)
-    end
-
-    for i, input in ipairs(args.inputs) do
-        dokx.logger:info("Processing file " .. input)
-
-        local basename = path.basename(input)
-        local packageName, ext = path.splitext(basename)
-        lapp.assert(ext == '.lua', "Expected .lua file for input")
-        local outputPath = path.join(args.output, packageName .. ".md")
-
-        local content = dokx._readFile(input)
-        local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(args.package, input, content)
-
-        -- Output markdown
-        local writer = dokx.MarkdownWriter(outputPath)
-        if basename ~= 'init.lua' then
-            writer:heading(3, basename)
-        end
-        local function handleDocumentedFunction(entity)
-            writer:documentedFunction(entity)
-        end
-        documentedFunctions:foreach(handleDocumentedFunction)
-
-        -- List undocumented functions, if there are any
-        if undocumentedFunctions:len() ~= 0 then
-            writer:heading(4, "Undocumented methods")
-            local function handleUndocumentedFunction(entity)
-                writer:undocumentedFunction(entity)
-            end
-            undocumentedFunctions:foreach(handleUndocumentedFunction)
-        end
-
-        writer:close()
-    end
+    dokx.extractMarkdown(args.package, args.output, args.inputs)
 end
 
 main(processArgs())

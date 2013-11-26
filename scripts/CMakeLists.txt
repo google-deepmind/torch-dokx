@@ -1,4 +1,5 @@
 INSTALL(PROGRAMS
+    dokx-build-package-docs
     dokx-combine-html
     dokx-combine-markdown
     dokx-combine-toc
@@ -6,5 +7,6 @@ INSTALL(PROGRAMS
     dokx-extract-markdown
     dokx-generate-html
     dokx-generate-html-index
+    dokx-update-from-github
     DESTINATION bin)
 

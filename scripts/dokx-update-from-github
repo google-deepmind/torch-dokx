@@ -1,0 +1,33 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+local dir = require 'pl.dir'
+require 'dokx'
+
+local function processArgs()
+    return lapp [[
+Check out a list of projects from GitHub, and build docs for them in a central tree
+    -o,--output (string) path to root of documentation tree
+    <inputs...> (string) GitHub projects (e.g. d11/torch-dokx)
+    ]]
+end
+
+local function main(args)
+
+    local tempDir = dokx._mkTemp()
+
+    for _, input in ipairs(args.inputs) do
+        local gitURL = "git@github.com:" .. input .. ".git"
+        local cloneDir = path.join(tempDir, input)
+        dir.makepath(cloneDir)
+        local gitCmd = "git clone " .. gitURL .. " " .. cloneDir
+        local result = os.execute(gitCmd)
+        lapp:assert(result, "Git checkout of " .. input .. " failed.")
+
+        --os.execute("dokx-build-package-docs -o " .. args.output .. " " .. cloneDir)
+        dokx.buildPackageDocs(args.output, cloneDir)
+    end
+
+    dir.rmtree(tempDir)
+end
+
+main(processArgs())
