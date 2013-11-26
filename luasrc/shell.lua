@@ -78,6 +78,13 @@ function dokx.combineHTML(tocPath, input)
 <head>
 <link rel="stylesheet" type="text/css" href="]] .. stylePath .. [[">
 <title>Documentation for ]] .. packageName .. [[</title>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          skipTags: ['script', 'noscript', 'style', 'textarea']
+      }
+  });
+</script>
 <script type="text/javascript"
   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
