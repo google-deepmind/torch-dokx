@@ -62,7 +62,9 @@ function MarkdownWriter:class(entity)
     dokx.logger:debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname() .. ".dok")
     self:heading(3, entity:name())
-    self:write(entity:doc())
+    if entity:doc() then
+        self:write(entity:doc())
+    end
 end
 
 --[[ Add markdown for a documented function

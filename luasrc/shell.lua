@@ -227,6 +227,8 @@ function dokx.extractMarkdown(package, output, inputs)
             writer:write(fileString)
         end
 
+        classes:foreach(func.bind1(writer.class, writer))
+
         local function handleDocumentedFunction(entity)
             writer:documentedFunction(entity)
         end
