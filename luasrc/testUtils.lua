@@ -7,13 +7,16 @@ function dokx._checkWhitespace(tester, entity)
     tester:assert(dokx._is_a(entity, 'dokx.Whitespace'), "should be whitespace")
 end
 -- Check that the result is a Function with the expected name, class and line number
-function dokx._checkFunction(tester, package, sourceFile, entity, name, class, line)
+function dokx._checkFunction(tester, package, sourceFile, entity, name, class, line, args)
     tester:assert(dokx._is_a(entity, 'dokx.Function'), "should be a function")
     tester:asserteq(entity:name(), name, "should have expected name")
     tester:asserteq(entity:class(), class, "should have expected class")
     tester:asserteq(entity:package(), package, "should have expected package name")
     tester:asserteq(entity:file(), sourceFile, "should have expected source file")
     tester:asserteq(entity:lineNo(), line, "should have expected line number")
+    if args then
+        tester:asserteq(entity:args(), args, 'arg name does not match expected')
+    end
 end
 -- Check that the result is a Comment with the expected text and line number
 function dokx._checkComment(tester, package, sourceFile, entity, text, line)

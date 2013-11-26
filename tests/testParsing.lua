@@ -35,17 +35,17 @@ end
 end
 function myTests:testParseGlobalFunction()
     local parser = dokx.createParser(package, sourceFile)
-    local testInput = [[function foo() end]]
+    local testInput = [[function foo(a) end]]
     local result = parser(testInput)
     checkTableSize(result, 1)
-    checkFunction(result[1], "foo", false, 1)
+    checkFunction(result[1], "foo", false, 1, 'a')
 end
 function myTests:testParseLocalFunction()
     local parser = dokx.createParser(package, sourceFile)
-    local testInput = [[local function foo() end]]
+    local testInput = [[local function foo(a, b) end]]
     local result = parser(testInput)
     checkTableSize(result, 1)
-    checkFunction(result[1], "foo", false, 1)
+    checkFunction(result[1], "foo", false, 1, 'a, b')
 end
 function myTests:testParseInstanceMethod()
     local parser = dokx.createParser(package, sourceFile)

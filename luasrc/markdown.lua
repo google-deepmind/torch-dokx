@@ -77,7 +77,7 @@ Returns: nil
 function MarkdownWriter:documentedFunction(entity)
     dokx.logger:debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname())
-    self:heading(4, entity:name())
+    self:heading(4, entity:name() .. "(" .. entity:args() .. ")")
     self:write(entity:doc())
 end
 

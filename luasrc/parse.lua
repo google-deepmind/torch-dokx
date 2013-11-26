@@ -79,7 +79,7 @@ end
 do
     --[[ Information about a Function, as extracted from lua source ]]
     local Function, parent = torch.class("dokx.Function", "dokx.Entity")
-    function Function:__init(name, ...)
+    function Function:__init(name, args, ...)
         parent.__init(self, ...)
         assert(name)
         local pos = name:find(":") or name:find("%.")
@@ -90,7 +90,9 @@ do
             self._className = false
             self._name = name
         end
+        self._args = args
     end
+    function Function:args() return self._args end
     -- Return the name of this function
     function Function:name() return self._name end
     -- Return the name of the class to which this function belongs, or false if it's not a method at all
@@ -162,6 +164,7 @@ do
     function Whitespace:numLines() return self._numLines end
 end
 
+-- TODO get rid of this
 do
     --[[ Information about a function together with a comment, as extracted from lua source ]]
     local DocumentedFunction, parent = torch.class("dokx.DocumentedFunction", "dokx.Entity")
@@ -178,6 +181,7 @@ do
     function DocumentedFunction:name() return self._func:name() end
     function DocumentedFunction:fullname() return self._func:fullname() end
     function DocumentedFunction:doc() return self._doc._text end
+    function DocumentedFunction:args() return self._func:args() end
 
     function DocumentedFunction:str()
         return "{Documented function: \n   " .. self._func:str() .. "\n   " .. self._doc:str() .. "\n}"
@@ -200,9 +204,13 @@ function dokx.createParser(packageName, file)
         local lineNo = _calcLineNo(content, pos)
         return true, dokx.Comment(text, packageName, file, lineNo)
     end
-    local function makeFunction(content, pos, name)
+    local function makeFunction(content, pos, name, funcArgs)
         local lineNo = _calcLineNo(content, pos)
-        return true, dokx.Function(name, packageName, file, lineNo)
+        local argString = ""
+        if funcArgs and type(funcArgs) == 'string' then
+            argString = funcArgs
+        end
+        return true, dokx.Function(name, argString or "", packageName, file, lineNo)
     end
     local function makeClass(content, pos, funcname, classArgsString, ...)
         if funcname == 'torch.class' then
@@ -325,8 +333,8 @@ function dokx.createParser(packageName, file)
         V "space" * K "end" +
 
         -- Define a function - we'll create a Function entity!
-        Cmt(K "function" * ((V "space")/0) * C(V "funcname") * ((V "space")/0) *  V "funcbody" +
-        K "local" * ((V "space")/0) * K "function" * ((V "space")/0) * C(V "Name") *
+        Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody" +
+        K "local" * V "space" * K "function" * V "space" * C(V "Name") *
         V "space" * V "funcbody", makeFunction) +
 
         -- Assign to local vars
@@ -338,8 +346,6 @@ function dokx.createParser(packageName, file)
 
         laststat = K "return" * (V "space" * V "explist")^-1 + K "break";
 
-        --  funcname = C(V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
-        --      (V "space" * P ":" * V "space" * V "Name")^-1) / makeFunction;
         funcname = V "Name" * (V "space" * P "." * V "space" * V "Name")^0 *
         (V "space" * P ":" * V "space" * V "Name")^-1;
 
@@ -404,9 +410,9 @@ function dokx.createParser(packageName, file)
         V "tableconstructor" +
         V "String";
 
-        ["function"] = K "function" * V "space" * V "funcbody";
+        ["function"] = K "function" * V "space" * (V "funcbody")/0;
 
-        funcbody = P "(" * V "space" * (V "parlist" * V "space")^-1 * P ")" *
+        funcbody = P "(" * V "space" * (C(V "parlist") / "%0" * V "space")^-1 * P ")" *
         V "space" *  V "block" * V "space" * K "end";
 
         parlist = V "namelist" * (V "space" * P "," * V "space" * P "...")^-1 +
