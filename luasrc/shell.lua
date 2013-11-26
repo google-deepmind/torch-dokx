@@ -68,7 +68,7 @@ function dokx.combineHTML(tocPath, input)
     local toc
 
     -- Add the generated table of contents from the given file, if provided
-    if toc and toc ~= "none" then
+    if tocPath and tocPath ~= "none" then
         toc = dokx._readFile(tocPath)
     end
 
