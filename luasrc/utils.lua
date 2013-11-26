@@ -8,7 +8,7 @@ end
 
 --[[ Create a temporary directory and return its path ]]
 function dokx._mkTemp()
-    local file = io.popen("mktemp -d -t dokxTest")
+    local file = io.popen("mktemp -d -t dokx_XXXXXX")
     local name = stringx.strip(file:read("*all"))
     file:close()
     return name
