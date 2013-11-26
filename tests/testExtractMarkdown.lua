@@ -8,13 +8,14 @@ local stringx = require 'pl.stringx'
 local package = "testData"
 
 function myTests.testExtractMarkdown()
-    local tmpDir = mkTemp()
+    local tmpDir = dokx._mkTemp()
     local inputPath = "tests/data/testInput1.lua"
-    local outputPath = tmpDir .. "/testInput1.md"
+    local outputPath = path.join(tmpDir, "testInput1.md")
     local expectedPath = "tests/data/testOutput1.md"
     local cmd = "dokx-extract-markdown -p " .. package .. " -o " .. tmpDir .. " " .. inputPath
     local exitCode = os.execute(cmd, "r")
     tester:asserteq(exitCode, 0, "script should return exit code 0")
+    tester:assert(path.isfile(outputPath), "script did not produce the expected file")
     local got = dokx._readFile(outputPath)
     local expected = dokx._readFile(expectedPath)
     if got == expected then

@@ -79,6 +79,21 @@ function myTests:testParseSeparateComments()
     checkComment(result[4], "second comment\n", 6)
     checkWhitespace(result[5])
 end
+function myTests:testParseAdjacentComments()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[
+    -- first comment
+    -- second comment
+    ]]
+
+    local result = parser(testInput)
+    checkTableSize(result, 5)
+    checkWhitespace(result[1])
+    checkComment(result[2], "first comment\n", 2)
+    checkWhitespace(result[3])
+    checkComment(result[4], "second comment\n", 3)
+    checkWhitespace(result[5])
+end
 function myTests:testParseClass()
     local parser = dokx.createParser(package, sourceFile)
     local testInput = [=[--[[

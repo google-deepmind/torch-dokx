@@ -153,8 +153,13 @@ end
 do
     --[[ Information about a region of whitespace, as extracted from lua source ]]
     local Whitespace, parent = torch.class("dokx.Whitespace", "dokx.Entity")
+    function Whitespace:__init(numLines, ...)
+        parent.__init(self, ...)
+        self._numLines = numLines
+    end
     -- String representation of this Whitespace entity
     function Whitespace:str() return "{Whitespace}" end
+    function Whitespace:numLines() return self._numLines end
 end
 
 do
@@ -224,7 +229,8 @@ function dokx.createParser(packageName, file)
     end
     local function makeWhitespace(content, pos, text)
         local lineNo = _calcLineNo(content, pos)
-        return dokx.Whitespace(packageName, file, lineNo)
+        local numLines = #stringx.splitlines(text)
+        return true, dokx.Whitespace(numLines, packageName, file, lineNo)
     end
 
     local lpeg = require "lpeg";
@@ -269,7 +275,7 @@ function dokx.createParser(packageName, file)
         P "--" * C((P(1) - P "\n")^0 * (P "\n" + -P(1))), makeComment);
 
         space = (locale.space + V "comment")^0;
-        capturespace = (C(locale.space^1) / makeWhitespace + V "comment")^0;
+        capturespace = (Cmt(C(locale.space^1), makeWhitespace) + V "comment")^0;
 
         -- Types and Comments
 
@@ -448,17 +454,6 @@ end
 local List = require 'pl.List'
 local tablex = require 'pl.tablex'
 
---[[ Given a list, filter out any items that are not tables.
-
-Args:
- - `entities :: pl.List` - AST objects extracted from the source code
-
-Returns: a new list of entities
---]]
-local function removeNonTable(entities)
-    return tablex.filter(entities, function(x) return type(x) == 'table' end)
-end
-
 --[[ Given a list of entities, combine runs of adjacent Comment objects
 
 Args:
@@ -494,6 +489,10 @@ Returns: a new list of entities
 local function removeWhitespace(entities)
     -- Remove whitespace
     return tablex.filter(entities, function(x) return not dokx._is_a(x, 'dokx.Whitespace') end)
+end
+
+local function removeSingleLineWhitespace(entities)
+    return tablex.filter(entities, function(x) return not dokx._is_a(x, 'dokx.Whitespace') or x:numLines() > 1 end)
 end
 
 --[[ Given a list of entities, combine adjacent (Comment, Function) pairs into DocumentedFunction objects
@@ -546,7 +545,6 @@ function getFileString(entities)
     return entities
 end
 
-
 --[[ Extract functions and documentation from lua source code
 
 Args:
@@ -582,11 +580,11 @@ function dokx.extractDocs(packageName, sourceName, input)
     local extractor = tablex.reduce(func.compose, {
         -- note: order of application is bottom to top!
         getFileString,
+        removeWhitespace,
         associateDocsWithClasses,
         associateDocsWithFunctions,
-        removeWhitespace,
+        removeSingleLineWhitespace,
         mergeAdjacentComments,
---        removeNonTable,
     })
 
     local entities = extractor(matched)

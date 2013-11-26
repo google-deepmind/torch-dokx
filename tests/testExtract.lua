@@ -91,5 +91,63 @@ end
     checkTableSize(undocumentedFunctions, 1)
 end
 
+
+function myTests:testExtractModule()
+    local testInput = [=[
+--[[ This is a module ]]
+
+-- this is a function
+function dummyPackageName.activate()
+end
+]=]
+    local classes, documentedFunctions, undocumentedFunctions, fileString = dokx.extractDocs(
+            package, sourceFile, testInput
+        )
+    checkTableSize(classes, 0)
+    checkTableSize(documentedFunctions, 1)
+    checkTableSize(undocumentedFunctions, 0)
+    tester:asserteq(fileString, "This is a module\n", "file string does not match expected")
+
+end
+
+function myTests:testExtractFullModule()
+    local testInput = [=[
+-- This is a module
+
+
+function testFunction()
+    print("This function is undocumented")
+end
+
+-- This is a dummy test class
+local myClass, parent = torch.class("dummyPackageName.MyClass")
+
+--[[ This is a dummy test function
+
+Args:
+
+ * `gamma` - a test parameter
+
+Returns: nil
+]]
+function myClass:frobnicate(gamma)
+    print("Undergoing frobnication")
+end
+
+-- This is another dummy test function
+function myClass:foobar()
+end
+]=]
+    local classes, documentedFunctions, undocumentedFunctions, fileString = dokx.extractDocs(
+            package, sourceFile, testInput
+        )
+    local parser = dokx.createParser(package, sourceFile)
+    local result = parser(testInput)
+    checkTableSize(classes, 1)
+    checkTableSize(documentedFunctions, 2)
+    checkTableSize(undocumentedFunctions, 1)
+    tester:asserteq(fileString, "This is a module\n", "file string does not match expected")
+end
+
 tester:add(myTests)
 tester:run()
