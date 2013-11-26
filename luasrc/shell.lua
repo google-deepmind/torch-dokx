@@ -17,17 +17,6 @@ local function makeSectionTOC(packageName, sectionPath)
     return output
 end
 
-local function handleFile(markdownFile, outputPath)
-    local sundown = require 'sundown'
-    local content = dokx._readFile(markdownFile)
-    local rendered = sundown.render(content)
-    local outputFile = io.open(outputPath, 'w')
-    dokx.logger:debug("Writing to " .. outputPath)
-    lapp.assert(outputFile, "Could not open: " .. outputPath)
-    outputFile:write(rendered)
-    outputFile:close()
-end
-
 local function makeAnchorName(packageName, sectionName)
     return packageName .. "." .. sectionName .. ".dok"
 end
@@ -113,6 +102,17 @@ function dokx.generateHTML(output, inputs)
     if not path.isdir(output) then
         dokx.logger:info("Directory " .. output .. " not found; creating it.")
         path.mkdir(output)
+    end
+
+    local function handleFile(markdownFile, outputPath)
+        local sundown = require 'sundown'
+        local content = dokx._readFile(markdownFile)
+        local rendered = sundown.render(content)
+        local outputFile = io.open(outputPath, 'w')
+        dokx.logger:debug("dokx.generateHTML: writing to " .. outputPath)
+        lapp.assert(outputFile, "Could not open: " .. outputPath)
+        outputFile:write(rendered)
+        outputFile:close()
     end
 
     for i, input in ipairs(inputs) do
