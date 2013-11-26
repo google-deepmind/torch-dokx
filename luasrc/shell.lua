@@ -228,19 +228,12 @@ function dokx.extractMarkdown(package, output, inputs)
         end
 
         classes:foreach(func.bind1(writer.class, writer))
-
-        local function handleDocumentedFunction(entity)
-            writer:documentedFunction(entity)
-        end
-        documentedFunctions:foreach(handleDocumentedFunction)
+        documentedFunctions:foreach(func.bind1(writer.documentedFunction, writer))
 
         -- List undocumented functions, if there are any
         if undocumentedFunctions:len() ~= 0 then
             writer:heading(4, "Undocumented methods")
-            local function handleUndocumentedFunction(entity)
-                writer:undocumentedFunction(entity)
-            end
-            undocumentedFunctions:foreach(handleUndocumentedFunction)
+            undocumentedFunctions:foreach(func.bind1(writer.undocumentedFunction, writer))
         end
 
         writer:close()
