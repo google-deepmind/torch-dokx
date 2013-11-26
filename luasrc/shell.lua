@@ -313,11 +313,9 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     dokx.generateHTML(outputPackageDir, markdownFiles)
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir)
 
+    -- Find the path to the templates - it's relative to our installed location
     local dokxDir = path.dirname(debug.getinfo(1, 'S').source):sub(2)
-    print(dokxDir)
     local pageStyle = path.join(dokxDir, "templates/style-page.css")
-    print(pageStyle)
-
     file.copy(pageStyle, path.join(outputPackageDir, "style.css"))
 
     -- Update the main index
