@@ -8,10 +8,6 @@ local stringx = require 'pl.stringx'
 local tablex = require 'pl.tablex'
 local func = require 'pl.func'
 
-function dokx._is_a(x, className)
-    return torch.typename(x) == className
-end
-
 do
     local Entity, parent = torch.class('dokx.Entity')
 

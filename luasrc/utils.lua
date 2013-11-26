@@ -1,6 +1,11 @@
 local stringx = require 'pl.stringx'
 local path = require 'pl.path'
 
+--[[ Return true if x is an instance of the given class ]]
+function dokx._is_a(x, className)
+    return torch.typename(x) == className
+end
+
 --[[ Create a temporary directory and return its path ]]
 function dokx._mkTemp()
     local file = io.popen("mktemp -d -t dokxTest")
