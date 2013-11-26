@@ -169,12 +169,12 @@ function dokx.extractTOC(package, output, inputs)
 end
 
 function dokx.combineTOC(package, input)
-    dokx.logger:info("Generating HTML ToC for " .. input)
+    dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
 
     local outputName = "toc.html"
 
     if not path.isdir(input) then
-        error("Not a directory: " .. input)
+        error("dokx.combineTOC: not a directory: " .. input)
     end
 
     local outputPath = path.join(input, outputName)
@@ -185,12 +185,12 @@ function dokx.combineTOC(package, input)
 
     local toc = "<ul>\n"
     sectionPaths:foreach(function(sectionPath)
-        dokx.logger:info("Adding " .. sectionPath .. " to ToC")
+        dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath)
     end)
     toc = toc .. "</ul>\n"
 
-    dokx.logger:info("Writing to " .. outputPath)
+    dokx.logger:info("dokx.combineTOC: writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')
     outputFile:write(toc)
