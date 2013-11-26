@@ -2,6 +2,7 @@ local dir = require 'pl.dir'
 local func = require 'pl.func'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
+local textx = require 'pl.text'
 
 local function luaToMd(luaFile)
     if not stringx.endswith(luaFile, ".lua")  then
@@ -249,32 +250,20 @@ function dokx.generateHTMLIndex(input)
 
     local outputName = "index.html"
     local outputPath = path.join(input, outputName)
-
     local packageDirs = dir.getdirectories(input)
+    local templateHTML = dokx._readFile("templates/packageIndex.html")
+    local template = textx.Template(templateHTML)
 
-    local output = [[
-<html>
-<head>
-<title>Documentation Index</title>
-<link rel="stylesheet" type="text/css" href="style.css">
-</head>
-<body>
-<h1>Deepmind Documentation</h1>
-<ul>
-    ]]
-
+    -- Construct package list HTML
+    local packageList = "<ul>"
     packageDirs:foreach(function(packageDir)
         local packageName = path.basename(packageDir)
         dokx.logger:info("dokx.generateHTMLIndex: adding " .. packageName .. " to index")
-        output = output .. indexEntry(packageName)
+        packageList = packageList .. indexEntry(packageName)
     end)
+    packageList = packageList .. "</ul>"
 
-    output = output .. [[
-</ul>
-</body>
-</html>
-]]
-
+    local output = template:substitute { packageList = packageList }
     dokx.logger:info("dokx.generateHTMLIndex: writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')
