@@ -190,6 +190,7 @@ function dokx.combineTOC(package, input)
 end
 
 function dokx.extractMarkdown(package, output, inputs)
+
     if not path.isdir(output) then
         dokx.logger:info("dokx.extractMarkdown: directory " .. output .. " not found; creating it.")
         path.mkdir(output)
@@ -265,6 +266,8 @@ end
 function dokx.buildPackageDocs(outputRoot, packagePath)
     packagePath = path.abspath(path.normpath(packagePath))
     outputRoot = path.abspath(path.normpath(outputRoot))
+    local config = dokx._loadConfig(packagePath)
+
     if not path.isdir(outputRoot) then
         error("dokx.buildPackageDocs: invalid documentation tree " .. outputRoot)
     end
@@ -273,6 +276,10 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
 
     local packageName = dokx._getLastDirName(packagePath)
     local luaFiles = dir.getallfiles(packagePath, "*.lua")
+    if config['filter'] then
+        luaFiles = tablex.filter(luaFiles, function(x) return string.find(x, config['filter']) end)
+    end
+
     local markdownFiles = tablex.map(func.compose(prependPath(docTmp), luaToMd), luaFiles)
     local outputPackageDir = path.join(outputRoot, packageName)
 

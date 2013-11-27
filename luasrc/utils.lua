@@ -77,3 +77,25 @@ function dokx._normalizeComment(text)
     return text
 end
 
+function dokx._loadConfig(packagePath)
+    local configPath = path.join(packagePath, ".dokx")
+    if not path.isfile(configPath) then
+        return {}
+    end
+    local configFunc, err = loadfile(configPath)
+    if err then
+        error("dokx._loadConfig: error loading dokx config " .. configPath .. ": " .. err)
+    end
+    local configTable = configFunc()
+    if not configTable or type(configTable) ~= 'table' then
+        error("dokx._loadConfig: dokx config file must return a lua table! " .. configPath)
+    end
+    local allowedKeys = { filter = true }
+    for key, value in pairs(configTable) do
+        if not allowedKeys[key] then
+            error("dokx._loadConfig: unknown key '" .. key .. "' in dokx config file " .. configPath)
+        end
+    end
+
+    return configTable
+end
