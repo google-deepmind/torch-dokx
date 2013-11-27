@@ -277,7 +277,13 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     local packageName = dokx._getLastDirName(packagePath)
     local luaFiles = dir.getallfiles(packagePath, "*.lua")
     if config['filter'] then
-        luaFiles = tablex.filter(luaFiles, function(x) return string.find(x, config['filter']) end)
+        luaFiles = tablex.filter(luaFiles, function(x)
+            local admit = string.find(x, config['filter'])
+            if not admit then
+                dokx.logger:info("dokx.buildPackageDocs: skipping file excluded by filter: " .. x)
+            end
+            return admit
+        end)
     end
 
     local markdownFiles = tablex.map(func.compose(prependPath(docTmp), luaToMd), luaFiles)
