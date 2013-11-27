@@ -2,7 +2,6 @@ local dir = require 'pl.dir'
 local func = require 'pl.func'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
-local textx = require 'pl.text'
 
 local function convertExtension(extension, newExtension, filePath)
     if not stringx.endswith(filePath, "." .. extension)  then
@@ -97,14 +96,12 @@ function dokx.combineHTML(tocPath, input, config)
         toc = dokx._readFile(tocPath)
     end
 
-    local templateHTML = dokx._readFile("templates/package.html")
-    local template = textx.Template(templateHTML)
+    local template = dokx._getTemplateContents("package.html")
 
     local mathjax = ""
     if not config or config.mathematics then
-        mathjax = dokx._readFile("templates/mathjax.html")
+        mathjax = dokx._readFile(dokx._getTemplate("mathjax.html"))
     end
-    local templateHTML = dokx._readFile("templates/package.html")
 
     local output = template:safe_substitute {
         packageName = packageName,
@@ -283,8 +280,7 @@ function dokx.generateHTMLIndex(input)
     local outputName = "index.html"
     local outputPath = path.join(input, outputName)
     local packageDirs = dir.getdirectories(input)
-    local templateHTML = dokx._readFile("templates/packageIndex.html")
-    local template = textx.Template(templateHTML)
+    local template = dokx._getTemplateContents("packageIndex.html")
 
     -- Construct package list HTML
     local packageList = "<ul>"
@@ -315,10 +311,6 @@ function dokx._getPackageLuaFiles(packagePath, config)
         end)
     end
     return luaFiles
-end
-
-function dokx._getDokxDir()
-    return path.dirname(debug.getinfo(1, 'S').source):sub(2)
 end
 
 function dokx.buildPackageDocs(outputRoot, packagePath)
@@ -355,12 +347,12 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
 
     -- Find the path to the templates - it's relative to our installed location
     local dokxDir = dokx._getDokxDir()
-    local pageStyle = path.join(dokxDir, "templates/style-page.css")
+    local pageStyle = dokx._getTemplate("style-page.css")
     file.copy(pageStyle, path.join(outputPackageDir, "style.css"))
 
     -- Update the main index
     dokx.generateHTMLIndex(outputRoot)
-    file.copy(path.join(dokxDir, "templates/style-index.css"), path.join(outputRoot, "style.css"))
+    file.copy(dokx._getTemplate("style-index.css"), path.join(outputRoot, "style.css"))
 
     dir.rmtree(docTmp)
     dir.rmtree(tocTmp)

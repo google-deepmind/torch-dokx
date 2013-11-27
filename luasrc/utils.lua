@@ -1,3 +1,4 @@
+local textx = require 'pl.text'
 local stringx = require 'pl.stringx'
 local path = require 'pl.path'
 
@@ -101,4 +102,18 @@ function dokx._loadConfig(packagePath)
     end
 
     return configTable
+end
+
+function dokx._getDokxDir()
+    return path.dirname(debug.getinfo(1, 'S').source):sub(2)
+end
+
+function dokx._getTemplate(templateFile)
+    local dokxDir = dokx._getDokxDir()
+    local templateDir = path.join(dokxDir, "templates")
+    return path.join(templateDir, templateFile)
+end
+
+function dokx._getTemplateContents(templateFile)
+    return textx.Template(dokx._readFile(dokx._getTemplate(templateFile)))
 end
