@@ -47,7 +47,6 @@ function dokx.combineHTML(tocPath, input)
     dokx.logger:info("Generating package documentation index for " .. input)
 
     local outputName = "index.html"
-    local stylePath = "style.css"
 
     if not path.isdir(input) then
         error("Not a directory: " .. input)
@@ -60,47 +59,26 @@ function dokx.combineHTML(tocPath, input)
 
     -- TODO sort sectionPaths, but with init.lua at the front
 
-    local mainContent = ""
+    local content = ""
     sectionPaths:foreach(function(sectionPath)
         dokx.logger:info("Adding " .. sectionPath .. " to index")
-        mainContent = mainContent .. makeSectionHTML(packageName, sectionPath)
+        content = content .. makeSectionHTML(packageName, sectionPath)
     end)
 
-    local toc
-
     -- Add the generated table of contents from the given file, if provided
+    local toc = ""
     if tocPath and tocPath ~= "none" then
         toc = dokx._readFile(tocPath)
     end
 
-    local output = [[
-<html>
-<head>
-<link rel="stylesheet" type="text/css" href="]] .. stylePath .. [[">
-<title>Documentation for ]] .. packageName .. [[</title>
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-      tex2jax: {
-          skipTags: ['script', 'noscript', 'style', 'textarea']
-      }
-  });
-</script>
-<script type="text/javascript"
-  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-</script>
-</head>
-<body>
-<div class="content">
-<h1>]] .. packageName .. [[</h1>]]
+    local templateHTML = dokx._readFile("templates/package.html")
+    local template = textx.Template(templateHTML)
 
-    if toc then
-        output = output .. [[<div class="docToC"><h3>Overview</h3>TODO<h3>Contents</h3>]] .. toc .. [[</div>]]
-    end
-    output = output .. mainContent .. [[
-</div>
-</body>
-</html>
-]]
+    local output = template:safe_substitute {
+        packageName = packageName,
+        toc = toc,
+        content = content
+    }
 
     dokx.logger:info("Writing to " .. outputPath)
 
@@ -119,6 +97,9 @@ function dokx.generateHTML(output, inputs)
         local sundown = require 'sundown'
         local content = dokx._readFile(markdownFile)
         local rendered = sundown.render(content)
+        if path.isfile(outputPath) then
+            dokx.logger:warn("*** dokx.generateHTML: overwriting existing html file " .. outputPath .. " ***")
+        end
         local outputFile = io.open(outputPath, 'w')
         dokx.logger:debug("dokx.generateHTML: writing to " .. outputPath)
         lapp.assert(outputFile, "Could not open: " .. outputPath)
@@ -273,7 +254,7 @@ function dokx.generateHTMLIndex(input)
     end)
     packageList = packageList .. "</ul>"
 
-    local output = template:substitute { packageList = packageList }
+    local output = template:safe_substitute { packageList = packageList }
     dokx.logger:info("dokx.generateHTMLIndex: writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')

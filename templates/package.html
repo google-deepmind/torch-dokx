@@ -1,0 +1,23 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+<title>${packageName} - Documentation</title>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          skipTags: ['script', 'noscript', 'style', 'textarea']
+      }
+  });
+</script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</head>
+<body>
+<div class="wrapper">
+<h1>${packageName}</h1>
+<div id="navcontainer">${toc}</div>
+<section>
+${content}
+</section>
+</div>
+</body>
+</html>
