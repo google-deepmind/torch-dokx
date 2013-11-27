@@ -4,11 +4,17 @@ local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 local textx = require 'pl.text'
 
-local function luaToMd(luaFile)
-    if not stringx.endswith(luaFile, ".lua")  then
-        error("Expected .lua file")
+local function convertExtension(extension, newExtension, filePath)
+    if not stringx.endswith(filePath, "." .. extension)  then
+        error("Expected ." .. extension .. " file")
     end
-    return path.basename(luaFile):sub(1, -4) .. "md"
+    return path.basename(filePath):sub(1, -string.len(extension) - 1) .. newExtension
+end
+local function luaToMd(luaFile)
+    return convertExtension("lua", "md", luaFile)
+end
+local function mdToHTML(mdFile)
+    return convertExtension("md", "html", mdFile)
 end
 
 local function makeSectionTOC(packageName, sectionPath)
@@ -43,7 +49,7 @@ local function indexEntry(package)
     return "<li><a href=\"" .. package .. "/index.html\">" .. package .. "</a></li>"
 end
 
-function dokx.combineHTML(tocPath, input)
+function dokx.combineHTML(tocPath, input, config)
     dokx.logger:info("Generating package documentation index for " .. input)
 
     local outputName = "index.html"
@@ -52,18 +58,38 @@ function dokx.combineHTML(tocPath, input)
         error("Not a directory: " .. input)
     end
 
-    local outputPath = path.join(input, outputName)
+    local extraDir = path.join(input, "extra")
+    local extraSections = {}
+    if path.isdir(extraDir) then
+        extraSections = dir.getfiles(extraDir, "*.html")
+    end
 
+    local outputPath = path.join(input, outputName)
     local sectionPaths = dir.getfiles(input, "*.html")
     local packageName = dokx._getLastDirName(input)
 
-    -- TODO sort sectionPaths, but with init.lua at the front
+    sectionPaths = tablex.filter(sectionPaths, function(x)
+        if stringx.endswith(x, 'init.html') then
+            table.insert(extraSections, 1, path.join(input, 'init.html'))
+            return false
+        end
+        return true
+    end)
+
+    local sortedExtra = tablex.sortv(extraSections)
+    local sorted = tablex.sortv(sectionPaths)
 
     local content = ""
-    sectionPaths:foreach(function(sectionPath)
+
+    for _, sectionPath in sortedExtra do
         dokx.logger:info("Adding " .. sectionPath .. " to index")
         content = content .. makeSectionHTML(packageName, sectionPath)
-    end)
+    end
+
+    for _, sectionPath in sorted do
+        dokx.logger:info("Adding " .. sectionPath .. " to index")
+        content = content .. makeSectionHTML(packageName, sectionPath)
+    end
 
     -- Add the generated table of contents from the given file, if provided
     local toc = ""
@@ -74,10 +100,17 @@ function dokx.combineHTML(tocPath, input)
     local templateHTML = dokx._readFile("templates/package.html")
     local template = textx.Template(templateHTML)
 
+    local mathjax = ""
+    if not config or config.mathematics then
+        mathjax = dokx._readFile("templates/mathjax.html")
+    end
+    local templateHTML = dokx._readFile("templates/package.html")
+
     local output = template:safe_substitute {
         packageName = packageName,
         toc = toc,
-        content = content
+        content = content,
+        scripts = mathjax
     }
 
     dokx.logger:info("Writing to " .. outputPath)
@@ -119,7 +152,7 @@ function dokx.generateHTML(output, inputs)
     end
 end
 
-function dokx.extractTOC(package, output, inputs)
+function dokx.extractTOC(package, output, inputs, config)
     if not path.isdir(output) then
         dokx.logger:info("Directory " .. output .. " not found; creating it.")
         path.mkdir(output)
@@ -139,18 +172,21 @@ function dokx.extractTOC(package, output, inputs)
 
         -- Output markdown
         local output = ""
-        if documentedFunctions:len() ~= 0 then
-            output = output .. "<ul>\n"
-            local function handleFunction(entity)
-                if not stringx.startswith(entity:name(), "_") then
-                    anchorName = entity:fullname()
-                    output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:name() .. [[</a></li>]] .. "\n"
-                end
-            end
-            documentedFunctions:foreach(handleFunction)
-            undocumentedFunctions:foreach(handleFunction)
 
-            output = output .. "</ul>\n"
+        if config.tocLevel == 'function' then
+            if documentedFunctions:len() ~= 0 then
+                output = output .. "<ul>\n"
+                local function handleFunction(entity)
+                    if not stringx.startswith(entity:name(), "_") then
+                        anchorName = entity:fullname()
+                        output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:name() .. [[</a></li>]] .. "\n"
+                    end
+                end
+                documentedFunctions:foreach(handleFunction)
+                undocumentedFunctions:foreach(handleFunction)
+
+                output = output .. "</ul>\n"
+            end
         end
 
         local outputFile = io.open(outputPath, 'w')
@@ -213,11 +249,13 @@ function dokx.extractMarkdown(package, output, inputs)
 
         -- Output markdown
         local writer = dokx.MarkdownWriter(outputPath, 'html') -- TODO
-        if basename ~= 'init.lua' then
+        local haveNonClassFunctions = false -- TODO
+
+        if basename ~= 'init.lua' and fileString or haveNonClassFunctions then
             writer:heading(3, basename)
         end
         if fileString then
-            writer:write(fileString)
+            writer:write(fileString .. "\n")
         end
 
         classes:foreach(func.bind1(writer.class, writer))
@@ -263,6 +301,24 @@ function dokx.generateHTMLIndex(input)
     outputFile:close()
 end
 
+function dokx._getPackageLuaFiles(packagePath, config)
+    local luaFiles = dir.getallfiles(packagePath, "*.lua")
+    if config['filter'] then
+        luaFiles = tablex.filter(luaFiles, function(x)
+            local admit = string.find(x, config['filter'])
+            if not admit then
+                dokx.logger:info("dokx.buildPackageDocs: skipping file excluded by filter: " .. x)
+            end
+            return admit
+        end)
+    end
+    return luaFiles
+end
+
+function dokx._getDokxDir()
+    return path.dirname(debug.getinfo(1, 'S').source):sub(2)
+end
+
 function dokx.buildPackageDocs(outputRoot, packagePath)
     packagePath = path.abspath(path.normpath(packagePath))
     outputRoot = path.abspath(path.normpath(outputRoot))
@@ -275,17 +331,9 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     local tocTmp = dokx._mkTemp()
 
     local packageName = dokx._getLastDirName(packagePath)
-    local luaFiles = dir.getallfiles(packagePath, "*.lua")
-    if config['filter'] then
-        luaFiles = tablex.filter(luaFiles, function(x)
-            local admit = string.find(x, config['filter'])
-            if not admit then
-                dokx.logger:info("dokx.buildPackageDocs: skipping file excluded by filter: " .. x)
-            end
-            return admit
-        end)
-    end
+    local luaFiles = dokx._getPackageLuaFiles(packagePath, config)
 
+    local extraMarkdownFiles = dir.getallfiles(packagePath, "*.md")
     local markdownFiles = tablex.map(func.compose(prependPath(docTmp), luaToMd), luaFiles)
     local outputPackageDir = path.join(outputRoot, packageName)
 
@@ -293,16 +341,18 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     dokx.logger:info("dokx.buildPackageDocs: package name = " .. packageName)
     dokx.logger:info("dokx.buildPackageDocs: output root = " .. outputRoot)
     dokx.logger:info("dokx.buildPackageDocs: output dir = " .. outputPackageDir)
+
     path.mkdir(outputPackageDir)
 
     dokx.extractMarkdown(packageName, docTmp, luaFiles)
-    dokx.extractTOC(packageName, tocTmp, luaFiles)
+    dokx.extractTOC(packageName, tocTmp, luaFiles, config)
     dokx.combineTOC(packageName, tocTmp)
     dokx.generateHTML(outputPackageDir, markdownFiles)
-    dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir)
+    dokx.generateHTML(path.join(outputPackageDir, "extra"), extraMarkdownFiles)
+    dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
 
     -- Find the path to the templates - it's relative to our installed location
-    local dokxDir = path.dirname(debug.getinfo(1, 'S').source):sub(2)
+    local dokxDir = dokx._getDokxDir()
     local pageStyle = path.join(dokxDir, "templates/style-page.css")
     file.copy(pageStyle, path.join(outputPackageDir, "style.css"))
 

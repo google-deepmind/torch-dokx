@@ -90,11 +90,14 @@ function dokx._loadConfig(packagePath)
     if not configTable or type(configTable) ~= 'table' then
         error("dokx._loadConfig: dokx config file must return a lua table! " .. configPath)
     end
-    local allowedKeys = { filter = true }
+    local allowedKeys = { filter = true, tocLevel = true, mathematics = true }
     for key, value in pairs(configTable) do
         if not allowedKeys[key] then
             error("dokx._loadConfig: unknown key '" .. key .. "' in dokx config file " .. configPath)
         end
+    end
+    if configTable.mathematics == nil then
+        configTable.mathematics = true
     end
 
     return configTable
