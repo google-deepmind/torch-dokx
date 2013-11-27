@@ -9,11 +9,17 @@ local MarkdownWriter = torch.class("dokx.MarkdownWriter")
 
 Args:
  * `outputPath` - string; path to write to
+ * `style` - string; 'repl' or 'html' - adjust the output style
 
 Returns: new MarkdownWriter object
 --]]
-function MarkdownWriter:__init(outputPath)
+function MarkdownWriter:__init(outputPath, style)
     self.outputFile = io.open(outputPath, 'w')
+    local validStyles = { repl = true, html = true }
+    if not validStyles[style] then
+        error("MarkdownWriter.__init: '" .. tostring(style) .. "' is not a valid style")
+    end
+    self._style = style
     lapp.assert(self.outputFile, "could not open output file " .. outputPath)
 end
 
@@ -36,7 +42,11 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:anchor(name)
-    self:write([[<a name="]] .. name .. [["/>]] .. "\n")
+    if self._style == 'repl' then
+        self:write([[<a name="]] .. name .. [["/>]] .. "\n")
+    else
+        self:write([[<a name="]] .. name .. [["></a>]] .. "\n")
+    end
 end
 
 --[[ Add a heading to the output

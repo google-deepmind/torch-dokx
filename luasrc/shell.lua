@@ -27,7 +27,7 @@ local function makeSectionHTML(packageName, sectionPath)
     local sectionName = path.splitext(basename)
     local sectionHTML = dokx._readFile(sectionPath)
     local output = [[<div class='docSection'>]]
-    output = output .. [[<a name="]] .. makeAnchorName(packageName, sectionName) .. [[">]]
+    output = output .. [[<a name="]] .. makeAnchorName(packageName, sectionName) .. [["></a>]]
     output = output .. sectionHTML
     output = output .. [[</div>]]
     return output
@@ -212,7 +212,7 @@ function dokx.extractMarkdown(package, output, inputs)
             )
 
         -- Output markdown
-        local writer = dokx.MarkdownWriter(outputPath)
+        local writer = dokx.MarkdownWriter(outputPath, 'html') -- TODO
         if basename ~= 'init.lua' then
             writer:heading(3, basename)
         end
