@@ -1,3 +1,5 @@
 return {
-    filter = "luasrc/.*%.lua$"
+    filter = "luasrc/.*%.lua$",
+    tocLevel = 'function',
+    mathematics = false
 }
