@@ -211,11 +211,13 @@ function dokx.combineTOC(package, input)
     local sectionPaths = dir.getfiles(input, "*.html")
     local packageName = dokx._getLastDirName(input)
 
+    local sorted = tablex.sortv(sectionPaths)
+
     local toc = "<ul>\n"
-    sectionPaths:foreach(function(sectionPath)
-        dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
+    for _, sectionPath in sorted do
+            dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath)
-    end)
+    end
     toc = toc .. "</ul>\n"
 
     dokx.logger:info("dokx.combineTOC: writing to " .. outputPath)
