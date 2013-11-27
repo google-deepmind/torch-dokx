@@ -101,7 +101,11 @@ do
     function Function:fullname()
         local name = self._name
         if self._className then
-            name = self._className .. "." .. name
+            if name == '__init' then
+                name = self._className
+            else
+                name = self._className .. ":" .. name
+            end
         end
         name = self._package .. "." .. name
         return name
