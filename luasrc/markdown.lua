@@ -71,7 +71,11 @@ Returns: nil
 function MarkdownWriter:class(entity)
     dokx.logger:debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname() .. ".dok")
-    self:heading(3, entity:name())
+    if self._style == 'repl' then
+        self:heading(3, entity:name())
+    else
+        self:heading(2, entity:fullname())
+    end
     if entity:doc() then
         self:write(entity:doc())
     end
@@ -87,7 +91,11 @@ Returns: nil
 function MarkdownWriter:documentedFunction(entity)
     dokx.logger:debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname())
-    self:heading(4, entity:name() .. "(" .. entity:args() .. ")")
+    if self._style == 'repl' then
+        self:heading(4, entity:name() .. "(" .. entity:args() .. ")")
+    else
+        self:heading(3, entity:fullname() .. "(" .. entity:args() .. ")")
+    end
     self:write(entity:doc())
 end
 
@@ -101,7 +109,11 @@ Returns: nil
 function MarkdownWriter:undocumentedFunction(entity)
     dokx.logger:debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname())
-    self:write(" * `" .. entity:name() .. "`\n")
+    if self._style == 'repl' then
+        self:write(" * `" .. entity:name() .. "`\n")
+    else
+        self:write(" * `" .. entity:fullname() .. "(" .. entity:args() .. ")" .. "`\n")
+    end
 end
 
 --[[ Close the writer. _Must be called before exiting_. ]]
