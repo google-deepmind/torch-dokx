@@ -156,7 +156,7 @@ function dokx.extractTOC(package, output, inputs, config)
                 local function handleFunction(entity)
                     if not stringx.startswith(entity:name(), "_") then
                         anchorName = entity:fullname()
-                        output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:name() .. [[</a></li>]] .. "\n"
+                        output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:nameWithClass() .. [[</a></li>]] .. "\n"
                     end
                 end
                 documentedFunctions:foreach(handleFunction)

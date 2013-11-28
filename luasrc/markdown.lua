@@ -94,7 +94,7 @@ function MarkdownWriter:documentedFunction(entity)
     if self._style == 'repl' then
         self:heading(4, entity:name() .. "(" .. entity:args() .. ")")
     else
-        self:heading(3, entity:fullname() .. "(" .. entity:args() .. ")")
+        self:heading(3, entity:nameWithClass() .. "(" .. entity:args() .. ")")
     end
     self:write(entity:doc())
 end
@@ -112,7 +112,7 @@ function MarkdownWriter:undocumentedFunction(entity)
     if self._style == 'repl' then
         self:write(" * `" .. entity:name() .. "`\n")
     else
-        self:write(" * `" .. entity:fullname() .. "(" .. entity:args() .. ")" .. "`\n")
+        self:write(" * `" .. entity:nameWithClass() .. "(" .. entity:args() .. ")" .. "`\n")
     end
 end
 

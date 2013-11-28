@@ -74,13 +74,30 @@ do
     function Function:__init(name, args, ...)
         parent.__init(self, ...)
         assert(name)
-        local pos = name:find(":") or name:find("%.")
+        self._method = false
+        local hasClass = false
+        local pos = name:find(":")
         if pos then
+            hasClass = true
+            self._method = true
+        else
+            pos = name:find("%.")
+            if pos and name:sub(1, pos-1) ~= self:package() then
+                hasClass = true
+            end
+        end
+        if hasClass then
             self._className = name:sub(1, pos-1)
             self._name = name:sub(pos+1, -1)
         else
             self._className = false
-            self._name = name
+
+            pos = name:find("%.")
+            if pos and name:sub(1, pos-1) == self:package() then
+                self._name = name:sub(pos+1, -1)
+            else
+                self._name = name
+            end
         end
         self._args = args
     end
@@ -89,16 +106,24 @@ do
     function Function:name() return self._name end
     -- Return the name of the class to which this function belongs, or false if it's not a method at all
     function Function:class() return self._className end
-    -- Return the full (package[.class].function) name of this function
-    function Function:fullname()
+    function Function:nameWithClass()
         local name = self._name
         if self._className then
             if name == '__init' then
                 name = self._className
             else
-                name = self._className .. ":" .. name
+                if self._method then
+                    name = self._className .. ":" .. name
+                else
+                    name = self._className .. "." .. name
+                end
             end
         end
+        return name
+    end
+    -- Return the full (package[.class].function) name of this function
+    function Function:fullname()
+        local name = self:nameWithClass()
         name = self._package .. "." .. name
         return name
     end
@@ -178,6 +203,7 @@ TODO: get rid of this
     end
 
     function DocumentedFunction:name() return self._func:name() end
+    function DocumentedFunction:nameWithClass() return self._func:nameWithClass() end
     function DocumentedFunction:fullname() return self._func:fullname() end
     function DocumentedFunction:doc() return self._doc._text end
     function DocumentedFunction:args() return self._func:args() end
