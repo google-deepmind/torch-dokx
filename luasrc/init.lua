@@ -16,6 +16,7 @@ torch.include('dokx', 'utils.lua')
 torch.include('dokx', 'testUtils.lua')
 torch.include('dokx', 'shell.lua')
 torch.include('dokx', 'entities.lua')
+torch.include('dokx', 'extract.lua')
 
 function dokx.debugMode()
     dokx.logger:setLevel(logging.DEBUG)
