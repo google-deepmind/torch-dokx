@@ -1,4 +1,5 @@
 return {
+    packageName = "dokx",
     filter = "luasrc/.*%.lua$",
     tocLevel = 'function',
     mathematics = false
