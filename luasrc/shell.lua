@@ -26,12 +26,6 @@ local function makeSectionHTML(packageName, sectionPath)
     return output
 end
 
-local function prependPath(prefix)
-    return function(suffix)
-        return path.join(prefix, suffix)
-    end
-end
-
 function dokx.combineHTML(tocPath, input, config)
     dokx.logger:info("Generating package documentation index for " .. input)
 
@@ -316,7 +310,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     local luaFiles = dokx._getPackageLuaFiles(packagePath, config)
 
     local extraMarkdownFiles = dir.getallfiles(packagePath, "*.md")
-    local markdownFiles = tablex.map(func.compose(prependPath(docTmp), luaToMd), luaFiles)
+    local markdownFiles = tablex.map(func.compose(dokx._prependPath(docTmp), luaToMd), luaFiles)
     local outputPackageDir = path.join(outputRoot, packageName)
 
     dokx.logger:info("dokx.buildPackageDocs: examining package " .. packagePath)

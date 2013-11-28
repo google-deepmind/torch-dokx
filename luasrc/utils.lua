@@ -60,6 +60,21 @@ function dokx._convertExtension(extension, newExtension, filePath)
     return path.basename(filePath):sub(1, -string.len(extension) - 1) .. newExtension
 end
 
+--[[ Create a function that will prepend the given path prefix onto its argument.
+
+Example:
+
+    > f = dokx._prependPath("/usr/local")
+    > print(f("bin"))
+    "/usr/local/bin"
+
+--]]
+function dokx._prependPath(prefix)
+    return function(suffix)
+        return path.join(prefix, suffix)
+    end
+end
+
 --[[ Given a comment string, remove extraneous symbols and spacing ]]
 function dokx._normalizeComment(text)
     text = stringx.strip(tostring(text))
