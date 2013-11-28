@@ -44,6 +44,9 @@ function dokx.combineHTML(tocPath, input, config)
     local outputPath = path.join(input, outputName)
     local sectionPaths = dir.getfiles(input, "*.html")
     local packageName = dokx._getLastDirName(input)
+    if config.packageName then
+        packageName = config.packageName
+    end
 
     sectionPaths = tablex.filter(sectionPaths, function(x)
         if stringx.endswith(x, 'init.html') then
@@ -173,7 +176,7 @@ function dokx.extractTOC(package, output, inputs, config)
 
 end
 
-function dokx.combineTOC(package, input)
+function dokx.combineTOC(package, input, config)
     dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
 
     local outputName = "toc.html"
@@ -187,6 +190,9 @@ function dokx.combineTOC(package, input)
     -- Retrieve package name from path, by looking at the name of the last directory
     local sectionPaths = dir.getfiles(input, "*.html")
     local packageName = dokx._getLastDirName(input)
+    if config.packageName then
+        packageName = config.packageName
+    end
 
     local sorted = tablex.sortv(sectionPaths)
 
@@ -309,6 +315,9 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     local tocTmp = dokx._mkTemp()
 
     local packageName = dokx._getLastDirName(packagePath)
+    if config.packageName then
+        packageName = config.packageName
+    end
     local luaFiles = dokx._getPackageLuaFiles(packagePath, config)
 
     local extraMarkdownFiles = dir.getallfiles(packagePath, "*.md")
@@ -324,7 +333,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
 
     dokx.extractMarkdown(packageName, docTmp, luaFiles)
     dokx.extractTOC(packageName, tocTmp, luaFiles, config)
-    dokx.combineTOC(packageName, tocTmp)
+    dokx.combineTOC(packageName, tocTmp, config)
     dokx.generateHTML(outputPackageDir, markdownFiles)
     dokx.generateHTML(path.join(outputPackageDir, "extra"), extraMarkdownFiles)
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
