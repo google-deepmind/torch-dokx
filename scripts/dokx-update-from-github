@@ -7,11 +7,17 @@ local function processArgs()
     return lapp [[
 Check out a list of projects from GitHub, and build docs for them in a central tree
     -o,--output (string) path to root of documentation tree
+    -b,--branch (string) branch to check out
     <inputs...> (string) GitHub projects (e.g. d11/torch-dokx)
+    --debug              debug mode
     ]]
 end
 
 local function main(args)
+
+    if args.debug then
+        dokx.debugMode()
+    end
 
     local tempDir = dokx._mkTemp()
 
@@ -23,7 +29,10 @@ local function main(args)
         local result = os.execute(gitCmd)
         lapp:assert(result, "Git checkout of " .. input .. " failed.")
 
-        --os.execute("dokx-build-package-docs -o " .. args.output .. " " .. cloneDir)
+        if args.branch then
+            os.execute("cd " .. cloneDir .. " && git checkout " .. args.branch)
+        end
+
         dokx.buildPackageDocs(args.output, cloneDir)
     end
 
