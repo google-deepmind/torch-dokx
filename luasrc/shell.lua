@@ -93,7 +93,8 @@ function dokx.combineHTML(tocPath, input, config)
         packageName = packageName,
         toc = toc,
         content = content,
-        scripts = mathjax .. syntax
+        scripts = mathjax .. syntax,
+        githubURL = "https://github.com/" .. config.githubURL
     }
 
     dokx.logger:info("Writing to " .. outputPath)

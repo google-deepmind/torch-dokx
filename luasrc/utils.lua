@@ -121,7 +121,8 @@ function dokx._loadConfig(packagePath)
         filter = true,
         tocLevel = true,
         mathematics = true,
-        packageName = true
+        packageName = true,
+        githubURL = true
     }
     for key, value in pairs(configTable) do
         if not allowedKeys[key] then
