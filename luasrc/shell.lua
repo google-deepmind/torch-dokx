@@ -276,8 +276,12 @@ function dokx.generateHTMLIndex(input)
     local packageList = "<ul>"
     packageDirs:foreach(function(packageDir)
         local packageName = path.basename(packageDir)
-        dokx.logger:info("dokx.generateHTMLIndex: adding " .. packageName .. " to index")
-        packageList = packageList .. indexEntry(packageName)
+        if stringx.startswith(packageName, "_") then
+            dokx.logger:info("dokx.generateHTMLIndex: skipping " .. packageName)
+        else
+            dokx.logger:info("dokx.generateHTMLIndex: adding " .. packageName .. " to index")
+            packageList = packageList .. indexEntry(packageName)
+        end
     end)
     packageList = packageList .. "</ul>"
 
