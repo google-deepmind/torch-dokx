@@ -3,17 +3,8 @@ local func = require 'pl.func'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 
-local function convertExtension(extension, newExtension, filePath)
-    if not stringx.endswith(filePath, "." .. extension)  then
-        error("Expected ." .. extension .. " file")
-    end
-    return path.basename(filePath):sub(1, -string.len(extension) - 1) .. newExtension
-end
 local function luaToMd(luaFile)
-    return convertExtension("lua", "md", luaFile)
-end
-local function mdToHTML(mdFile)
-    return convertExtension("md", "html", mdFile)
+    return dokx._convertExtension("lua", "md", luaFile)
 end
 
 local function makeSectionTOC(packageName, sectionPath)

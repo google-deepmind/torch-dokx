@@ -48,6 +48,17 @@ function dokx._getLastDirName(dirPath)
     return packageName
 end
 
+--[[ Given a path to a file, an expected extension, and a new extension, return
+the path to a file with the same name but the new extension.
+
+Throws an error if the file does not have the expected extension.
+--]]
+function dokx._convertExtension(extension, newExtension, filePath)
+    if not stringx.endswith(filePath, "." .. extension)  then
+        error("Expected ." .. extension .. " file")
+    end
+    return path.basename(filePath):sub(1, -string.len(extension) - 1) .. newExtension
+end
 
 --[[ Given a comment string, remove extraneous symbols and spacing ]]
 function dokx._normalizeComment(text)
