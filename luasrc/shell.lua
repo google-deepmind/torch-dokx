@@ -332,6 +332,11 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     local markdownFiles = tablex.map(func.compose(dokx._prependPath(docTmp), luaToMd), luaFiles)
     local outputPackageDir = path.join(outputRoot, packageName)
 
+    if path.isdir(outputPackageDir) then
+        dokx.logger:warn("Output directory " .. outputPackageDir .. " exists - removing!")
+        dir.rmtree(outputPackageDir)
+    end
+
     dokx.logger:info("dokx.buildPackageDocs: examining package " .. packagePath)
     dokx.logger:info("dokx.buildPackageDocs: package name = " .. packageName)
     dokx.logger:info("dokx.buildPackageDocs: output root = " .. outputRoot)
