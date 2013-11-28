@@ -35,10 +35,6 @@ local function prependPath(prefix)
     end
 end
 
-local function indexEntry(package)
-    return "<li><a href=\"" .. package .. "/index.html\">" .. package .. "</a></li>"
-end
-
 function dokx.combineHTML(tocPath, input, config)
     dokx.logger:info("Generating package documentation index for " .. input)
 
@@ -272,6 +268,10 @@ function dokx.generateHTMLIndex(input)
     local outputPath = path.join(input, outputName)
     local packageDirs = dir.getdirectories(input)
     local template = dokx._getTemplateContents("packageIndex.html")
+
+    local function indexEntry(package)
+        return "<li><a href=\"" .. package .. "/index.html\">" .. package .. "</a></li>"
+    end
 
     -- Construct package list HTML
     local packageList = "<ul>"
