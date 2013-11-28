@@ -310,3 +310,5 @@ footer {
     color:#444;
   }
 }
+
+pre.has-jax {font: 10em; font-size: 100%; background: inherit; border: inherit;}

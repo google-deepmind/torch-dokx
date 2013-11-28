@@ -104,6 +104,8 @@ function dokx.generateHTML(output, inputs)
     local function handleFile(markdownFile, outputPath)
         local sundown = require 'sundown'
         local content = dokx._readFile(markdownFile)
+        content = content:gsub("$${", " ` $${"):gsub("[^$]${", " ` ${")
+        content = content:gsub("}$%$", "}$$ ` "):gsub("}%$([^$])", "}$ ` ")
         local rendered = sundown.render(content)
         if path.isfile(outputPath) then
             dokx.logger:warn("*** dokx.generateHTML: overwriting existing html file " .. outputPath .. " ***")
