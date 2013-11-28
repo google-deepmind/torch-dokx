@@ -91,21 +91,23 @@ indent the code by four spaces.
 ## Mathematics
 
 Markdown itself doesn't provide a way to format mathematics, but dokx will
-render it for you (using MathJax) if you surround the mathematics with `$$`
-pairs. You can use either LaTeX or MathML.
+render it for you if you surround it with the appropriate tokens.  Inside the
+tokens you can write your mathematics using LaTeX.
+
+For inline mathematics, surround it with ${` and `}$.
+
+For display mathematics (shown centered, on a separate line), surround it with $${` and `}$$.
 
 ### Example
 
     --[[ This function computes the PDF for a Binomial distribution.
     
-    The density is given by the formula
-    
-        $$ P(E) = {n \choose k} p^k (1-p)^{n-k} $$
+    The density is given by the formula $${ P(E) = {n \choose k} p^k (1-p)^{n-k} }$$
 
     Args:
-    * `n` - number of independent trials
-    * `k` - number of successes
-    * `p` - probability of success
+    * ${n \geq 0}$ - number of independent trials
+    * ${0 \leq k \leq n}$ - number of successes
+    * ${0 \leq p \leq 1$} - probability of success
     
     --]]
     function binpdf(n, k, p)
