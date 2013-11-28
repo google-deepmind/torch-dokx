@@ -143,6 +143,14 @@ should be. The default is to generate an entry for every documented function,
 but in large projects, this might be excessive. Valid values are 'function' and
 'class'.
 
+#### mathematics
+
+A boolean indicating whether MathJax should be included in the generated HTML.
+If present MathJax will render any mathematics detected in the page. By
+default, this is **on**. If your documentation contains no mathematics and MathJax
+is therefore not needed, or if it is causing problems, then you may wish to set
+this to `false`.
+
 # Building documentation
 
 ## Command-line interface
