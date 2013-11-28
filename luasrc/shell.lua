@@ -84,11 +84,16 @@ function dokx.combineHTML(tocPath, input, config)
         mathjax = dokx._readFile(dokx._getTemplate("mathjax.html"))
     end
 
+    local syntaxTemplate = dokx._getTemplateContents("syntax.html")
+    local syntax = syntaxTemplate:safe_substitute {
+        syntaxHighlighterURL = "../_highlight"
+    }
+
     local output = template:safe_substitute {
         packageName = packageName,
         toc = toc,
         content = content,
-        scripts = mathjax
+        scripts = mathjax .. syntax
     }
 
     dokx.logger:info("Writing to " .. outputPath)
@@ -311,7 +316,6 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     packagePath = path.abspath(path.normpath(packagePath))
     outputRoot = path.abspath(path.normpath(outputRoot))
     local config = dokx._loadConfig(packagePath)
-
     if not path.isdir(outputRoot) then
         error("dokx.buildPackageDocs: invalid documentation tree " .. outputRoot)
     end
@@ -351,9 +355,12 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     dokx.generateHTMLIndex(outputRoot)
     file.copy(dokx._getTemplate("style-index.css"), path.join(outputRoot, "style.css"))
 
+    if not path.isdir(path.join(outputRoot, "_highlight")) then
+        dokx.logger:warn("highlight.js not found - syntax highlighting will be unavailable")
+    end
+
     dir.rmtree(docTmp)
     dir.rmtree(tocTmp)
 
     dokx.logger:info("Installed docs for " .. packagePath)
 end
-

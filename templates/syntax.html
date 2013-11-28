@@ -1,0 +1,15 @@
+<link rel="stylesheet" href="${syntaxHighlighterURL}/styles/github.css">
+<script type="text/javascript" src="${syntaxHighlighterURL}/highlight.pack.js"></script>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        $('pre code').each(function(i, e) {
+            var par = $(e).closest('pre');
+            if (! $(par).hasClass('has-jax')) {
+                hljs.highlightBlock(e);
+            }
+        });
+    });
+</script>
+
+
