@@ -14,16 +14,13 @@ local function makeSectionTOC(packageName, sectionPath)
     return output
 end
 
-local function makeAnchorName(packageName, sectionName)
-    return packageName .. "." .. sectionName .. ".dok"
-end
-
 local function makeSectionHTML(packageName, sectionPath)
     local basename = path.basename(sectionPath)
     local sectionName = path.splitext(basename)
+    local anchorName = packageName .. "." .. sectionName .. ".dok"
     local sectionHTML = dokx._readFile(sectionPath)
     local output = [[<div class='docSection'>]]
-    output = output .. [[<a name="]] .. makeAnchorName(packageName, sectionName) .. [["></a>]]
+    output = output .. [[<a name="]] .. anchorName .. [["></a>]]
     output = output .. sectionHTML
     output = output .. [[</div>]]
     return output
