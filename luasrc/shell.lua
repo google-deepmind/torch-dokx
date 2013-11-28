@@ -94,7 +94,7 @@ function dokx.combineHTML(tocPath, input, config)
         toc = toc,
         content = content,
         scripts = mathjax .. syntax,
-        githubURL = "https://github.com/" .. config.githubURL
+        githubURL = "https://github.com/" .. (config.githubURL or "")
     }
 
     dokx.logger:info("Writing to " .. outputPath)
