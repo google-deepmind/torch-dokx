@@ -131,12 +131,32 @@ should be a lua snippet which returns a table of configuration values.
 
 The available configuration keys are as follows:
 
+#### packageName
+
+If the detected package name does not match the namespace that should appear in
+the documentation, you can override it by setting `packageName` in the config
+file. For example, the repository for this project is called `'torch-dokx'`, but
+the namespace is `'dokx'`.
+
+#### githubURL
+
+If this is provided, then the generated documentation will include links to the
+main project page and to the source locations on GitHub. This should be a string of
+the form `'$user/$project'` - for example, `'d11/torch-dokx'`.
+
 #### filter
 
-A [Lua pattern](http://www.lua.org/pil/20.2.html) against which potential input
-files will be tested. Only Lua files which match the pattern will be included
-in the generated documentation. By default, all Lua files in the project will
-be included.
+A [Lua pattern](http://www.lua.org/pil/20.2.html) or table of lua patterns,
+against which potential input files will be tested. Only Lua files which match
+(one of) the pattern(s) will be included in the generated documentation. By
+default, all Lua files in the project will be included.
+
+#### exclude
+
+A [Lua pattern](http://www.lua.org/pil/20.2.html) or table of lua patterns,
+against which potential input files will be tested. Any file (lua or md)
+matching an exclusion pattern will be removed from the documentation. By
+default, no files are excluded.
 
 #### tocLevel
 
