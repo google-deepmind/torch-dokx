@@ -91,7 +91,10 @@ function dokx._normalizeComment(text)
             if stringx.startswith(line, "-- ") then
                 chopIndex = 4
             end
-            return line:sub(chopIndex)
+            line = line:sub(chopIndex)
+        end
+        if stringx.endswith(line, "--") then
+            line = line:sub(1, -3)
         end
         return line
     end, lines)
