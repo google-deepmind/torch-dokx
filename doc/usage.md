@@ -94,9 +94,9 @@ Markdown itself doesn't provide a way to format mathematics, but dokx will
 render it for you if you surround it with the appropriate tokens.  Inside the
 tokens you can write your mathematics using LaTeX.
 
-For inline mathematics, surround it with ${` and `}$.
+For inline mathematics, surround it with `${` and `}$`.
 
-For display mathematics (shown centered, on a separate line), surround it with $${` and `}$$.
+For display mathematics (shown centered, on a separate line), surround it with `$${` and `}$$`.
 
 ### Example
 

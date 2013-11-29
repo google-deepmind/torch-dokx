@@ -104,7 +104,7 @@ function dokx.combineHTML(tocPath, input, config)
     outputFile:close()
 end
 
-function dokx.generateHTML(output, inputs)
+function dokx.generateHTML(output, inputs, config)
     if not path.isdir(output) then
         dokx.logger:info("Directory " .. output .. " not found; creating it.")
         path.mkdir(output)
@@ -113,8 +113,10 @@ function dokx.generateHTML(output, inputs)
     local function handleFile(markdownFile, outputPath)
         local sundown = require 'sundown'
         local content = dokx._readFile(markdownFile)
-        content = content:gsub("$${", " ` $${"):gsub("[^$]${", " ` ${")
-        content = content:gsub("}$%$", "}$$ ` "):gsub("}%$([^$])", "}$ ` ")
+        if config and config.mathematics then
+            content = content:gsub("$${", " ` $${"):gsub("[^$]${", " ` ${")
+            content = content:gsub("}$%$", "}$$ ` "):gsub("}%$([^$])", "}$ ` ")
+        end
         local rendered = sundown.render(content)
         if path.isfile(outputPath) then
             dokx.logger:warn("*** dokx.generateHTML: overwriting existing html file " .. outputPath .. " ***")
@@ -369,8 +371,8 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath)
     dokx.extractTOC(packageName, tocTmp, luaFiles, config)
     dokx.combineTOC(packageName, tocTmp, config)
-    dokx.generateHTML(outputPackageDir, markdownFiles)
-    dokx.generateHTML(path.join(outputPackageDir, "extra"), extraMarkdownFiles)
+    dokx.generateHTML(outputPackageDir, markdownFiles, config)
+    dokx.generateHTML(path.join(outputPackageDir, "extra"), extraMarkdownFiles, config)
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
 
     -- Find the path to the templates - it's relative to our installed location
