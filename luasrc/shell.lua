@@ -262,7 +262,6 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath)
 
         local function addGithubLink(entity)
             if gitCommit and packagePath then
-                print(entity:file())
                 local filename = path.relpath(entity:file(), packagePath)
                 local githubProjectRoot = "https://github.com/" .. config.githubURL
                 local githubURL = githubProjectRoot .. "/blob/" .. gitCommit .. "/" .. filename
