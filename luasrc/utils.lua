@@ -122,6 +122,7 @@ function dokx._loadConfig(packagePath)
     end
     local allowedKeys = {
         filter = true,
+        exclude = true,
         tocLevel = true,
         mathematics = true,
         packageName = true,
@@ -137,6 +138,30 @@ function dokx._loadConfig(packagePath)
     end
 
     return configTable
+end
+
+function dokx._filterFiles(files, pattern, invert)
+    if not pattern then
+        return files
+    end
+    if type(pattern) == 'string' then
+        pattern = { pattern }
+    end
+
+    for _, patternString in ipairs(pattern) do
+        files =  tablex.filter(files, function(x)
+            local admit = string.find(x, patternString)
+            if invert then
+                admit = not admit
+            end
+            if not admit then
+                dokx.logger:info("dokx.buildPackageDocs: skipping file excluded by filter: " .. x)
+            end
+            return admit
+        end)
+    end
+
+    return files
 end
 
 function dokx._getDokxDir()

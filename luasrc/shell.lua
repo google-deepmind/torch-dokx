@@ -325,15 +325,14 @@ end
 
 function dokx._getPackageLuaFiles(packagePath, config)
     local luaFiles = dir.getallfiles(packagePath, "*.lua")
-    if config['filter'] then
-        luaFiles = tablex.filter(luaFiles, function(x)
-            local admit = string.find(x, config['filter'])
-            if not admit then
-                dokx.logger:info("dokx.buildPackageDocs: skipping file excluded by filter: " .. x)
-            end
-            return admit
-        end)
-    end
+    luaFiles = dokx._filterFiles(luaFiles, config.filter, false)
+    luaFiles = dokx._filterFiles(luaFiles, config.exclude, true)
+    return luaFiles
+end
+
+function dokx._getPackageMdFiles(packagePath, config)
+    local luaFiles = dir.getallfiles(packagePath, "*.md")
+    luaFiles = dokx._filterFiles(luaFiles, config.exclude, true)
     return luaFiles
 end
 
@@ -352,8 +351,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
         packageName = config.packageName
     end
     local luaFiles = dokx._getPackageLuaFiles(packagePath, config)
-
-    local extraMarkdownFiles = dir.getallfiles(packagePath, "*.md")
+    local extraMarkdownFiles = dokx._getPackageMdFiles(packagePath, config)
     local markdownFiles = tablex.map(func.compose(dokx._prependPath(docTmp), luaToMd), luaFiles)
     local outputPackageDir = path.join(outputRoot, packageName)
 
