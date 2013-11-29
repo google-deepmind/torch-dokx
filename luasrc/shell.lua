@@ -268,7 +268,7 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath)
                 local githubProjectRoot = "https://github.com/" .. config.githubURL
                 local githubURL = githubProjectRoot .. "/blob/" .. gitCommit .. "/" .. filename
                 githubURL = githubURL .. "#L" .. entity:lineNo()
-                writer:write('\n<a class="entityLink" href="' .. githubURL .. '">' .. path.basename(filename) .. "</a>\n")
+                writer:write('\n<a class="entityLink" href="' .. githubURL .. '">' .. "[src]</a>\n")
             else
                 dokx.logger:info("dokx.extractMarkdown: not adding source links")
             end
