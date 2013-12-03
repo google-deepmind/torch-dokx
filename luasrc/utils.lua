@@ -177,3 +177,11 @@ end
 function dokx._getTemplateContents(templateFile)
     return textx.Template(dokx._readFile(dokx._getTemplate(templateFile)))
 end
+
+function dokx._sanitizePath(pathString)
+    local sanitized = path.normpath(path.abspath(pathString))
+    if stringx.endswith(sanitized, "/.") then
+        sanitized = sanitized:sub(1, -3)
+    end
+    return sanitized
+end

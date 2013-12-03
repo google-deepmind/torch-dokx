@@ -129,7 +129,7 @@ function dokx.generateHTML(output, inputs, config)
     end
 
     for i, input in ipairs(inputs) do
-        input = path.abspath(path.normpath(input))
+        input = dokx._sanitizePath(input)
         dokx.logger:info("dokx.generateHTML: processing file " .. input)
         local basename = path.basename(input)
         local packageName, ext = path.splitext(basename)
@@ -147,7 +147,7 @@ function dokx.extractTOC(package, output, inputs, config)
     end
 
     for i, input in ipairs(inputs) do
-        input = path.normpath(input)
+        input = dokx._sanitizePath(input)
         dokx.logger:info("dokx.extractTOC: processing file " .. input)
 
         local basename = path.basename(input)
@@ -228,7 +228,7 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath)
     end
 
     for i, input in ipairs(inputs) do
-        input = path.normpath(input)
+        input = dokx._sanitizePath(input)
         dokx.logger:info("dokx.extractMarkdown: processing file " .. input)
 
         local basename = path.basename(input)
@@ -338,8 +338,8 @@ function dokx._getPackageMdFiles(packagePath, config)
 end
 
 function dokx.buildPackageDocs(outputRoot, packagePath)
-    packagePath = path.abspath(path.normpath(packagePath))
-    outputRoot = path.abspath(path.normpath(outputRoot))
+    packagePath = dokx._sanitizePath(packagePath)
+    outputRoot = dokx._sanitizePath(outputRoot)
     local config = dokx._loadConfig(packagePath)
     if not path.isdir(outputRoot) then
         error("dokx.buildPackageDocs: invalid documentation tree " .. outputRoot)
