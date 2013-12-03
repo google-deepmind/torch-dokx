@@ -1,0 +1,22 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+require 'dokx'
+
+local function processArgs()
+    return lapp [[
+Create an initial .dokx config file for a package.
+
+Arguments:
+    <input> (default ".")       input package path
+    --debug                     debug mode
+]]
+end
+
+local function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
+    dokx.initPackage(args.input)
+end
+
+main(processArgs())

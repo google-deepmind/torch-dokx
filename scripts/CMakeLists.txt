@@ -7,6 +7,7 @@ INSTALL(PROGRAMS
     dokx-extract-markdown
     dokx-generate-html
     dokx-generate-html-index
+    dokx-init
     dokx-update-from-github
     DESTINATION bin)
 

@@ -402,3 +402,30 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
 
     dokx.logger:info("Installed docs for " .. packagePath)
 end
+
+function dokx.initPackage(packagePath)
+    packagePath = dokx._sanitizePath(packagePath)
+
+    local dokxPath = path.join(packagePath, ".dokx")
+    if path.isfile(dokxPath) then
+        dokx.logger:error("dokx.initPackage: .dokx file already exists for package " .. tostring(packagePath))
+        os.exit(1)
+    end
+
+    local configSpec = dokx.configSpecification()
+
+    local output = "return {\n"
+
+    for _, configEntry in pairs(configSpec) do
+        output = output .. "    -- " .. configEntry.key .. ": " .. configEntry.description .. "\n"
+        output = output .. "    --" .. configEntry.key .. " = " .. configEntry.default .. ",\n\n"
+    end
+
+    output = output .. "}"
+
+    dokx.logger:info("dokx.initPackage: creating default .dokx config file for package " .. tostring(packagePath))
+    local dokxFile = io.open(dokxPath, 'w')
+    dokxFile:write(output)
+    dokxFile:close()
+
+end
