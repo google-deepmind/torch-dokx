@@ -333,9 +333,11 @@ function dokx.generateHTMLIndex(input)
         return "<li><a href=\"" .. package .. "/index.html\">" .. package .. "</a></li>"
     end
 
+    local sorted = tablex.sortv(packageDirs)
+
     -- Construct package list HTML
     local packageList = "<ul>"
-    packageDirs:foreach(function(packageDir)
+    for _, packageDir in sorted do
         local packageName = path.basename(packageDir)
         if stringx.startswith(packageName, "_") then
             dokx.logger:info("dokx.generateHTMLIndex: skipping " .. packageName)
@@ -343,7 +345,7 @@ function dokx.generateHTMLIndex(input)
             dokx.logger:info("dokx.generateHTMLIndex: adding " .. packageName .. " to index")
             packageList = packageList .. indexEntry(packageName)
         end
-    end)
+    end
     packageList = packageList .. "</ul>"
 
     local output = template:safe_substitute { packageList = packageList }
