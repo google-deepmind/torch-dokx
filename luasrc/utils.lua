@@ -114,24 +114,36 @@ Table entries are themselves tables, with keys 'key', 'description' and 'default
 ]]
 function dokx.configSpecification()
     return {
-        { key = "filter", description = "pattern or table of patterns; file paths to include", default = 'nil' },
         {
-          key = "exclude",
-          description = "pattern or table of patterns; file paths to exclude",
-          default = "{ 'test', 'build' }"
+            key = "filter",
+            description = "pattern or table of patterns; file paths to include",
+            default = 'nil'
         },
         {
-          key = "tocLevel",
-          description = "string; level of detail for table of contents: 'class' or 'function'",
-          default = "'function'"
+            key = "exclude",
+            description = "pattern or table of patterns; file paths to exclude",
+            default = "{ 'test', 'build' }"
         },
-        { key = "mathematics", description = "boolean; whether to process mathematics blocks", default = "true" },
-        { key = "packageName", description = "string; override the inferred package namespace", default = "nil" },
         {
-          key = "githubURL",
-          description = "string; $githubUser/$githubProject - used for generating links, if present",
-          default = "nil"
-        }
+            key = "tocLevel",
+            description = "string; level of detail for table of contents: 'class' or 'function'",
+            default = "'function'"
+        },
+        {
+            key = "mathematics",
+            description = "boolean; whether to process mathematics blocks",
+            default = "true"
+        },
+        {
+            key = "packageName",
+            description = "string; override the inferred package namespace",
+            default = "nil"
+        },
+        {
+            key = "githubURL",
+            description = "string; $githubUser/$githubProject - used for generating links, if present",
+            default = "nil"
+        },
     }
 end
 
