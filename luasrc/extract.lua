@@ -25,6 +25,17 @@ local function mergeAdjacentComments(entities)
     return merged
 end
 
+--[[ Given a list of items, remove all non-table elements
+
+Args:
+ - `entities :: pl.List` - items extracted from the source code
+
+Returns: a new list of entities
+--]]
+local function removeNonTable(entities)
+    return tablex.filter(entities, function(x) return type(x) == 'table' end)
+end
+
 --[[ Given a list of entities, remove all whitespace elements
 
 Args:
@@ -131,6 +142,7 @@ function dokx.extractDocs(packageName, sourceName, input)
         associateDocsWithFunctions,
         removeSingleLineWhitespace,
         mergeAdjacentComments,
+        removeNonTable,
     })
 
     local entities = extractor(matched)
