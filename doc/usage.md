@@ -205,3 +205,26 @@ Low-level commands:
 * **dokx-combine-html** - combine HTML components and a table-of-contents into one page for a package
 * **dokx-combine-markdown** - combine Markdown components into one markdown page for a package
 * **dokx-generate-html-index** - generate an index page for a set of packages in a documentation tree
+
+## Building a local documentation tree
+
+You can build a local documentation tree as follows.
+
+    # Install documentation system
+    luarocks install dokx
+    
+    # Create a directory for the documentation tree
+    mkdir -p ~/myDocs
+    
+    # For each project you want docs for:
+    dokx-build-package-docs -o ~/myDocs /path/to/project/repository
+    
+    # OR, for projects on github, if you don't have them checked out:
+    dokx-update-from-github -o ~/myDocs -b master githubUser/githubProject
+    
+    # Browse the created documentation
+    open ~/myDocs/index.html
+
+In case of error, append `--debug`, or raise an issue.
+
+You can update the documentation at any time by re-running the same `dokx-...` command.
