@@ -234,7 +234,7 @@ function dokx.combineTOC(package, input, config)
 
     local toc = "<ul>\n"
     for _, sectionPath in sorted do
-            dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
+        dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath)
     end
     toc = toc .. "</ul>\n"
