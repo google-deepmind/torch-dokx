@@ -193,7 +193,7 @@ function dokx.extractTOC(package, output, inputs, config)
             if documentedFunctions:len() ~= 0 then
                 output = output .. "<ul>\n"
                 local function handleFunction(entity)
-                    if not stringx.startswith(entity:name(), "_") then
+                    if not entity:isPrivate() then
                         anchorName = entity:fullname()
                         output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:nameWithClass() .. [[</a></li>]] .. "\n"
                     end
