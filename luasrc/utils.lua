@@ -78,14 +78,10 @@ end
 --[[ Given a comment string, remove extraneous symbols and spacing ]]
 function dokx._normalizeComment(text)
     text = stringx.strip(tostring(text))
-    if stringx.startswith(text, "[[") then
-        text = stringx.strip(text:sub(3))
-    end
-    if stringx.endswith(text, "]]") then
-        text = stringx.strip(text:sub(1, -3))
-    end
     local lines = stringx.splitlines(text)
     tablex.transform(function(line)
+        line = line:gsub("^%[=*%[", "")
+        line = line:gsub("%]=*%]$", "")
         if stringx.startswith(line, "--") then
             local chopIndex = 3
             if stringx.startswith(line, "-- ") then
@@ -96,6 +92,8 @@ function dokx._normalizeComment(text)
         if stringx.endswith(line, "--") then
             line = line:sub(1, -3)
         end
+        line = line:gsub("^%[=*%[", "")
+        line = line:gsub("%]=*%]$", "")
         return line
     end, lines)
     text = stringx.join("\n", lines)
