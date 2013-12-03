@@ -94,7 +94,7 @@ local function associateDocsWithClasses(entities)
 end
 
 -- TODO document
-function getFileString(entities)
+local function getFileString(entities)
     if entities:len() ~= 0 and dokx._is_a(entities[1], 'dokx.Comment') then
         local fileComment = entities[1]
         entities[1] = dokx.File(fileComment:text(), fileComment:package(), fileComment:file(), fileComment:lineNo())
