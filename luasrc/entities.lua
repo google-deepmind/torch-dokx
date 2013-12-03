@@ -75,6 +75,7 @@ do
         parent.__init(self, ...)
         assert(name)
         self._method = false
+        self._local = false
         local hasClass = false
         local pos = name:find(":")
         if pos then
@@ -101,6 +102,13 @@ do
         end
         self._args = args
     end
+    -- Set whether this is a local function
+    function Function:setLocal(localVal) self._local = localVal end
+    -- Return whether this is a local function
+    function Function:isLocal() return self._local end
+    -- Return whether this is a private function
+    function Function:isPrivate() return stringx.startswith(self._name, "_") end
+    -- Return a string describing the args consumed by this function
     function Function:args() return self._args end
     -- Return the name of this function
     function Function:name() return self._name end
@@ -207,6 +215,8 @@ TODO: get rid of this
     function DocumentedFunction:fullname() return self._func:fullname() end
     function DocumentedFunction:doc() return self._doc._text end
     function DocumentedFunction:args() return self._func:args() end
+    function DocumentedFunction:isLocal() return self._func:isLocal() end
+    function DocumentedFunction:isPrivate() return self._func:isPrivate() end
 
     function DocumentedFunction:str()
         return "{Documented function: \n   " .. self._func:str() .. "\n   " .. self._doc:str() .. "\n}"

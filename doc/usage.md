@@ -173,6 +173,17 @@ default, this is **on**. If your documentation contains no mathematics and MathJ
 is therefore not needed, or if it is causing problems, then you may wish to set
 this to `false`.
 
+#### includeLocal
+
+A boolean indicating whether local functions should be included in the
+generated documentation. The default is `false`.
+
+#### includePrivate
+
+A boolean indicating whether 'private' functions - those whose names begin
+with an underscore - should be included in the generated documentation. The
+default is `false`.
+
 # Building documentation
 
 ## Command-line interface
@@ -181,6 +192,7 @@ The following commands provide full control over the various parts of the docume
 
 High-level commands:
 
+* **dokx-init** - create a default .dokx config file for a package
 * **dokx-update-from-github** - fetch a package from GitHub and build its documentation
 * **dokx-build-package-docs** - build documentation for a package already on disk
 

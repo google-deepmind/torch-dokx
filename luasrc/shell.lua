@@ -3,6 +3,32 @@ local func = require 'pl.func'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 
+local function pruneFunctions(config, documentedFunctions, undocumentedFunctions)
+    if not config.includeLocal then
+        local function notLocal(x)
+            if x:isLocal() then
+                dokx.logger:info("Excluding local function " .. x:fullname())
+                return false
+            end
+            return true
+        end
+        documentedFunctions = tablex.filter(documentedFunctions, notLocal)
+        undocumentedFunctions = tablex.filter(undocumentedFunctions, notLocal)
+    end
+    if not config.includePrivate then
+        local function notPrivate(x)
+            if x:isPrivate() then
+                dokx.logger:info("Excluding private function " .. x:fullname())
+                return false
+            end
+            return true
+        end
+        documentedFunctions = tablex.filter(documentedFunctions, notPrivate)
+        undocumentedFunctions = tablex.filter(undocumentedFunctions, notPrivate)
+    end
+    return documentedFunctions, undocumentedFunctions
+end
+
 local function luaToMd(luaFile)
     return dokx._convertExtension("lua", "md", luaFile)
 end
@@ -158,6 +184,8 @@ function dokx.extractTOC(package, output, inputs, config)
         local content = dokx._readFile(input)
         local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(package, input, content)
 
+        documentedFunctions, undocumentedFunctions = pruneFunctions(config, documentedFunctions, undocumentedFunctions)
+
         -- Output markdown
         local output = ""
 
@@ -241,6 +269,8 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath)
         local classes, documentedFunctions, undocumentedFunctions, fileString = dokx.extractDocs(
                 package, input, content
             )
+
+        documentedFunctions, undocumentedFunctions = pruneFunctions(config, documentedFunctions, undocumentedFunctions)
 
         -- Output markdown
         local writer = dokx.MarkdownWriter(outputPath, mode)

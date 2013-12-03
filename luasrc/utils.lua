@@ -144,6 +144,16 @@ function dokx.configSpecification()
             description = "string; $githubUser/$githubProject - used for generating links, if present",
             default = "nil"
         },
+        {
+            key = "includeLocal",
+            description = "boolean; whether to include local functions",
+            default = "false"
+        },
+        {
+            key = "includePrivate",
+            description = "boolean; whether to include private functions (i.e. those that begin with an underscore)",
+            default = "false"
+        },
     }
 end
 

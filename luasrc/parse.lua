@@ -30,6 +30,11 @@ function dokx.createParser(packageName, file)
         end
         return true, dokx.Function(name, argString or "", packageName, file, lineNo)
     end
+    local function makeLocalFunction(...)
+        local _, func = makeFunction(...)
+        func:setLocal(true)
+        return true, func
+    end
     local function makeClass(content, pos, funcname, classArgsString, ...)
         if funcname == 'torch.class' then
             local classArgs = loadstring("return " .. classArgsString:sub(2, -2))
@@ -151,9 +156,9 @@ function dokx.createParser(packageName, file)
         V "space" * K "end" +
 
         -- Define a function - we'll create a Function entity!
-        Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody" +
-        K "local" * V "space" * K "function" * V "space" * C(V "Name") *
-        V "space" * V "funcbody", makeFunction) +
+        Cmt(K "function" * V "space" * C(V "funcname") * V "space" *  V "funcbody", makeFunction) +
+        Cmt(K "local" * V "space" * K "function" * V "space" * C(V "Name") *
+        V "space" * V "funcbody", makeLocalFunction) +
 
         -- Assign to local vars
         K "local" * V "space" * V "namelist" *
