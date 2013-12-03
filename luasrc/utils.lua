@@ -107,34 +107,73 @@ function dokx._normalizeComment(text)
     return text
 end
 
+--[[ Return a table describing the .dokx config format
+
+Table entries are themselves tables, with keys 'key', 'description' and 'default'
+
+]]
+function dokx.configSpecification()
+    return {
+        { key = "filter", description = "pattern or table of patterns; file paths to include", default = 'nil' },
+        {
+          key = "exclude",
+          description = "pattern or table of patterns; file paths to exclude",
+          default = "{ 'test', 'build' }"
+        },
+        {
+          key = "tocLevel",
+          description = "string; level of detail for table of contents: 'class' or 'function'",
+          default = "'function'"
+        },
+        { key = "mathematics", description = "boolean; whether to process mathematics blocks", default = "true" },
+        { key = "packageName", description = "string; override the inferred package namespace", default = "nil" },
+        {
+          key = "githubURL",
+          description = "string; $githubUser/$githubProject - used for generating links, if present",
+          default = "nil"
+        }
+    }
+end
+
 function dokx._loadConfig(packagePath)
     local configPath = path.join(packagePath, ".dokx")
-    if not path.isfile(configPath) then
-        return {}
+    local configTable = {}
+
+    -- If config file exists, try to load it
+    if path.isfile(configPath) then
+        local configFunc, err = loadfile(configPath)
+        if err then
+            error("dokx._loadConfig: error loading dokx config " .. configPath .. ": " .. err)
+        end
+        configTable = configFunc()
+        if not configTable or type(configTable) ~= 'table' then
+            error("dokx._loadConfig: dokx config file must return a lua table! " .. configPath)
+        end
     end
-    local configFunc, err = loadfile(configPath)
-    if err then
-        error("dokx._loadConfig: error loading dokx config " .. configPath .. ": " .. err)
+
+    local configSpec = dokx.configSpecification()
+    local allowedKeys = {}
+    local defaultValues = {}
+
+    for _, configEntry in pairs(configSpec) do
+        allowedKeys[configEntry.key] = true
+        defaultValues[configEntry.key] = configEntry.default
     end
-    local configTable = configFunc()
-    if not configTable or type(configTable) ~= 'table' then
-        error("dokx._loadConfig: dokx config file must return a lua table! " .. configPath)
-    end
-    local allowedKeys = {
-        filter = true,
-        exclude = true,
-        tocLevel = true,
-        mathematics = true,
-        packageName = true,
-        githubURL = true
-    }
+
+    -- Check for unknown keys
     for key, value in pairs(configTable) do
         if not allowedKeys[key] then
             error("dokx._loadConfig: unknown key '" .. key .. "' in dokx config file " .. configPath)
         end
     end
-    if configTable.mathematics == nil then
-        configTable.mathematics = true
+
+    -- Assign defaults, where value was not specified
+    for key, _ in pairs(allowedKeys) do
+        if configTable[key] == nil then
+            local default = loadstring("return " .. defaultValues[key])()
+            dokx.logger:info("dokx._loadConfig: no value specified for key '" .. key .. "' - using default: " .. tostring(default))
+            configTable[key] = default
+        end
     end
 
     return configTable
