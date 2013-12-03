@@ -385,7 +385,16 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     file.copy(dokx._getTemplate("style-index.css"), path.join(outputRoot, "style.css"))
 
     if not path.isdir(path.join(outputRoot, "_highlight")) then
-        dokx.logger:warn("highlight.js not found - syntax highlighting will be unavailable")
+        dokx.logger:warn("highlight.js not found - installing it...")
+        local highlightDir = dokx._getTemplate("highlight")
+        local installDir = path.join(outputRoot, "_highlight")
+        dir.makepath(installDir)
+        dir.makepath(path.join(installDir, "styles"))
+        local highlightFiles = dir.getallfiles(highlightDir)
+        for _, fileName in ipairs(highlightFiles) do
+            local relPath = path.relpath(fileName, highlightDir)
+            dir.copyfile(path.join(highlightDir, fileName), path.join(installDir, relPath))
+        end
     end
 
     dir.rmtree(docTmp)
