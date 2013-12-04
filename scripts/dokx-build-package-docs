@@ -8,6 +8,7 @@ Build documentation for a package and install it into the given documentation tr
 
 Arguments:
     -o,--output (string)     output documentation tree
+    -r,--repl (default none)  output REPL markdown
     <input> (string)         input package path
     --debug                  debug mode
 ]]
@@ -17,7 +18,7 @@ local function main(args)
     if args.debug then
         dokx.debugMode()
     end
-    dokx.buildPackageDocs(args.output, args.input)
+    dokx.buildPackageDocs(args.output, args.input, args.repl)
 end
 
 main(processArgs())

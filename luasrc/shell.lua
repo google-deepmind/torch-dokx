@@ -291,7 +291,6 @@ function dokx.combineTOC(package, input, config)
     outputFile:close()
 end
 
-function dokx.extractMarkdown(package, output, inputs, config, packagePath)
 --[[
 
 Given information about a package and its source files, parse the lua and
@@ -307,8 +306,9 @@ Parameters:
  - `mode` - either 'html' or 'repl', depending on the flavour of Markdown to extract
 
 --]]
+function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode)
 
-    local mode = 'html' -- TODO
+    mode = mode or 'html'
 
     if not path.isdir(output) then
         dokx.logger:info("dokx.extractMarkdown: directory " .. output .. " not found; creating it.")
@@ -438,7 +438,6 @@ function dokx._getPackageMdFiles(packagePath, config)
     return luaFiles
 end
 
-function dokx.buildPackageDocs(outputRoot, packagePath)
 --[[
 
 Given the path to a package repository, read the source files, markdown files, and any .dokx config file that may be present, and generate full HTML and Markdown documentation for the package.
@@ -450,11 +449,18 @@ Parameters:
  - `outputREPL` - optional path to write Markdown for consumption by the Torch REPL
 
 --]]
+function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL)
+    if outputREPL == 'none' then
+        outputREPL = nil
+    end
     packagePath = dokx._sanitizePath(packagePath)
     outputRoot = dokx._sanitizePath(outputRoot)
     local config = dokx._loadConfig(packagePath)
     if not path.isdir(outputRoot) then
         error("dokx.buildPackageDocs: invalid documentation tree " .. outputRoot)
+    end
+    if outputREPL and not path.isdir(outputREPL) then
+        error("dokx.buildPackageDocs: invalid path for REPL markdown output " .. outputREPL)
     end
     local docTmp = dokx._mkTemp()
     local tocTmp = dokx._mkTemp()
@@ -477,10 +483,17 @@ Parameters:
     dokx.logger:info("dokx.buildPackageDocs: package name = " .. packageName)
     dokx.logger:info("dokx.buildPackageDocs: output root = " .. outputRoot)
     dokx.logger:info("dokx.buildPackageDocs: output dir = " .. outputPackageDir)
+    if outputREPL then
+        dokx.logger:info("dokx.buildPackageDocs: output REPL markdown = " .. outputPackageDir)
+    end
 
     path.mkdir(outputPackageDir)
 
-    dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath)
+    if outputREPL then
+        dokx.extractMarkdown(packageName, outputREPL, luaFiles, config, packagePath, 'repl')
+    end
+
+    dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath, 'html')
     dokx.extractTOC(packageName, tocTmp, luaFiles, config)
     dokx.combineTOC(packageName, tocTmp, config)
     dokx.generateHTML(outputPackageDir, markdownFiles, config)
