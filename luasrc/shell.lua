@@ -33,17 +33,17 @@ local function luaToMd(luaFile)
     return dokx._convertExtension("lua", "md", luaFile)
 end
 
-local function makeSectionTOC(packageName, sectionPath)
+local function makeSectionTOC(namespace, sectionPath)
     local sectionName = path.splitext(path.basename(sectionPath))
     local sectionHTML = dokx._readFile(sectionPath)
-    local output = [[<li><a href="#]] .. packageName .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
+    local output = [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
     return output
 end
 
-local function makeSectionHTML(packageName, sectionPath)
+local function makeSectionHTML(namespace, sectionPath)
     local basename = path.basename(sectionPath)
     local sectionName = path.splitext(basename)
-    local anchorName = packageName .. "." .. sectionName .. ".dok"
+    local anchorName = namespace .. "." .. sectionName .. ".dok"
     local sectionHTML = dokx._readFile(sectionPath)
     local output = [[<div class='docSection'>]]
     output = output .. [[<a name="]] .. anchorName .. [["></a>]]
