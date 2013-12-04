@@ -8,9 +8,9 @@ local function processArgs()
     return  lapp [[
 Extract inline documentation from Lua source
     -p,--package (string)    package name
-    -o,--output (string)    output directory
-    <inputs...>  (string)   input .lua files
-    ]]
+    -o,--output (string)     output directory
+    <inputs...>  (string)    input .lua files
+]]
 end
 
 
