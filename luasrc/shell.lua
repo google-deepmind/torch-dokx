@@ -52,6 +52,17 @@ local function makeSectionHTML(packageName, sectionPath)
     return output
 end
 
+--[[
+
+Given a set of HTML sections for a package and an optional table of contents path, combine everything into a single index.html for the package.
+
+Parameters:
+
+- `tocPath` - path to an HTML file containing the table of contents for the package, or 'none'
+- `input` - path to a directory containing HTML files to be combined
+- `config` - a dokx config table
+
+--]]
 function dokx.combineHTML(tocPath, input, config)
     dokx.logger:info("Generating package documentation index for " .. input)
 
@@ -130,6 +141,16 @@ function dokx.combineHTML(tocPath, input, config)
     outputFile:close()
 end
 
+--[[
+
+Given a set of input Markdown files, render them to corresponding HTML files.
+
+Parameters:
+- `output` - path to a directory in which to write output HTML files
+- `inputs` - table of paths to Lua files
+- `config` - a dokx config table
+
+--]]
 function dokx.generateHTML(output, inputs, config)
     if not path.isdir(output) then
         dokx.logger:info("Directory " .. output .. " not found; creating it.")
@@ -166,6 +187,17 @@ function dokx.generateHTML(output, inputs, config)
     end
 end
 
+--[[
+
+Given a set of Lua files, parse them and output corresponding HTML files with table-of-contents sections
+
+Parameters:
+- `package` - name of the package
+- `output` - path to directory in which to output HTML
+- `inputs` - table of paths to input Lua files
+- `config` - a dokx config table
+
+--]]
 function dokx.extractTOC(package, output, inputs, config)
     if not path.isdir(output) then
         dokx.logger:info("Directory " .. output .. " not found; creating it.")
@@ -212,6 +244,19 @@ function dokx.extractTOC(package, output, inputs, config)
 
 end
 
+--[[
+
+Given a directory containing table-of-contents sections, combine them into a single table-of-contents snippet.
+
+The output is written to a file called 'toc.html' in the same directory.
+
+Parameters:
+
+ - `package` - name of the package
+ - `input` - path to a directory containing ToC sections
+ - `config` - a dokx config table
+
+--]]
 function dokx.combineTOC(package, input, config)
     dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
 
@@ -247,6 +292,21 @@ function dokx.combineTOC(package, input, config)
 end
 
 function dokx.extractMarkdown(package, output, inputs, config, packagePath)
+--[[
+
+Given information about a package and its source files, parse the lua and
+generate Markdown for the extracted functions and classes.
+
+Parameters:
+
+ - `package` - name of the package
+ - `output` - directory in which to write output Markdown files
+ - `inputs` - table of input .lua files
+ - `config` - a dokx config table
+ - `packagePath`- path to the package
+ - `mode` - either 'html' or 'repl', depending on the flavour of Markdown to extract
+
+--]]
 
     local mode = 'html' -- TODO
 
@@ -317,6 +377,15 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath)
     end
 end
 
+--[[
+
+Given the root of a documentation tree, generate an index page listing all of the packages in the tree.
+
+An entry is added for each directory in the top level of the tree whose name doesn't begin with an underscore.
+
+The output is written to index.html in the root of the documentation tree, overwriting any existing file there.
+
+--]]
 function dokx.generateHTMLIndex(input)
     dokx.logger:info("dokx.generateHTMLIndex: generating global documentation index for " .. input)
 
@@ -370,6 +439,17 @@ function dokx._getPackageMdFiles(packagePath, config)
 end
 
 function dokx.buildPackageDocs(outputRoot, packagePath)
+--[[
+
+Given the path to a package repository, read the source files, markdown files, and any .dokx config file that may be present, and generate full HTML and Markdown documentation for the package.
+
+Parameters:
+
+ - `outputRoot` - path to a documentation tree in which to write the HTML output
+ - `packagePath` - path to the package repository
+ - `outputREPL` - optional path to write Markdown for consumption by the Torch REPL
+
+--]]
     packagePath = dokx._sanitizePath(packagePath)
     outputRoot = dokx._sanitizePath(outputRoot)
     local config = dokx._loadConfig(packagePath)
@@ -435,6 +515,13 @@ function dokx.buildPackageDocs(outputRoot, packagePath)
     dokx.logger:info("Installed docs for " .. packagePath)
 end
 
+--[[
+
+Given the path to a project repository, create an example .dokx config file in the root of the repository.
+
+The .dokx file just contains the default values (commented out), along with explanations of what the various keys do.
+
+--]]
 function dokx.initPackage(packagePath)
     packagePath = dokx._sanitizePath(packagePath)
 
