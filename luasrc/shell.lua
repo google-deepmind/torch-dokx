@@ -526,7 +526,9 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL)
         local highlightFiles = dir.getallfiles(highlightDir)
         for _, fileName in ipairs(highlightFiles) do
             local relPath = path.relpath(fileName, highlightDir)
-            dir.copyfile(path.join(highlightDir, fileName), path.join(installDir, relPath))
+            local destPath = path.join(installDir, relPath)
+            dokx.logger:debug(destPath)
+            dir.copyfile(path.join(highlightDir, fileName), destPath)
         end
     end
 
