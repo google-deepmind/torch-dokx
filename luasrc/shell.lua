@@ -334,9 +334,7 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
 
         -- Output markdown
         local writer = dokx.MarkdownWriter(outputPath, mode)
-        local haveNonClassFunctions = false -- TODO
-
-        if basename ~= 'init.lua' and fileString or haveNonClassFunctions then
+        if basename ~= 'init.lua' and fileString then
             writer:heading(3, basename)
         end
         if fileString then
