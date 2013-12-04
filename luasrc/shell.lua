@@ -450,9 +450,6 @@ Parameters:
 
 --]]
 function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL)
-    if outputREPL == 'none' then
-        outputREPL = nil
-    end
     packagePath = dokx._sanitizePath(packagePath)
     outputRoot = dokx._sanitizePath(outputRoot)
     local config = dokx._loadConfig(packagePath)
