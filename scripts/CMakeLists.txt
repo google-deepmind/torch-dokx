@@ -1,7 +1,6 @@
 INSTALL(PROGRAMS
     dokx-build-package-docs
     dokx-combine-html
-    dokx-combine-markdown
     dokx-combine-toc
     dokx-extract-toc
     dokx-extract-markdown
