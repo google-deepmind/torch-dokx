@@ -193,7 +193,7 @@ The following commands provide full control over the various parts of the docume
 High-level commands:
 
 * **dokx-init** - create a default .dokx config file for a package
-* **dokx-update-from-github** - fetch a package from GitHub and build its documentation
+* **dokx-update-from-git** - fetch a package from git and build its documentation
 * **dokx-build-package-docs** - build documentation for a package already on disk
 
 Low-level commands:
@@ -219,8 +219,8 @@ You can build a local documentation tree as follows.
     # For each project you want docs for:
     dokx-build-package-docs -o ~/myDocs /path/to/project/repository
     
-    # OR, for projects on github, if you don't have them checked out:
-    dokx-update-from-github -o ~/myDocs -b master githubUser/githubProject
+    # OR, for projects in git, if you don't have them checked out:
+    dokx-update-from-git -o ~/myDocs -b master git@github.com:githubUser/githubProject.git
     
     # Browse the created documentation
     open ~/myDocs/index.html

@@ -8,6 +8,6 @@ INSTALL(PROGRAMS
     dokx-generate-html
     dokx-generate-html-index
     dokx-init
-    dokx-update-from-github
+    dokx-update-from-git
     DESTINATION bin)
 

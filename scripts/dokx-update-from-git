@@ -5,10 +5,10 @@ require 'dokx'
 
 local function processArgs()
     return lapp [[
-Check out a list of projects from GitHub, and build docs for them in a central tree
+Check out a list of projects from git, and build docs for them in a central tree
     -o,--output (string) path to root of documentation tree
     -b,--branch (string) branch to check out
-    <inputs...> (string) GitHub projects (e.g. d11/torch-dokx)
+    <inputs...> (string) git URL(s) (e.g. git@github.com:d11/torch-dokx.git)
     --debug              debug mode
     ]]
 end
@@ -22,7 +22,7 @@ local function main(args)
     local tempDir = dokx._mkTemp()
 
     for _, input in ipairs(args.inputs) do
-        local gitURL = "git@github.com:" .. input .. ".git"
+        local gitURL = input
         local cloneDir = path.join(tempDir, input)
         dir.makepath(cloneDir)
         local gitCmd = "git clone " .. gitURL .. " " .. cloneDir
