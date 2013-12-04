@@ -1,6 +1,7 @@
 #!/usr/bin/env th
 local lapp = require 'pl.lapp'
 local dir = require 'pl.dir'
+local path = require 'pl.path'
 require 'dokx'
 
 local function processArgs()
@@ -23,7 +24,8 @@ local function main(args)
 
     for _, input in ipairs(args.inputs) do
         local gitURL = input
-        local cloneDir = path.join(tempDir, input)
+        local name = path.basename(gitURL):gsub("%.git$","")
+        local cloneDir = path.join(tempDir, name)
         dir.makepath(cloneDir)
         local gitCmd = "git clone " .. gitURL .. " " .. cloneDir
         local result = os.execute(gitCmd)
