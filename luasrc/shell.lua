@@ -179,9 +179,9 @@ function dokx.generateHTML(output, inputs, config)
         input = dokx._sanitizePath(input)
         dokx.logger:info("dokx.generateHTML: processing file " .. input)
         local basename = path.basename(input)
-        local packageName, ext = path.splitext(basename)
+        local sectionName, ext = path.splitext(basename)
         lapp.assert(ext == '.md', "Expected .md file for input")
-        local outputPath = path.join(output, packageName .. ".html")
+        local outputPath = path.join(output, sectionName .. ".html")
 
         handleFile(input, outputPath)
     end
@@ -209,9 +209,9 @@ function dokx.extractTOC(package, output, inputs, config)
         dokx.logger:info("dokx.extractTOC: processing file " .. input)
 
         local basename = path.basename(input)
-        local packageName, ext = path.splitext(basename)
+        local sectionName, ext = path.splitext(basename)
         lapp.assert(ext == '.lua', "Expected .lua file for input")
-        local outputPath = path.join(output, packageName .. ".html")
+        local outputPath = path.join(output, sectionName .. ".html")
 
         local content = dokx._readFile(input)
         local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(package, input, content)
@@ -320,9 +320,9 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
         dokx.logger:info("dokx.extractMarkdown: processing file " .. input)
 
         local basename = path.basename(input)
-        local packageName, ext = path.splitext(basename)
+        local sectionName, ext = path.splitext(basename)
         lapp.assert(ext == '.lua', "Expected .lua file for input")
-        local outputPath = path.join(output, packageName .. ".md")
+        local outputPath = path.join(output, sectionName .. ".md")
         dokx.logger:info("dokx.extractMarkdown: writing to " .. outputPath)
 
         local content = dokx._readFile(input)
