@@ -219,6 +219,9 @@ You can build a local documentation tree as follows.
     # For each project you want docs for:
     dokx-build-package-docs -o ~/myDocs /path/to/project/repository
     
+    # Optionally you can also install docs for use from the Torch REPL - just specify the location:
+    dokx-build-package-docs -o ~/myDocs --repl ~/usr/local/shate/lua/5.1/myPackage/doc/ /path/to/project/repository
+    
     # OR, for projects in git, if you don't have them checked out:
     dokx-update-from-git -o ~/myDocs -b master git@github.com:githubUser/githubProject.git
     
