@@ -93,7 +93,7 @@ local function associateDocsWithClasses(entities)
     return merged
 end
 
--- TODO document
+-- Given a list of entities, if the first element is a Comment, mark it as a File comment
 local function getFileString(entities)
     if entities:len() ~= 0 and dokx._is_a(entities[1], 'dokx.Comment') then
         local fileComment = entities[1]
