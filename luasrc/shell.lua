@@ -487,6 +487,14 @@ Parameters:
     dokx.generateHTML(path.join(outputPackageDir, "extra"), extraMarkdownFiles, config)
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
 
+    local markdownDir = path.join(outputRoot, "_markdown", packageName)
+    if not path.isdir(markdownDir) then
+        dir.makepath(markdownDir)
+    end
+    tablex.foreach(markdownFiles, function(mdFile)
+        file.copy(mdFile, path.join(markdownDir, path.basename(mdFile)))
+    end)
+
     -- Find the path to the templates - it's relative to our installed location
     local dokxDir = dokx._getDokxDir()
     local pageStyle = dokx._getTemplate("style-page.css")
