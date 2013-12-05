@@ -45,7 +45,6 @@ end
 local function getRockspecVars(rockspecPath)
     local rockspecEnv = { }
     assert(rockspecPath)
-    print(rockspecPath)
     local getRockspec = assert(loadfile(rockspecPath))
     setfenv(getRockspec, rockspecEnv)
     getRockspec()
