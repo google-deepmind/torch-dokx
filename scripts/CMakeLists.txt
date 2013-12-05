@@ -8,5 +8,6 @@ INSTALL(PROGRAMS
     dokx-generate-html-index
     dokx-init
     dokx-update-from-git
+    dokx-luarocks
     DESTINATION bin)
 
