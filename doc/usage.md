@@ -193,11 +193,13 @@ The following commands provide full control over the various parts of the docume
 High-level commands:
 
 * **dokx-init** - create a default .dokx config file for a package
-* **dokx-update-from-git** - fetch a package from git and build its documentation
-* **dokx-build-package-docs** - build documentation for a package already on disk
+* **dokx-luarocks** - install or make a package along with its documentation
+* **dokx-browse** - open web browser to view documentation
 
 Low-level commands:
 
+* **dokx-update-from-git** - fetch a package from git and build its documentation
+* **dokx-build-package-docs** - build documentation for a package already on disk
 * **dokx-extract-toc** - extract table-of-contents components from Lua sources
 * **dokx-extract-markdown** - extract Markdown components from Lua sources
 * **dokx-generate-html** - convert Markdown components to HTML components
@@ -206,13 +208,31 @@ Low-level commands:
 * **dokx-combine-markdown** - combine Markdown components into one markdown page for a package
 * **dokx-generate-html-index** - generate an index page for a set of packages in a documentation tree
 
-## Building a local documentation tree
+## Normal usage
 
-You can build a local documentation tree as follows.
+Install dokx:
+
+    luarocks install dokx
+
+Install packages with documentation:
+
+    dokx-luarocks install myPackage
+
+    OR
+
+    dokx-luarocks make myPackage-0-0.rockspec
+
+View documentation:
+
+    dokx-browse
+
+## Manually building a local documentation tree
+
+If you want more control, you can manually build a local documentation tree as follows.
 
     # Install documentation system
     luarocks install dokx
-    
+
     # Create a directory for the documentation tree
     mkdir -p ~/myDocs
     
