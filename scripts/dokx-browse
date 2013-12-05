@@ -5,11 +5,13 @@ require 'dokx'
 local function processArgs()
     return lapp [[
 Open a web browser, pointing at your documentation tree.
+
+    <package> (optional string) name of package to open documentation for
 ]]
 end
 
 local function main(args)
-    dokx.browse()
+    dokx.browse(args.package)
 end
 
 main(processArgs())

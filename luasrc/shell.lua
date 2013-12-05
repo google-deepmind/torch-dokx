@@ -567,11 +567,25 @@ function dokx.initPackage(packagePath)
 
 end
 
-function dokx.browse()
-    local docRoot = path.join(dokx._luarocksHtmlDir(), "index.html")
-    if not path.isfile(docRoot) then
+--[[
+
+Open a web browser pointing to the documentation
+
+--]]
+function dokx.browse(packageName)
+    local docRoot = dokx._luarocksHtmlDir()
+    if not path.isdir(docRoot) then
         dokx.logger:error("dokx.browse: could not find local docs.")
         return
     end
-    os.execute("open " .. docRoot)
+    local docPath = docRoot
+    if packageName and path.isdir(path.join(docRoot, packageName)) then
+        docPath = path.join(docRoot, packageName)
+    end
+    local browser = dokx._chooseCommand { "open", "xdg-open", "firefox" }
+    if not browser then
+        dokx.logger:error("dokx.browse: could not find a browser")
+        return
+    end
+    os.execute(browser .. " " .. path.join(docPath, "index.html"))
 end

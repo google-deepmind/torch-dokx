@@ -244,3 +244,30 @@ function dokx._sanitizePath(pathString)
     end
     return sanitized
 end
+
+function dokx._which(command)
+    local cmd = io.popen("which " .. command)
+    local result = stringx.strip(cmd:read("*all"))
+    cmd:close()
+    return result
+end
+
+--[[
+
+Given a table of possible commands, return the path for the first one that exists, or nil if none do.
+
+Example:
+
+    dokx._chooseCommand { 'open', 'xdg-open' }
+
+--]]
+function dokx._chooseCommand(commands)
+
+    for _, command in ipairs(commands) do
+        local result = dokx._which(command)
+        if result then
+            return result
+        end
+    end
+    return nil
+end
