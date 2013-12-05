@@ -566,3 +566,12 @@ function dokx.initPackage(packagePath)
     dokxFile:close()
 
 end
+
+function dokx.browse()
+    local docRoot = path.join(dokx._luarocksHtmlDir(), "index.html")
+    if not path.isfile(docRoot) then
+        dokx.logger:error("dokx.browse: could not find local docs.")
+        return
+    end
+    os.execute("open " .. docRoot)
+end

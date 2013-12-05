@@ -1,0 +1,15 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+require 'dokx'
+
+local function processArgs()
+    return lapp [[
+Open a web browser, pointing at your documentation tree.
+]]
+end
+
+local function main(args)
+    dokx.browse()
+end
+
+main(processArgs())

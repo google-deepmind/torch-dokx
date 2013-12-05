@@ -1,115 +1,12 @@
 #!/usr/bin/env th
 
-require 'sys'
-require 'paths'
-local search = require 'luarocks.search'
-local cfg = require 'luarocks.cfg'
-local deps = require 'luarocks.deps'
-local path = require("luarocks.path")
-local util = require 'luarocks.util'
-local Set = require 'pl.Set'
-local stringx = require 'pl.stringx'
-
-assert(os.execute('luarocks ' .. table.concat(arg, ' ')) == 0, 'Error executing luarocks')
-
+require 'dokx'
 local argset = Set(arg)
 
-
--- Largely lifted from luarocks show
-local function rockspec(name)
-
-	print('name', name)
-
-    local results = {}
-    local query = search.make_query(name)
-    query.exact_name = true
-    local tree_map = {}
-    local trees = cfg.rocks_trees
-    for _,tree in ipairs(trees) do
-        local rocks_dir = path.rocks_dir(tree)
-        tree_map[rocks_dir] = tree
-        search.manifest_search(results, rocks_dir, query)
-    end
-
-    if not next(results) then
-        return nil,"cannot find package "..name.."\nUse 'list' to find installed rocks."
-    end
-
-    version = nil
-    local repo_url
-    local package, versions = util.sortedpairs(results)()
-    --question: what do we do about multiple versions? This should
-    --give us the latest version on the last repo (which is usually the global one)
-    for vs, repositories in util.sortedpairs(versions, deps.compare_versions) do
-        if not version then version = vs end
-        for _, rp in ipairs(repositories) do repo_url = rp.repo end
-    end
-
-    local repo = tree_map[repo_url]
-	local rockspec_file = path.rockspec_file(name, version, repo)
-
-	return rockspec_file
-end
-
-
-local function repository(name)
-	-- todo: do this without going via globals
-	dofile(assert(rockspec(name))) -- defines 'source'
-	local url = stringx.replace(source.url, 'git+file://', '', 1)
-	return url, source.branch or source.tag
-end
-
-
-local function validDirectory(path)
-	if not paths.dirp(path) then
-		os.execute('mkdir -p ' .. path)
-	end
-	return path
-end
-
-
-local function htmlDir()
-	return validDirectory(cfg.site_config.LUAROCKS_ROCKS_TREE .. 'share/doc/dokx')
-end
-
-local function replDir(package)
-	return validDirectory(cfg.site_config.LUAROCKS_ROCKS_TREE .. cfg.lua_modules_path .. '/' .. package .. '/doc')
-end
-
-
-local function installFromGit(name)
-	local name = arg[#arg]
-	local url, branch = repository(name)
-	local dir = htmlDir()
-	local cmd = table.concat({
-		'dokx-update-from-git',
-		'--output', htmlDir(),
-		'--branch', branch,
-		'--repl', replDir(package),
-		url
-	}, ' ')
-	os.execute(cmd)
-end
-
-
-local function installFromLocalSource()
-	local rockspec = arg[#arg]
-	dofile(rockspec) -- defines package
-	local cmd = table.concat({
-		'dokx-build-package-docs',
-		'--output', htmlDir(),
-		'--repl', replDir(package),
-		paths.cwd()
-	}, ' ')	
-	os.execute(cmd)
-end
-
-
 if argset.install then
-	installFromGit()
+	dokx.luarocksInstall(arg)
 end
-
 
 if argset.make then
-	installFromLocalSource()
+	dokx.luarocksMake(arg)
 end
