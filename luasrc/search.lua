@@ -41,10 +41,11 @@ function dokx._installSearchDependencies()
     file.copy(dokxDaemon, dest)
 end
 
-function dokx._runPythonScript(command, ...)
-    local script = path.join(dokx._getDokxDir(), "dokx-search", command)
+function dokx._runPythonScript(script, ...)
+    local scriptPath = path.join(dokx._getDokxDir(), "dokx-search", script)
+    local command = inVirtualEnv('python', script, ...)
     dokx.logger:info("Executing: " .. command)
-    os.execute(inVirtualEnv('python', script, ...))
+    os.execute(command)
 end
 
 function dokx.buildSearchIndex(input, output)
