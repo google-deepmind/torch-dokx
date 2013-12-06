@@ -6,13 +6,13 @@ function dokx._getVirtualEnvPath()
     return path.join(dokx._getDokxDir(), "dokx-search", "virtualenv")
 end
 
-local function inVirtualEnv(...)
+local function inVirtualEnv(bin, ...)
     local virtualEnvPath = dokx._getVirtualEnvPath()
     if not path.isdir(virtualEnvPath) then
         dokx._installSearchDependencies()
     end
-    local virtualenv = path.join(virtualEnvPath, "bin/activate")
-    return stringx.join(" ", { 'source', virtualenv, '&&', ... })
+    local virtualenv = path.join(virtualEnvPath, "bin", bin)
+    return stringx.join(" ", { virtualenv, ... })
 end
 
 function dokx._installSearchDependencies()
@@ -33,7 +33,7 @@ function dokx._installSearchDependencies()
     local virtualEnvPath = dokx._getVirtualEnvPath()
     os.execute("virtualenv --python=" .. python .. " " .. virtualEnvPath)
     local requirements = path.join(dokx._getDokxDir(), "dokx-search", "requirements.txt")
-    os.execute(inVirtualEnv("pip install -r " .. requirements))
+    os.execute(inVirtualEnv("pip", "install -r " .. requirements))
     local dokxDaemon = path.join(dokx._getDokxDir(), "dokx-search", "dokxDaemon.py")
     local virtualEnvLib = path.join(virtualEnvPath, "lib/python2.7")
     local dest = path.join(virtualEnvLib, "dokxDaemon.py")
