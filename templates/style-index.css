@@ -52,3 +52,7 @@ li > a {
     padding: 0.4em;
     display: block;
 }
+
+.searchForm {
+    float: right;
+}

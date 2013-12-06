@@ -5,6 +5,7 @@ INSTALL(FILES
     syntax.html
     style-index.css
     style-page.css
+    search.js
     DESTINATION ${Torch_INSTALL_LUA_PATH_SUBDIR}/dokx/templates)
 
 INSTALL(DIRECTORY

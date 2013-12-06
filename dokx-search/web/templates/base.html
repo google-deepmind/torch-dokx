@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% block head %}
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/dokx/style.css" type="text/css" />
+    {% endblock %}
+</head>
+<body>
+<header>
+<ul>
+<li><a href="../index.html">research-docs</a></li>
+</ul>
+</header>
+<div class="wrapper">
+<section>
+<h1>{% block heading %}{% endblock %}</h1>
+{% block content %}{% endblock %}
+</section>
+</body>
+</html>

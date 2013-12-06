@@ -18,6 +18,7 @@ torch.include('dokx', 'shell.lua')
 torch.include('dokx', 'entities.lua')
 torch.include('dokx', 'extract.lua')
 torch.include('dokx', 'luarocks.lua')
+torch.include('dokx', 'search.lua')
 
 -- Calling this puts dokx into debug mode.
 function dokx.debugMode()

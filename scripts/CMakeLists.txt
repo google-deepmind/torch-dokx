@@ -10,5 +10,6 @@ INSTALL(PROGRAMS
     dokx-browse
     dokx-update-from-git
     dokx-luarocks
+    dokx-search
     DESTINATION bin)
 

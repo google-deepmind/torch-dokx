@@ -1,0 +1,2 @@
+INSTALL(DIRECTORY .
+       DESTINATION ${Torch_INSTALL_LUA_PATH_SUBDIR}/dokx/dokx-search/)

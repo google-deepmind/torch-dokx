@@ -240,3 +240,17 @@ pre.has-jax {
     background: inherit;
     border: inherit;
 }
+
+.result {
+    padding-bottom: 2em;
+}
+
+.docSection {
+    border-bottom: solid 1px #ddd;
+    margin-bottom: 1em;
+    overflow-x: hidden;
+}
+
+.searchForm {
+    display: inline-block;
+}

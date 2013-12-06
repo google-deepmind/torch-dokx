@@ -77,6 +77,18 @@ function dokx._luarocksHtmlDir()
 	return validDirectory(cfg.site_config.LUAROCKS_ROCKS_TREE .. 'share/doc/dokx')
 end
 
+function dokx._luarocksSearchDB()
+    local docRoot = dokx._luarocksHtmlDir()
+    return pathx.join(docRoot, "_search.sqlite3")
+end
+
+local function buildSearchIndex()
+    local docRoot = dokx._luarocksHtmlDir()
+    local dbPath = dokx._luarocksSearchDB()
+    local markdownPath = pathx.join(docRoot, "_markdown")
+    dokx.buildSearchIndex(markdownPath, dbPath)
+end
+
 function dokx.luarocksInstall(args)
     assert(os.execute('luarocks ' .. table.concat(arg, ' ')) == 0, 'Error executing luarocks')
 	local package = args[#args]
@@ -90,6 +102,8 @@ function dokx.luarocksInstall(args)
 		url
 	}, ' ')
 	os.execute(cmd)
+
+    buildSearchIndex()
 end
 
 function dokx.luarocksMake(args)
@@ -111,5 +125,6 @@ function dokx.luarocksMake(args)
 		pathx.currentdir()
 	}, ' ')	
 	os.execute(cmd)
-end
 
+    buildSearchIndex()
+end

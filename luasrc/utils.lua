@@ -249,6 +249,9 @@ function dokx._which(command)
     local cmd = io.popen("which " .. command)
     local result = stringx.strip(cmd:read("*all"))
     cmd:close()
+    if result == '' then
+        return nil
+    end
     return result
 end
 
@@ -270,4 +273,24 @@ function dokx._chooseCommand(commands)
         end
     end
     return nil
+end
+
+
+function dokx._urlEncode(str)
+  if (str) then
+    str = string.gsub (str, "\n", "\r\n")
+    str = string.gsub (str, "([^%w %-%_%.%~])",
+        function (c) return string.format ("%%%02X", string.byte(c)) end)
+    str = string.gsub (str, " ", "+")
+  end
+  return str
+end
+
+function dokx._openBrowser(url)
+    local browser = dokx._chooseCommand { "open", "xdg-open", "firefox" }
+    if not browser then
+        dokx.logger:error("dokx.browse: could not find a browser")
+        return
+    end
+    os.execute(browser .. " " .. url)
 end

@@ -1,0 +1,21 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+require 'dokx'
+
+local function processArgs()
+    return lapp [[
+Search for documentation matching the given term.
+    -b,--browse (optional boolean) if given, open results in a browser
+    <query>     (string)           a search query
+    --debug                        debug mode
+]]
+end
+
+local function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
+    dokx.search(args.query, args.browse)
+end
+
+main(processArgs())

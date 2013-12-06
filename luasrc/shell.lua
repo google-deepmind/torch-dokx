@@ -527,6 +527,8 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL)
         end
     end
 
+    file.copy(dokx._getTemplate("search.js"), path.join(outputRoot, "search.js"))
+
     dir.rmtree(docTmp)
     dir.rmtree(tocTmp)
 
@@ -564,7 +566,6 @@ function dokx.initPackage(packagePath)
     local dokxFile = io.open(dokxPath, 'w')
     dokxFile:write(output)
     dokxFile:close()
-
 end
 
 --[[
@@ -572,20 +573,35 @@ end
 Open a web browser pointing to the documentation
 
 --]]
-function dokx.browse(packageName)
-    local docRoot = dokx._luarocksHtmlDir()
-    if not path.isdir(docRoot) then
-        dokx.logger:error("dokx.browse: could not find local docs.")
-        return
+function dokx.browse(docLocation)
+
+    docLocation = docLocation or ""
+
+    -- If going to a directory rather than a file, append index page to url
+    if not string.find(docLocation, "%.") then
+        docLocation = path.join(docLocation, "index.html")
+    end
+
+    dokx.runSearchServices()
+    -- Wait for process to start... (ick!)
+    os.execute("sleep 1")
+
+    local docRoot
+    if dokx._daemonIsRunning() then
+        docRoot = "http://localhost:5000"
+    else
+        docRoot = dokx._luarocksHtmlDir()
+        if not path.isdir(docRoot) then
+            dokx.logger:error("dokx.browse: could not find local docs.")
+            return
+        end
     end
     local docPath = docRoot
-    if packageName and path.isdir(path.join(docRoot, packageName)) then
-        docPath = path.join(docRoot, packageName)
+    if docLocation then
+        docPath = path.join(docRoot, docLocation)
     end
-    local browser = dokx._chooseCommand { "open", "xdg-open", "firefox" }
-    if not browser then
-        dokx.logger:error("dokx.browse: could not find a browser")
-        return
-    end
-    os.execute(browser .. " " .. path.join(docPath, "index.html"))
+
+    dokx._openBrowser(docPath)
 end
+
+

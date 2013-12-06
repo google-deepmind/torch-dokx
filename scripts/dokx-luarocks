@@ -4,9 +4,11 @@ require 'dokx'
 local argset = Set(arg)
 
 if argset.install then
-	dokx.luarocksInstall(arg)
+	os.exit(dokx.luarocksInstall(arg))
 end
 
 if argset.make then
-	dokx.luarocksMake(arg)
+	os.exit(dokx.luarocksMake(arg))
 end
+
+
