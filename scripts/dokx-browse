@@ -7,10 +7,14 @@ local function processArgs()
 Open a web browser, pointing at your documentation tree.
 
     <package> (optional string) name of package to open documentation for
+    --debug                     debug mode
 ]]
 end
 
 local function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
     dokx.browse(args.package)
 end
 
