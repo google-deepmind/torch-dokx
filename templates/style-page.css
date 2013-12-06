@@ -1,10 +1,8 @@
-@import url(https://fonts.googleapis.com/css?family=Lato:300italic,700italic,300,700);
-
 body {
     margin: 0px;
-    font: 14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font: 14px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
     color: #000;
-    font-weight: 300;
+    font-weight: 400;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -142,7 +140,7 @@ header ul li a {
     padding: 3px 12px 3px 8px;
     text-decoration: none;
     border-bottom: 1px solid #fff;
-    font-weight: bold;
+    font-weight: 500;
 }
 
 #navcontainer a: hover
