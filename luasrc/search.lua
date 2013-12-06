@@ -44,6 +44,9 @@ end
 function dokx._runPythonScript(script, ...)
     local scriptPath = path.join(dokx._getDokxDir(), "dokx-search", script)
     local command = inVirtualEnv('python', scriptPath, ...)
+    if dokx.inDebugMode() then
+        command = command .. " --debug True"
+    end
     dokx.logger:info("Executing: " .. command)
     os.execute(command)
 end
