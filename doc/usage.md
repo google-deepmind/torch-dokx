@@ -4,6 +4,73 @@ Dokx is intended to be simple to use. There are no special tags needed when you
 write your documentation.  Just write Markdown comments in your code, and dokx
 will extract them as appropriate.
 
+# Example
+
+The following is a general example of how to you might write documentation for dokx.
+
+    --[[ This file defines an example class, for demonstrating usage of dokx.
+
+    This comment could contain some general documentation for the whole file.
+    ]]
+
+    require 'somelibrary'
+
+    --[[ This is some class documentation ]]--
+    local MyClass, parent = torch.class('myPackage.MyClass', 'myPackage.Base')
+
+    --[[ This method is the constructor.
+
+    Parameters:
+     * `a` - a string
+     * `b` - an integer
+
+    Returns:
+     1. `c` - a computed value
+     2. `d` - another computed value
+
+    Example:
+        
+        local myClass = myPackage.MyClass("hello", 3)
+
+    --]]
+    function MyClass:__init(a, b)
+        ...
+    end
+
+    --[[ This method does some calculation.
+
+    The value returned is equal to ${ n }$, where
+
+    $${ n = x^3 + y ^ 3 }$$
+
+    Parameters:
+     * `x` - integer
+     * `y` - integer
+
+    Returns:
+     * `n` - integer; see above
+    
+    Example:
+        
+        local myClass = MyClass("hello", 3)
+        print(myClass:calculate(1, 12) == myClass:calculate(9, 10))
+
+    --]]
+    function MyClass:calculate(x, y)
+        ...
+    end
+
+    -- This is private - by default, dokx will ignore it
+    function MyClass:_secret()
+        ...
+    end
+
+    -- This is local - by default, dokx will ignore it
+    local function helper()
+        ...
+    end
+
+
 ## What's Markdown?
 
 Markdown is a standard way of specifying text formatting. It is precise enough
