@@ -195,6 +195,7 @@ High-level commands:
 * **dokx-init** - create a default .dokx config file for a package
 * **dokx-luarocks** - install or make a package along with its documentation
 * **dokx-browse** - open web browser to view documentation
+* **dokx-search** - search documentation for a given pattern
 
 Low-level commands:
 
