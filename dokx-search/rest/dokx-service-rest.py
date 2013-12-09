@@ -57,7 +57,7 @@ def __get_ranked_results(query, limit, page):
 
     DB = sqlite3.connect(args.database)
     sql = """
-            SELECT id, package, tag, doc, snippet(fulltext_search) AS rank
+            SELECT id, package, tag, doc, snippet(fulltext_search, "<b>", "</b>", "<b>...</b>", -1, -40) AS rank
             FROM fulltext_search
             WHERE fulltext_search MATCH ?
             ORDER BY rank DESC
