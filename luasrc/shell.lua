@@ -401,24 +401,36 @@ function dokx.generateHTMLIndex(input)
     local packageDirs = dir.getdirectories(input)
     local template = dokx._getTemplateContents("packageIndex.html")
 
-    local function indexEntry(package)
-        return "<li><a href=\"" .. package .. "/index.html\">" .. package .. "</a></li>"
+    local function indexEntry(package, description)
+        if description then
+            description = "<small> " .. description .. " </small>"
+        else
+            description = ""
+        end
+        return "<a href=\"" .. package .. "/index.html\"><div class='packageItem'>" .. package .. description .. "</div></a>"
     end
 
     local sorted = tablex.sortv(packageDirs)
 
     -- Construct package list HTML
-    local packageList = "<ul>"
+    local packageList = "<div class='packageList'>"
     for _, packageDir in sorted do
+        local packageMetaPath = path.join(packageDir, ".metadata")
+        local packageMeta = {}
+        if path.isfile(packageMetaPath) then
+            dokx.logger:debug("dokx.generateHTMLIndex: reading metadata from " .. packageMetaPath)
+            packageMeta = dofile(packageMetaPath)
+        end
         local packageName = path.basename(packageDir)
         if stringx.startswith(packageName, "_") then
             dokx.logger:info("dokx.generateHTMLIndex: skipping " .. packageName)
         else
             dokx.logger:info("dokx.generateHTMLIndex: adding " .. packageName .. " to index")
-            packageList = packageList .. indexEntry(packageName)
+            local packageDescription = packageMeta.description
+            packageList = packageList .. indexEntry(packageName, packageDescription)
         end
     end
-    packageList = packageList .. "</ul>"
+    packageList = packageList .. "</div>"
 
     local output = template:safe_substitute { packageList = packageList }
     dokx.logger:info("dokx.generateHTMLIndex: writing to " .. outputPath)
@@ -441,6 +453,16 @@ function dokx._getPackageMdFiles(packagePath, config)
     return luaFiles
 end
 
+function dokx.generateMetadata(packageOutputPath, packageDescription)
+    local outputPath = path.join(packageOutputPath, ".metadata")
+    local output = "return {\n"
+    output = output .. "   description = '" .. packageDescription .. "',\n"
+    output = output .. "}"
+    local outputFile = io.open(outputPath, 'w')
+    outputFile:write(output)
+    outputFile:close()
+end
+
 --[[
 
 Given the path to a package repository, read the source files, markdown files, and any .dokx config file that may be present, and generate full HTML and Markdown documentation for the package.
@@ -452,7 +474,7 @@ Parameters:
  - `outputREPL` - optional path to write Markdown for consumption by the Torch REPL
 
 --]]
-function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL)
+function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescription)
     packagePath = dokx._sanitizePath(packagePath)
     outputRoot = dokx._sanitizePath(outputRoot)
     local config = dokx._loadConfig(packagePath)
@@ -499,6 +521,10 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL)
     dokx.generateHTML(outputPackageDir, markdownFiles, config)
     dokx.generateHTML(path.join(outputPackageDir, "extra"), extraMarkdownFiles, config)
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
+
+    if packageDescription then
+        dokx.generateMetadata(outputPackageDir, packageDescription)
+    end
 
     local markdownDir = path.join(outputRoot, "_markdown", packageName)
     if not path.isdir(markdownDir) then

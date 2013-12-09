@@ -95,6 +95,14 @@ local function buildSearchIndex()
     dokx.buildSearchIndex(markdownPath, dbPath)
 end
 
+local function getDescription(rockspecEnv)
+    local description = ""
+    if rockspecEnv.description and rockspecEnv.description.summary then
+        description = rockspecEnv.description.summary
+    end
+    return description
+end
+
 function dokx.luarocksInstall(args)
     assert(os.execute('luarocks ' .. table.concat(arg, ' ')) == 0, 'Error executing luarocks')
 	local package = args[#args]
@@ -124,12 +132,12 @@ function dokx.luarocksMake(args)
         end
     end
     local rockspecEnv = getRockspecVars(rockspecPath)
-	local cmd = table.concat({
-		'dokx-build-package-docs',
-		'--output', dokx._luarocksHtmlDir(),
-		'--repl', replDir(rockspecEnv.package),
-		pathx.currentdir()
-	}, ' ')	
+	local cmd = dokx.buildPackageDocs(
+            dokx._luarocksHtmlDir(),
+            pathx.currentdir(),
+            replDir(rockspecEnv.package),
+            getDescription(rockspecEnv)
+        )
 	os.execute(cmd)
 
     buildSearchIndex()

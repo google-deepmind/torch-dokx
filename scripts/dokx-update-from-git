@@ -7,11 +7,12 @@ require 'dokx'
 local function processArgs()
     return lapp [[
 Check out a list of projects from git, and build docs for them in a central tree
-    -o,--output (string)          path to root of documentation tree
-    -r,--repl   (optional string) path to install markdown for REPL
-    -b,--branch (default master)  branch to check out
-    <inputs...> (string)          git URL(s) (e.g. git@github.com:d11/torch-dokx.git)
-    --debug                       debug mode
+    -o,--output (string)                path to root of documentation tree
+    -r,--repl   (optional string)       path to install markdown for REPL
+    -b,--branch (default master)        branch to check out
+    -d,--description (optional string)  package description
+    <inputs...> (string)                git URL(s) (e.g. git@github.com:d11/torch-dokx.git)
+    --debug                             debug mode
 ]]
 end
 
@@ -36,7 +37,7 @@ local function main(args)
             os.execute("cd " .. cloneDir .. " && git checkout " .. args.branch)
         end
 
-        dokx.buildPackageDocs(args.output, cloneDir, args.repl)
+        dokx.buildPackageDocs(args.output, cloneDir, args.repl, args.description)
     end
 
     dir.rmtree(tempDir)
