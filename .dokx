@@ -1,7 +1,7 @@
 return {
     packageName = "dokx",
     filter = "luasrc/.*%.lua$",
-    exclude = { "templates", "dokx-search" }
+    exclude = { "templates", "dokx-search" },
     tocLevel = 'function',
     mathematics = false,
     githubURL = 'd11/torch-dokx'
