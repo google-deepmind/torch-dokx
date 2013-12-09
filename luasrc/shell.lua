@@ -512,6 +512,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL)
     local dokxDir = dokx._getDokxDir()
     local pageStyle = dokx._getTemplate("style-page.css")
     file.copy(pageStyle, path.join(outputPackageDir, "style.css"))
+    file.copy(pageStyle, path.join(outputRoot, "style-page.css"))
 
     -- Update the main index
     dokx.generateHTMLIndex(outputRoot)
