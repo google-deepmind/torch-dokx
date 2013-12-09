@@ -1,3 +1,29 @@
+-- We keep a whitelist of methods that begin with an underscore but which
+-- nevertheless should be included in generated documentation
+local _metamethods = {
+        __init = true,
+        __index = true,
+        __newindex = true,
+        __mode = true,
+        __call = true,
+        __metatable = true,
+        __tostring = true,
+        __len = true,
+        __gc = true,
+        __unm = true,
+        __add = true,
+        __sub = true,
+        __mul = true,
+        __div = true,
+        __mod = true,
+        __div = true,
+        __pow = true,
+        __concat = true,
+        __eq = true,
+        __lt = true,
+        __le = true
+    }
+
 do
     local Entity, parent = torch.class('dokx.Entity')
 
@@ -107,7 +133,9 @@ do
     -- Return whether this is a local function
     function Function:isLocal() return self._local end
     -- Return whether this is a private function
-    function Function:isPrivate() return stringx.startswith(self._name, "_") end
+    function Function:isPrivate()
+        return stringx.startswith(self._name, "_") and not _metamethods[self._name]
+    end
     -- Return a string describing the args consumed by this function
     function Function:args() return self._args end
     -- Return the name of this function
