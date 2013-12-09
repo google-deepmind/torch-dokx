@@ -28,7 +28,7 @@ def debug(msg):
 
 srcLinkPattern = re.compile('<a class="entityLink".*</a>')
 def makeSearchText(section):
-    return re.sub(srcLinkPattern, section, "")
+    return buffer(re.sub(srcLinkPattern, "", section))
 
 def load_db():
     """Add sample data to the database"""
