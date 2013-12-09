@@ -77,12 +77,26 @@ function dokx._daemonIsRunning()
     return resultRest ~= nil and resultWeb ~= nil
 end
 
-function dokx.runSearchServices()
+function dokx._restService(...)
+    dokx._runPythonScript("rest/dokx-service-rest.py", ...)
+end
+
+function dokx._webService(...)
+    dokx._runPythonScript("web/dokx-service-web.py", ...)
+end
+
+function dokx.stopSearchServices()
+  dokx._restService("stop")
+  dokx._webService("stop")
+end
+
+function dokx.runSearchServices(docRoot)
+    docRoot = docRoot or dokx._luarocksHtmlDir()
     if dokx._daemonIsRunning() then
         return
     end
-    dokx._runPythonScript("rest/dokx-service-rest.py", " --database ", dokx._luarocksSearchDB())
-    dokx._runPythonScript("web/dokx-service-web.py", "--docs", dokx._luarocksHtmlDir())
+    dokx._restService("restart", " --database ", dokx._searchDBPath(docRoot))
+    dokx._webService("restart", "--docs", docRoot)
 end
 
 function dokx._searchHTTP(query)

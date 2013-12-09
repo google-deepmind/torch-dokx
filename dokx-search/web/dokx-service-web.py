@@ -13,8 +13,9 @@ import argparse
 from dokxDaemon import Daemon
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--docs", type=str, help="Path to HTML docs")
-parser.add_argument("--debug", type=bool, help="Debug mode")
+parser.add_argument("command", type=str, help="start|restart|stop")
+parser.add_argument("--docs", type=str, default=None, help="Path to HTML docs")
+parser.add_argument("--debug", type=bool, default=False, help="Debug mode")
 
 args = parser.parse_args()
 
@@ -56,4 +57,10 @@ if __name__ == "__main__":
     app.debug = args.debug
     pidFile = sys.argv[0] + ".pid"
     daemon = WebDaemon(pidFile)
-    daemon.restart()
+    if args.command == 'start':
+        daemon.start()
+    elif args.command == 'restart':
+        daemon.restart()
+    elif args.command == 'stop':
+        daemon.stop()
+
