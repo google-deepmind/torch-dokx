@@ -1,0 +1,21 @@
+#!/usr/bin/env th
+local lapp = require 'pl.lapp'
+require 'dokx'
+
+local function processArgs()
+return lapp [[
+Update the search index for a documentation tree
+
+    <path> (string)     path to documentation tree
+    --debug             debug mode
+]]
+end
+
+local function main(args)
+    if args.debug then
+        dokx.debugMode()
+    end
+    dokx.buildSearchIndex(dokx._markdownPath(args.path), dokx._searchDBPath(args.path))
+end
+
+main(processArgs())

@@ -1,5 +1,6 @@
 INSTALL(PROGRAMS
     dokx-build-package-docs
+    dokx-build-search-index
     dokx-combine-html
     dokx-combine-toc
     dokx-extract-toc
