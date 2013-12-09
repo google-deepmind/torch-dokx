@@ -82,14 +82,16 @@ function dokx._luarocksHtmlDir()
 end
 
 function dokx._luarocksSearchDB()
-    local docRoot = dokx._luarocksHtmlDir()
-    return pathx.join(docRoot, "_search.sqlite3")
+    return dokx._searchDBPath(dokx._luarocksHtmlDir())
+end
+
+function dokx._luarocksMarkdownDir()
+    return dokx._markdownPath(dokx._luarocksHtmlDir())
 end
 
 local function buildSearchIndex()
-    local docRoot = dokx._luarocksHtmlDir()
     local dbPath = dokx._luarocksSearchDB()
-    local markdownPath = pathx.join(docRoot, "_markdown")
+    local markdownPath = dokx._luarocksMarkdownDir()
     dokx.buildSearchIndex(markdownPath, dbPath)
 end
 

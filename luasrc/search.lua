@@ -103,26 +103,26 @@ function dokx._searchHTTP(query)
     return http.request("http://localhost:8130/search/" .. dokx._urlEncode(query) .. "/")
 end
 
-function dokx._searchGrep(query)
+function dokx._searchGrep(query, docRoot)
     local grep = dokx._chooseCommand {"ag", "ack", "ack-grep", "grep"}
     if not grep then
         dokx.logger:error("doxk.search: can't find grep either - giving up, sorry!")
         return
     end
-    local searchDir = path.join(dokx._luarocksHtmlDir(), "_markdown")
-    os.execute(grep .. " --color -r '" .. query .. "' " .. searchDir)
+    os.execute(grep .. " --color -r '" .. query .. "' " .. dokx._markdownPath(docRoot))
 end
 
 function dokx._browserSearch(query)
     dokx._openBrowser("http://localhost:5000/search?query=" .. dokx._urlEncode(query))
 end
 
-function dokx.search(query, browse)
+function dokx.search(query, browse, docRoot)
+    docRoot = docRoot or dokx._luarocksHtmlDir()
     local result = dokx._searchHTTP(query)
     if not result then
         -- If no response, try to run server first
         dokx.logger:info("dokx.search: no response; trying to launch search service")
-        dokx.runSearchServices()
+        dokx.runSearchServices(docRoot)
         -- Wait for process to start... (ick!)
         os.execute("sleep 1")
         result = dokx._searchHTTP(query)
@@ -131,7 +131,7 @@ function dokx.search(query, browse)
     -- If still no result, fall back to grep
     if not result then
         dokx.logger:warn("dokx.search: no result from search process - falling back to grep.")
-        dokx._searchGrep(query)
+        dokx._searchGrep(query, docRoot)
         return
     end
 

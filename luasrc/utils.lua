@@ -60,6 +60,14 @@ function dokx._convertExtension(extension, newExtension, filePath)
     return path.basename(filePath):sub(1, -string.len(extension) - 1) .. newExtension
 end
 
+function dokx._searchDBPath(docRoot)
+    return path.join(docRoot, "_search.sqlite3")
+end
+
+function dokx._markdownPath(docRoot)
+    return path.join(docRoot, "_markdown")
+end
+
 --[[ Create a function that will prepend the given path prefix onto its argument.
 
 Example:

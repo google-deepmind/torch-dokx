@@ -6,6 +6,7 @@ local function processArgs()
     return lapp [[
 Search for documentation matching the given term.
     -b,--browse (optional boolean) if given, open results in a browser
+    -d,--docs   (optional string)  path to custom documentation tree
     <query>     (string)           a search query
     --debug                        debug mode
 ]]
