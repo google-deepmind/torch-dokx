@@ -11,6 +11,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--output", type=str, help="Path to write SQLite3 search index")
+parser.add_argument("--debug", type=bool, help="Debug mode")
 parser.add_argument('input', type=str, help="Path to input directory of Markdown files")
 args = parser.parse_args()
 
@@ -22,6 +23,10 @@ DB = sqlite3.connect(database=DB_NAME)
 
 path = args.input
 
+def debug(msg):
+    if args.debug:
+        print(msg)
+
 def load_db():
     """Add sample data to the database"""
 
@@ -31,7 +36,7 @@ def load_db():
 
     for packageName in os.listdir(path):
         for filePath in glob.glob(os.path.join(path, packageName, "*.md")):
-            print("Indexing " + filePath)
+            debug("Indexing " + filePath)
             with open(filePath, 'r') as f:
                 section = ""
                 tag = os.path.basename(filePath)
