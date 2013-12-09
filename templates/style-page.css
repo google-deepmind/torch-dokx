@@ -241,8 +241,15 @@ pre.has-jax {
     border: inherit;
 }
 
+#metadata {
+    padding-bottom: 0;
+}
+
 .result {
-    padding-bottom: 2em;
+    border: solid 1px #eee;
+    margin-bottom: 0.5em;
+    padding: 0.5em;
+    border-radius: 0.5em;
 }
 
 .docSection {
