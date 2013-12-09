@@ -6,7 +6,6 @@ import sqlite3
 import glob
 import os
 import re
-
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -27,6 +26,10 @@ def debug(msg):
     if args.debug:
         print(msg)
 
+srcLinkPattern = re.compile('<a class="entityLink".*</a>')
+def makeSearchText(section):
+    return re.sub(srcLinkPattern, section, "")
+
 def load_db():
     """Add sample data to the database"""
 
@@ -43,6 +46,7 @@ def load_db():
                 for line in f.readlines():
                     result = pattern.match(line)
                     if result:
+                        section = makeSearchText(section)
                         DB.execute(ins, (packageName, tag, section))
                         tag = result.group(1)
                         section = ""
