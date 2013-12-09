@@ -184,6 +184,22 @@ A boolean indicating whether 'private' functions - those whose names begin
 with an underscore - should be included in the generated documentation. The
 default is `false`.
 
+# Viewing documentation
+
+If you use `dokx-luarocks`, you'll have a documentation tree automatically built in your rock tree. (In `$root/share/doc/dokx`). While you can browse the HTML files here directly if you wish, it can be more convenient to use the `dokx-browse` command. This opens your browser at the correct location, and also runs a service that allows you to search the documentation. The search box only appears when using this method.
+
+You can pass the name of a package to `dokx-browse` to jump straight to it.
+
+# Searching documentation
+
+As well as searching via the web interface, you can search on the command-line:
+
+    dokx-search 'myLovelyModule'
+
+Or in the REPL:
+
+    > dokx.search('myLovelyModule')
+
 # Building documentation
 
 ## Command-line interface
@@ -200,6 +216,7 @@ High-level commands:
 Low-level commands:
 
 * **dokx-update-from-git** - fetch a package from git and build its documentation
+* **dokx-build-search-index** - update the search index for a documentation tree
 * **dokx-build-package-docs** - build documentation for a package already on disk
 * **dokx-extract-toc** - extract table-of-contents components from Lua sources
 * **dokx-extract-markdown** - extract Markdown components from Lua sources
