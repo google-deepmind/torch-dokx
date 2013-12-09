@@ -53,7 +53,11 @@ local function getRockspecVars(rockspecPath)
 end
 
 local function repository(name)
-    local rockspecEnv = getRockspecVars(rockspec(name))
+    local rockspec, err = rockspec(name)
+    if not rockspec then
+        error("No rockspec for " .. name .. ": " .. err)
+    end
+    local rockspecEnv = getRockspecVars(rockspec)
     local source = rockspecEnv.source
 	local url = stringx.replace(source.url, 'git+file://', '', 1)
 	return url, source.branch or source.tag or 'master'
