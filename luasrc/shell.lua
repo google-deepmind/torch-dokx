@@ -121,7 +121,12 @@ function dokx.combineHTML(tocPath, input, config)
         mathjax = dokx._readFile(dokx._getTemplate("mathjax.html"))
     end
 
-    local syntaxTemplate = dokx._getTemplateContents("syntax.html")
+    local syntaxTemplate
+    if not config or config.mathematics then
+        syntaxTemplate = dokx._getTemplateContents("syntax.html")
+    else
+        syntaxTemplate = dokx._getTemplateContents("syntaxNoMathJax.html")
+    end
     local syntax = syntaxTemplate:safe_substitute {
         syntaxHighlighterURL = "../_highlight"
     }

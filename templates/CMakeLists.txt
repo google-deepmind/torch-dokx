@@ -3,6 +3,7 @@ INSTALL(FILES
     package.html
     packageIndex.html
     syntax.html
+    syntaxNoMathJax.html
     style-index.css
     style-page.css
     search.js
