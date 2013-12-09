@@ -154,13 +154,15 @@ function dokx.search(query, browse, docRoot)
     print(n .. " results for '"  .. decoded.query .. "':")
 
     for id, resultInfo in ipairs(decoded.results) do
-        print(string.rep("-", 80))
-        print(" #" .. id .. " " .. resultInfo.tag)
         local snip = resultInfo.snippets[1]
-        local yellow = '\27[1;33m'
+        local black = '\27[0;30m'
+        local cyan = '\27[1;36m'
+        local _yellow = '\27[43m'
         local clear = '\27[0m'
-        snip = snip:gsub('<b>(.-)</b>', yellow .. '%1' .. clear)
-        print(" ... " .. snip .. " ... \n")
+        print(cyan .. "#" .. id .. " " .. resultInfo.tag .. clear)
+        snip = snip:gsub('<b>(.-)</b>', black .. _yellow .. '%1' .. clear)
+        snip = stringx.strip(snip)
+        print(snip .. " \n")
     end
 
 end
