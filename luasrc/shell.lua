@@ -526,7 +526,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
         dokx.generateMetadata(outputPackageDir, packageDescription)
     end
 
-    local markdownDir = path.join(outputRoot, "_markdown", packageName)
+    local markdownDir = path.join(dokx._markdownPath(outputRoot), packageName)
     if not path.isdir(markdownDir) then
         dir.makepath(markdownDir)
     end
