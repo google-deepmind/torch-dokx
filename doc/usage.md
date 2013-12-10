@@ -259,6 +259,8 @@ You can pass the name of a package to `dokx-browse` to jump straight to it.
 
 # Searching documentation
 
+**Note: in order for search to work, you'll need to have `python`, `pip`, and `virtualenv` installed!**
+
 As well as searching via the web interface, you can search on the command-line:
 
     dokx-search 'myLovelyModule'
