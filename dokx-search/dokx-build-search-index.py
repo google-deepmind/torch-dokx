@@ -15,9 +15,6 @@ parser.add_argument('input', type=str, help="Path to input directory of Markdown
 args = parser.parse_args()
 
 DB_NAME = args.output
-DB_HOST = 'localhost' # Uses a local socket
-DB_USER = 'fts_user'
-
 DB = sqlite3.connect(database=DB_NAME)
 
 path = args.input
