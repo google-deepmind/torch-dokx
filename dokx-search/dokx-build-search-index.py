@@ -27,11 +27,7 @@ srcLinkPattern = re.compile('<a class="entityLink".*</a>')
 def makeSearchText(section):
     return buffer(re.sub(srcLinkPattern, "", section))
 
-def load_db():
-    """Add sample data to the database"""
-
-    ins = """INSERT INTO fulltext_search(package, tag, doc) VALUES(?, ?, ?);"""
-
+def sections(path):
     pattern = re.compile('<a name="(.*)"></a>')
 
     for packageName in os.listdir(path):
@@ -44,11 +40,20 @@ def load_db():
                     result = pattern.match(line)
                     if result:
                         section = makeSearchText(section)
-                        DB.execute(ins, (packageName, tag, section))
                         tag = result.group(1)
+                        yield packageName, tag, section
                         section = ""
                     else:
                         section += line
+
+def load_db():
+    """Add sample data to the database"""
+
+    ins = """INSERT INTO fulltext_search(package, tag, doc) VALUES(?, ?, ?);"""
+
+    for (packageName, tag, section) in sections(path):
+        DB.execute(ins, (packageName, tag, section))
+
     DB.commit()
 
 def init_db():
