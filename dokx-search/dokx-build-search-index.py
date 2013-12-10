@@ -33,16 +33,18 @@ def sections(path):
             debug("Indexing " + filePath)
             with open(filePath, 'r') as f:
                 section = ""
-                tag = os.path.basename(filePath)
+                tag = packageName + "." + os.path.basename(filePath) + ".dok"
                 for line in f.readlines():
                     result = pattern.match(line)
                     if result:
                         section = makeSearchText(section)
-                        tag = result.group(1)
                         yield packageName, tag, section
+                        tag = result.group(1)
                         section = ""
                     else:
                         section += line
+                section = makeSearchText(section)
+                yield packageName, tag, section
 
 def load_db():
     """Add sample data to the database"""
