@@ -103,9 +103,20 @@ local function getDescription(rockspecEnv)
     return description
 end
 
+local function getRockspecPathForInstalledRock(rock)
+    local cmd = io.popen("luarocks show " .. rock .. " --rockspec")
+    local result = stringx.strip(cmd:read("*all"))
+    if result == "" then
+        error("Could not get rockspec for installed rock " .. rock)
+    end
+    return result
+end
+
 function dokx.luarocksInstall(args)
     assert(os.execute('luarocks ' .. table.concat(arg, ' ')) == 0, 'Error executing luarocks')
 	local package = args[#args]
+    local rockspecPath = getRockspecPathForInstalledRock(package)
+    local rockspecEnv = getRockspecVars(rockspecPath)
 	local url, branch = repository(package)
 	local dir = dokx._luarocksHtmlDir()
 	local cmd = table.concat({
@@ -113,9 +124,11 @@ function dokx.luarocksInstall(args)
 		'--output', dokx._luarocksHtmlDir(),
 		'--branch', branch,
 		'--repl', replDir(package),
+        '--description', "'" .. getDescription(rockspecEnv) .. "'",
 		url
 	}, ' ')
 	os.execute(cmd)
+
 
     buildSearchIndex()
 end
