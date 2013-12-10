@@ -11,6 +11,7 @@ Check out a list of projects from git, and build docs for them in a central tree
     -r,--repl   (optional string)       path to install markdown for REPL
     -b,--branch (default master)        branch to check out
     -d,--description (optional string)  package description
+    -s,--section (optional string)      package section
     <inputs...> (string)                git URL(s) (e.g. git@github.com:d11/torch-dokx.git)
     --debug                             debug mode
 ]]
@@ -37,7 +38,7 @@ local function main(args)
             os.execute("cd " .. cloneDir .. " && git checkout " .. args.branch)
         end
 
-        dokx.buildPackageDocs(args.output, cloneDir, args.repl, args.description)
+        dokx.buildPackageDocs(args.output, cloneDir, args.repl, args.description, args.section)
     end
 
     dir.rmtree(tempDir)

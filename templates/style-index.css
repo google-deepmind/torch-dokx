@@ -57,3 +57,17 @@ a > .packageItem {
 .searchForm {
     float: right;
 }
+.packageList {
+    column-width: 300px;
+    -moz-column-width: 300px;
+    -webkit-column-width: 300px;
+}
+.packageSection {
+    -webkit-column-break-inside: avoid;
+    break-inside: avoid-column;
+    page-break-inside: avoid;
+    border: 1px solid #eee;
+    border-radius: 30px;
+    margin-bottom: 10px;
+
+}

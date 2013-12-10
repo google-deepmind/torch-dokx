@@ -4,5 +4,6 @@ return {
     exclude = { "templates", "dokx%-search" },
     tocLevel = 'function',
     mathematics = false,
-    githubURL = 'd11/torch-dokx'
+    githubURL = 'd11/torch-dokx',
+    section = 'Software Engineering'
 }

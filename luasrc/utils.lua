@@ -160,6 +160,11 @@ function dokx.configSpecification()
             description = "boolean; whether to include private functions (i.e. those that begin with an underscore)",
             default = "false"
         },
+        {
+            key = "section",
+            description = "string; name of the section under which this package should be grouped in the main menu",
+            default = "Miscellaneous"
+        }
     }
 end
 

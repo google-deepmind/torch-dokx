@@ -10,6 +10,7 @@ Arguments:
     -o,--output (string)                output documentation tree
     -r,--repl (optional string)         output REPL markdown
     -d,--description (optional string)  package description
+    -s,--section (optional string)      package section
     <input> (string)                    input package path
     --debug                             debug mode
 ]]
@@ -19,7 +20,7 @@ local function main(args)
     if args.debug then
         dokx.debugMode()
     end
-    dokx.buildPackageDocs(args.output, args.input, args.repl, args.description)
+    dokx.buildPackageDocs(args.output, args.input, args.repl, args.description, args.section)
 end
 
 main(processArgs())
