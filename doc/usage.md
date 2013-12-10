@@ -95,7 +95,7 @@ For example:
 
     --[[ This is a function
 
-    Args:
+    Parameters:
     - `zeta` - a most interesting parameter
 
     --]]
@@ -171,7 +171,7 @@ For display mathematics (shown centered, on a separate line), surround it with `
     
     The density is given by the formula $${ P(E) = {n \choose k} p^k (1-p)^{n-k} }$$
 
-    Args:
+    Parameters:
     * ${n \geq 0}$ - number of independent trials
     * ${0 \leq k \leq n}$ - number of successes
     * ${0 \leq p \leq 1$} - probability of success
