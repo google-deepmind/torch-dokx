@@ -1,0 +1,24 @@
+language: erlang
+
+env:
+  - LUA=""
+  - LUA="th"
+
+branches:
+  only:
+    - master
+
+install:
+  - curl -sk https://raw.github.com/torch/ezinstall/master/install-deps | bash
+  - curl -sk https://raw.github.com/torch/ezinstall/master/install-luajit+torch | bash
+  - luarocks make
+  - sudo luarocks install busted
+
+script: "for x in tests/test*.lua ; do th $x ; done"
+
+notifications:
+  recipients:
+    - danhgn@gmail.com
+  email:
+    on_success: change
+    on_failure: always
