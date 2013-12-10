@@ -4,7 +4,7 @@ local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 
 local function pruneFunctions(config, documentedFunctions, undocumentedFunctions)
-    if not config.includeLocal then
+    if not config or not config.includeLocal then
         local function notLocal(x)
             if x:isLocal() then
                 dokx.logger:info("Excluding local function " .. x:fullname())
@@ -15,7 +15,7 @@ local function pruneFunctions(config, documentedFunctions, undocumentedFunctions
         documentedFunctions = tablex.filter(documentedFunctions, notLocal)
         undocumentedFunctions = tablex.filter(undocumentedFunctions, notLocal)
     end
-    if not config.includePrivate then
+    if not config or not config.includePrivate then
         local function notPrivate(x)
             if x:isPrivate() then
                 dokx.logger:info("Excluding private function " .. x:fullname())
@@ -81,7 +81,7 @@ function dokx.combineHTML(tocPath, input, config)
     local outputPath = path.join(input, outputName)
     local sectionPaths = dir.getfiles(input, "*.html")
     local packageName = dokx._getLastDirName(input)
-    if config.packageName then
+    if config and config.packageName then
         packageName = config.packageName
     end
 
@@ -131,12 +131,16 @@ function dokx.combineHTML(tocPath, input, config)
         syntaxHighlighterURL = "../_highlight"
     }
 
+    local githubURL = ""
+    if config and config.githubURL then
+        githubURL = "https://github.com/" .. config.githubURL
+    end
     local output = template:safe_substitute {
         packageName = packageName,
         toc = toc,
         content = content,
         scripts = mathjax .. syntax,
-        githubURL = "https://github.com/" .. (config.githubURL or "")
+        githubURL = githubURL
     }
 
     dokx.logger:info("Writing to " .. outputPath)
@@ -226,7 +230,7 @@ function dokx.extractTOC(package, output, inputs, config)
         -- Output markdown
         local output = ""
 
-        if config.tocLevel == 'function' then
+        if not config or config.tocLevel == 'function' then
             if documentedFunctions:len() ~= 0 then
                 output = output .. "<ul>\n"
                 local function handleFunction(entity)
@@ -276,7 +280,7 @@ function dokx.combineTOC(package, input, config)
     -- Retrieve package name from path, by looking at the name of the last directory
     local sectionPaths = dir.getfiles(input, "*.html")
     local packageName = dokx._getLastDirName(input)
-    if config.packageName then
+    if config and config.packageName then
         packageName = config.packageName
     end
 
