@@ -32,7 +32,6 @@ h3, h4, h5, h6 {
 
 a {
     color: #39c;
-    font-weight: 400;
     text-decoration: none;
 }
 
@@ -259,4 +258,11 @@ pre.has-jax {
 
 .searchForm {
     display: inline-block;
+}
+
+.anchor {
+    display:block;
+    position:relative;
+    top:-50px;
+    visibility: hidden;
 }
