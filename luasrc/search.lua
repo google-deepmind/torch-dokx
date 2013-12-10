@@ -116,6 +116,27 @@ function dokx._browserSearch(query)
     dokx._openBrowser("http://localhost:5000/search?query=" .. dokx._urlEncode(query))
 end
 
+--[[ Search all installed documentation using the given query.
+
+Results are printed on stdout.
+
+See the [SQLite documentation](http://www.sqlite.org/fts3.html#section_3) for
+details of permitted query forms.
+
+Parameters:
+
+* `query` - string; the text to search for
+* `browse` - optional boolean (default: false); if true, open a browser with the results
+* `docRoot` - optional string (default: luarocks tree); documentation tree to use
+
+Examples:
+
+    dokx.search("needle")
+    dokx.search("nee*")
+    dokx.search("lovely penguin")
+    dokx.search("dishonourable NEAR/4 giraffe")
+
+]]
 function dokx.search(query, browse, docRoot)
     docRoot = docRoot or dokx._luarocksHtmlDir()
     local result = dokx._searchHTTP(query)

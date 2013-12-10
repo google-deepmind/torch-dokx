@@ -23,6 +23,8 @@ function myTests:testREPL()
 
     if dok.help(dokx, true) == nil then
         table.insert(failed, 'dokx')
+    else
+        table.insert(succeeded, 'dokx')
     end
 
     for name, func in pairs(dokx) do
