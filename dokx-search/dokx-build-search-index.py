@@ -14,9 +14,7 @@ parser.add_argument("--debug", type=bool, help="Debug mode")
 parser.add_argument('input', type=str, help="Path to input directory of Markdown files")
 args = parser.parse_args()
 
-DB_NAME = args.output
-DB = sqlite3.connect(database=DB_NAME)
-
+DB = sqlite3.connect(database=args.output)
 path = args.input
 
 def debug(msg):
