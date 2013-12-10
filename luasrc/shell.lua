@@ -517,6 +517,14 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
 
     if outputREPL then
         dokx.extractMarkdown(packageName, outputREPL, luaFiles, config, packagePath, 'repl')
+        local combined = '<a name="#' .. packageName .. '.dok"/>' .. "\n"
+        tablex.foreach(extraMarkdownFiles, function(mdFile)
+            combined = combined .. dokx._readFile(mdFile)
+        end)
+        local combinedPath = path.join(outputREPL, "init.md")
+        dokx.logger:info("dokx.buildPackageDocs: writing combined markdown to " .. combinedPath)
+        local outFile = io.open(combinedPath, "w")
+        outFile:write(combined)
     end
 
     dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath, 'html')
