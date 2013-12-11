@@ -160,6 +160,36 @@ function dokx.generateHTML(output, inputs, config)
     end
 end
 
+
+function dokx._extractTOCLua(package, input, content)
+    local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(package, input, content)
+
+    documentedFunctions, undocumentedFunctions = dokx._pruneFunctions(
+            config, documentedFunctions, undocumentedFunctions
+        )
+
+    -- Output markdown
+    local output = ""
+
+    if not config or config.tocLevel == 'function' then
+        if documentedFunctions:len() ~= 0 then
+            output = output .. "<ul>\n"
+            local function handleFunction(entity)
+                if not entity:isPrivate() then
+                    anchorName = entity:fullname()
+                    output = output .. [[<li><a href="#]] .. anchorName .. [[">]]
+                             .. entity:fullname() .. [[</a></li>]] .. "\n"
+                end
+            end
+            documentedFunctions:foreach(handleFunction)
+            undocumentedFunctions:foreach(handleFunction)
+
+            output = output .. "</ul>\n"
+        end
+    end
+    return output
+end
+
 --[[
 
 Given a set of Lua files, parse them and output corresponding HTML files with table-of-contents sections
@@ -187,29 +217,7 @@ function dokx.extractTOC(package, output, inputs, config)
         local outputPath = path.join(output, sectionName .. ".html")
 
         local content = dokx._readFile(input)
-        local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(package, input, content)
-
-        documentedFunctions, undocumentedFunctions = dokx._pruneFunctions(config, documentedFunctions, undocumentedFunctions)
-
-        -- Output markdown
-        local output = ""
-
-        if not config or config.tocLevel == 'function' then
-            if documentedFunctions:len() ~= 0 then
-                output = output .. "<ul>\n"
-                local function handleFunction(entity)
-                    if not entity:isPrivate() then
-                        anchorName = entity:fullname()
-                        output = output .. [[<li><a href="#]] .. anchorName .. [[">]] .. entity:fullname() .. [[</a></li>]] .. "\n"
-                    end
-                end
-                documentedFunctions:foreach(handleFunction)
-                undocumentedFunctions:foreach(handleFunction)
-
-                output = output .. "</ul>\n"
-            end
-        end
-
+        local output = dokx._extractTOCLua(package, input, content)
         local outputFile = io.open(outputPath, 'w')
         outputFile:write(output)
         outputFile:close()
