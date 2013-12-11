@@ -1,29 +1,3 @@
--- We keep a whitelist of methods that begin with an underscore but which
--- nevertheless should be included in generated documentation
-local _metamethods = {
-        __init = true,
-        __index = true,
-        __newindex = true,
-        __mode = true,
-        __call = true,
-        __metatable = true,
-        __tostring = true,
-        __len = true,
-        __gc = true,
-        __unm = true,
-        __add = true,
-        __sub = true,
-        __mul = true,
-        __div = true,
-        __mod = true,
-        __div = true,
-        __pow = true,
-        __concat = true,
-        __eq = true,
-        __lt = true,
-        __le = true
-    }
-
 do
     local Entity, parent = torch.class('dokx.Entity')
 
@@ -97,6 +71,33 @@ end
 do
     --[[ Information about a Function, as extracted from lua source ]]
     local Function, parent = torch.class("dokx.Function", "dokx.Entity")
+
+    -- We keep a whitelist of methods that begin with an underscore but which
+    -- nevertheless should be included in generated documentation
+    local _metamethods = {
+            __init = true,
+            __index = true,
+            __newindex = true,
+            __mode = true,
+            __call = true,
+            __metatable = true,
+            __tostring = true,
+            __len = true,
+            __gc = true,
+            __unm = true,
+            __add = true,
+            __sub = true,
+            __mul = true,
+            __div = true,
+            __mod = true,
+            __div = true,
+            __pow = true,
+            __concat = true,
+            __eq = true,
+            __lt = true,
+            __le = true
+        }
+
     function Function:__init(name, args, ...)
         parent.__init(self, ...)
         assert(name)
