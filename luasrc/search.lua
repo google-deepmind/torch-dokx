@@ -9,41 +9,90 @@ end
 local function inVirtualEnv(bin, ...)
     local virtualEnvPath = dokx._getVirtualEnvPath()
     if not path.isdir(virtualEnvPath) then
-        dokx._installSearchDependencies()
+        local result = dokx._installSearchDependencies()
+        if not result then
+            return
+        end
     end
     local virtualenv = path.join(virtualEnvPath, "bin", bin)
     return stringx.join(" ", { virtualenv, ... })
 end
 
+local function explainSearch()
+    dokx.logger:warn([[
+
+********************************************************************************
+*                                                                              *
+*   Hi! In order for documentation search to work, please install the          *
+*   dependencies 'pip' and 'virtualenv'. This is optional, but recommended.    *
+*                                                                              *
+*   On OS X:                                                                   *
+*                                                                              *
+*   $ brew install pip                                                         *
+*   $ sudo pip install virtualenv                                              *
+*                                                                              *
+*   On Ubuntu:                                                                 *
+*                                                                              *
+*   $ sudo apt-get install pip                                                 *
+*   $ sudo pip install virtualenv                                              *
+*                                                                              *
+*   Then search will work and you won't get this message. Thanks!              *
+*                                                                              *
+*   In the event of further problems, please file an issue:                    *
+*                                                                              *
+*   https://github.com/d11/torch-dokx/issues                                   *
+*                                                                              *
+********************************************************************************
+
+]])
+end
+
 function dokx._installSearchDependencies()
     dokx.logger:info("Installing dependencies for dokx-search")
     if not dokx._which("virtualenv") then
-        dokx.logger:error("Cannot find virtualenv command - unable to install dokx-search dependencies")
+        dokx.logger:warn("Cannot find virtualenv command - unable to install dokx-search dependencies")
+        explainSearch()
         return
     end
     if not dokx._which("pip") then
-        dokx.logger:error("Cannot find pip command - unable to install dokx-search dependencies")
+        dokx.logger:warn("Cannot find pip command - unable to install dokx-search dependencies")
+        explainSearch()
         return
     end
     local python = dokx._which("python2.7")
     if not python then
-        dokx.logger:error("Cannot find python2.7 - unable to install dokx-search dependencies")
+        dokx.logger:warn("Cannot find python2.7 - unable to install dokx-search dependencies")
+        explainSearch()
         return
     end
     local virtualEnvPath = dokx._getVirtualEnvPath()
-    os.execute("virtualenv --python=" .. python .. " " .. virtualEnvPath)
+    local result = os.execute("virtualenv --python=" .. python .. " " .. virtualEnvPath)
+    if result ~= 0 then
+        dokx.logger:warn("Virtualenv creation failed!")
+        explainSearch()
+        return
+    end
     local requirements = path.join(dokx._getDokxDir(), "dokx-search", "requirements.txt")
-    os.execute(inVirtualEnv("pip", "install -r " .. requirements))
+    result = os.execute(inVirtualEnv("pip", "install -r " .. requirements))
+    if result ~= 0 then
+        dokx.logger:warn("Installing search dependencies failed!")
+        explainSearch()
+        return
+    end
     local dokxDaemon = path.join(dokx._getDokxDir(), "dokx-search", "dokxDaemon.py")
     local virtualEnvLib = path.join(virtualEnvPath, "lib/python2.7")
     local dest = path.join(virtualEnvLib, "dokxDaemon.py")
     dokx.logger:info("Copying " .. dokxDaemon .. " -> " .. dest)
     file.copy(dokxDaemon, dest)
+    return true
 end
 
 function dokx._runPythonScript(script, ...)
     local scriptPath = path.join(dokx._getDokxDir(), "dokx-search", script)
     local command = inVirtualEnv('python', scriptPath, ...)
+    if not command then
+        return
+    end
     if dokx.inDebugMode() then
         command = command .. " --debug True"
     end
