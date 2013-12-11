@@ -12,9 +12,14 @@ install:
   - sudo curl -sk https://raw.github.com/torch/ezinstall/master/install-deps | bash > /dev/null
   - echo "==== Installing Torch ===="
   - sudo curl -sk https://raw.github.com/torch/ezinstall/master/install-luajit+torch | bash > /dev/null
-  - echo "==== Building torch-dokx ===="
-  - sudo luarocks make
-  - sudo dokx-luarocks make
+  - echo "==== Installing pip ===="
+  - sudo apt-get install pip > /dev/null
+  - echo "==== Installing virtualenv ===="
+    sudo pip install virtualenv > /dev/null
+  - echo "==== Building torch-dokx, using luarocks ===="
+  - sudo luarocks make > /dev/null
+  - echo "==== Building torch-dokx with documentation, using doxk-luarocks ===="
+  - sudo dokx-luarocks make > /dev/null
 
 script: "for x in tests/test*.lua ; do th $x ; done"
 
