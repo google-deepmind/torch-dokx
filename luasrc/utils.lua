@@ -328,3 +328,30 @@ function dokx._copyFilesToDir(files, dirPath)
         file.copy(filePath, dest)
     end)
 end
+
+function dokx._pruneFunctions(config, documentedFunctions, undocumentedFunctions)
+    if not config or not config.includeLocal then
+        local function notLocal(x)
+            if x:isLocal() then
+                dokx.logger:info("Excluding local function " .. x:fullname())
+                return false
+            end
+            return true
+        end
+        documentedFunctions = tablex.filter(documentedFunctions, notLocal)
+        undocumentedFunctions = tablex.filter(undocumentedFunctions, notLocal)
+    end
+    if not config or not config.includePrivate then
+        local function notPrivate(x)
+            if x:isPrivate() then
+                dokx.logger:info("Excluding private function " .. x:fullname())
+                return false
+            end
+            return true
+        end
+        documentedFunctions = tablex.filter(documentedFunctions, notPrivate)
+        undocumentedFunctions = tablex.filter(undocumentedFunctions, notPrivate)
+    end
+    return documentedFunctions, undocumentedFunctions
+end
+
