@@ -13,7 +13,7 @@ install:
   - echo "==== Installing Torch ===="
   - sudo curl -sk https://raw.github.com/torch/ezinstall/master/install-luajit+torch | bash > /dev/null
   - echo "==== Installing pip ===="
-  - sudo apt-get install pip > /dev/null
+  - sudo apt-get install python-pip > /dev/null
   - echo "==== Installing virtualenv ===="
     sudo pip install virtualenv > /dev/null
   - echo "==== Building torch-dokx, using luarocks ===="
