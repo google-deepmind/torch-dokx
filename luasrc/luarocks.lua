@@ -116,7 +116,10 @@ function dokx.luarocksInstall(args)
     assert(os.execute('luarocks ' .. table.concat(arg, ' ')) == 0, 'Error executing luarocks')
 	local package = args[#args]
     local rockspecPath = getRockspecPathForInstalledRock(package)
-    local rockspecEnv = getRockspecVars(rockspecPath)
+    local rockspecEnv = {}
+    if rockspecPath then
+        rockspecEnv = getRockspecVars(rockspecPath)
+    end
 	local url, branch = repository(package)
 	local dir = dokx._luarocksHtmlDir()
 	local cmd = table.concat({
