@@ -6,7 +6,7 @@ function testFunction()
 end
 
 -- This is a dummy test class
-local myClass, parent = torch.class("testData.MyClass")
+local MyClass, parent = torch.class("testData.MyClass")
 
 --[[ This is a dummy test function
 
@@ -16,11 +16,11 @@ Args:
 
 Returns: nil
 ]]
-function myClass:frobnicate(gamma)
+function MyClass:frobnicate(gamma)
     print("Undergoing frobnication")
 end
 
 -- This is another dummy test function
-function myClass:foobar()
+function MyClass:foobar()
 end
 
