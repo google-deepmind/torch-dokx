@@ -581,9 +581,8 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     if not path.isdir(markdownDir) then
         dir.makepath(markdownDir)
     end
-    tablex.foreach(markdownFiles, function(mdFile)
-        file.copy(mdFile, path.join(markdownDir, path.basename(mdFile)))
-    end)
+    dokx._copyFilesToDir(markdownFiles, markdownDir)
+    dokx._copyFilesToDir(extraMarkdownFiles, markdownDir)
 
     -- Find the path to the templates - it's relative to our installed location
     local dokxDir = dokx._getDokxDir()

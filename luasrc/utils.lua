@@ -318,3 +318,13 @@ end
 function dokx.inDebugMode()
     return _inDebugMode
 end
+
+function dokx._copyFilesToDir(files, dirPath)
+    tablex.foreach(files, function(filePath)
+        local dest = path.join(dirPath, path.basename(filePath))
+        if path.isfile(dest) then
+            dokx.logger:warn("*** Overwriting markdown file " .. dest .. " ***")
+        end
+        file.copy(filePath, dest)
+    end)
+end
