@@ -36,6 +36,19 @@ function dokx._checkClass(tester, package, sourceFile, entity, name, parent, lin
     tester:asserteq(entity:lineNo(), line, "should have expected line number")
 end
 
+--[[
+
+Stop execution, with exit code:
+
+* 0 if the given torch.Tester had no errors
+* 1 if there were errors
+
+Parameters:
+* `tester` - torch.Tester, after 'tester:run()' has been called.
+
+DOES NOT RETURN!
+
+]]
 function dokx._exitWithTester(tester)
     local code = 0
     if not tester.errors or #tester.errors ~= 0 then
