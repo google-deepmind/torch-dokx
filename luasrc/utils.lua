@@ -2,6 +2,72 @@ local textx = require 'pl.text'
 local stringx = require 'pl.stringx'
 local path = require 'pl.path'
 
+--[[ Return a table describing the .dokx config format
+
+Table entries are themselves tables, with keys 'key', 'description' and 'default'
+
+]]
+function dokx.configSpecification()
+    return {
+        {
+            key = "filter",
+            description = "pattern or table of patterns; file paths to include",
+            default = 'nil'
+        },
+        {
+            key = "exclude",
+            description = "pattern or table of patterns; file paths to exclude",
+            default = "{ 'test', 'build' }"
+        },
+        {
+            key = "tocLevel",
+            description = "string; level of detail for table of contents: 'class' or 'function'",
+            default = "'function'"
+        },
+        {
+            key = "mathematics",
+            description = "boolean; whether to process mathematics blocks",
+            default = "true"
+        },
+        {
+            key = "packageName",
+            description = "string; override the inferred package namespace",
+            default = "nil"
+        },
+        {
+            key = "githubURL",
+            description = "string; $githubUser/$githubProject - used for generating links, if present",
+            default = "nil"
+        },
+        {
+            key = "includeLocal",
+            description = "boolean; whether to include local functions",
+            default = "false"
+        },
+        {
+            key = "includePrivate",
+            description = "boolean; whether to include private functions (i.e. those that begin with an underscore)",
+            default = "false"
+        },
+        {
+            key = "section",
+            description = "string; name of the section under which this package should be grouped in the main menu",
+            default = "Miscellaneous"
+        }
+    }
+end
+
+-- Calling this puts dokx into debug mode.
+function dokx.debugMode()
+    dokx.logger:setLevel(logging.DEBUG)
+    _inDebugMode = true
+end
+
+-- Return true if dokx is in debug mode.
+function dokx.inDebugMode()
+    return _inDebugMode
+end
+
 --[[ Return true if x is an instance of the given class ]]
 function dokx._is_a(x, className)
     return torch.typename(x) == className
@@ -111,61 +177,6 @@ function dokx._normalizeComment(text)
         text = text .. "\n"
     end
     return text
-end
-
---[[ Return a table describing the .dokx config format
-
-Table entries are themselves tables, with keys 'key', 'description' and 'default'
-
-]]
-function dokx.configSpecification()
-    return {
-        {
-            key = "filter",
-            description = "pattern or table of patterns; file paths to include",
-            default = 'nil'
-        },
-        {
-            key = "exclude",
-            description = "pattern or table of patterns; file paths to exclude",
-            default = "{ 'test', 'build' }"
-        },
-        {
-            key = "tocLevel",
-            description = "string; level of detail for table of contents: 'class' or 'function'",
-            default = "'function'"
-        },
-        {
-            key = "mathematics",
-            description = "boolean; whether to process mathematics blocks",
-            default = "true"
-        },
-        {
-            key = "packageName",
-            description = "string; override the inferred package namespace",
-            default = "nil"
-        },
-        {
-            key = "githubURL",
-            description = "string; $githubUser/$githubProject - used for generating links, if present",
-            default = "nil"
-        },
-        {
-            key = "includeLocal",
-            description = "boolean; whether to include local functions",
-            default = "false"
-        },
-        {
-            key = "includePrivate",
-            description = "boolean; whether to include private functions (i.e. those that begin with an underscore)",
-            default = "false"
-        },
-        {
-            key = "section",
-            description = "string; name of the section under which this package should be grouped in the main menu",
-            default = "Miscellaneous"
-        }
-    }
 end
 
 function dokx._loadConfig(packagePath)
@@ -306,17 +317,6 @@ function dokx._openBrowser(url)
         return
     end
     os.execute(browser .. " " .. url)
-end
-
--- Calling this puts dokx into debug mode.
-function dokx.debugMode()
-    dokx.logger:setLevel(logging.DEBUG)
-    _inDebugMode = true
-end
-
--- Return true if dokx is in debug mode.
-function dokx.inDebugMode()
-    return _inDebugMode
 end
 
 function dokx._copyFilesToDir(files, dirPath)
