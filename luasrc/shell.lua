@@ -3,55 +3,6 @@ local func = require 'pl.func'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 
-local function pruneFunctions(config, documentedFunctions, undocumentedFunctions)
-    if not config or not config.includeLocal then
-        local function notLocal(x)
-            if x:isLocal() then
-                dokx.logger:info("Excluding local function " .. x:fullname())
-                return false
-            end
-            return true
-        end
-        documentedFunctions = tablex.filter(documentedFunctions, notLocal)
-        undocumentedFunctions = tablex.filter(undocumentedFunctions, notLocal)
-    end
-    if not config or not config.includePrivate then
-        local function notPrivate(x)
-            if x:isPrivate() then
-                dokx.logger:info("Excluding private function " .. x:fullname())
-                return false
-            end
-            return true
-        end
-        documentedFunctions = tablex.filter(documentedFunctions, notPrivate)
-        undocumentedFunctions = tablex.filter(undocumentedFunctions, notPrivate)
-    end
-    return documentedFunctions, undocumentedFunctions
-end
-
-local function luaToMd(luaFile)
-    return dokx._convertExtension("lua", "md", luaFile)
-end
-
-local function makeSectionTOC(namespace, sectionPath)
-    local sectionName = path.splitext(path.basename(sectionPath))
-    local sectionHTML = dokx._readFile(sectionPath)
-    local output = [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
-    return output
-end
-
-local function makeSectionHTML(namespace, sectionPath)
-    local basename = path.basename(sectionPath)
-    local sectionName = path.splitext(basename)
-    local anchorName = namespace .. "." .. sectionName .. ".dok"
-    local sectionHTML = dokx._readFile(sectionPath)
-    local output = [[<div class='docSection'>]]
-    output = output .. [[<a name="]] .. anchorName .. [["></a>]]
-    output = output .. sectionHTML
-    output = output .. [[</div>]]
-    return output
-end
-
 --[[
 
 Given a set of HTML sections for a package and an optional table of contents path, combine everything into a single index.html for the package.
@@ -64,6 +15,19 @@ Parameters:
 
 --]]
 function dokx.combineHTML(tocPath, input, config)
+
+    local function makeSectionHTML(namespace, sectionPath)
+        local basename = path.basename(sectionPath)
+        local sectionName = path.splitext(basename)
+        local anchorName = namespace .. "." .. sectionName .. ".dok"
+        local sectionHTML = dokx._readFile(sectionPath)
+        local output = [[<div class='docSection'>]]
+        output = output .. [[<a name="]] .. anchorName .. [["></a>]]
+        output = output .. sectionHTML
+        output = output .. [[</div>]]
+        return output
+    end
+
     dokx.logger:info("Generating package documentation index for " .. input)
 
     local outputName = "index.html"
@@ -267,6 +231,14 @@ Parameters:
 
 --]]
 function dokx.combineTOC(package, input, config)
+
+    local function makeSectionTOC(namespace, sectionPath)
+        local sectionName = path.splitext(path.basename(sectionPath))
+        local sectionHTML = dokx._readFile(sectionPath)
+        local output = [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
+        return output
+    end
+
     dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
 
     local outputName = "toc.html"
@@ -515,6 +487,11 @@ Parameters:
 
 --]]
 function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescription, packageSection)
+
+    local function luaToMd(luaFile)
+        return dokx._convertExtension("lua", "md", luaFile)
+    end
+
     packagePath = dokx._sanitizePath(packagePath)
     outputRoot = dokx._sanitizePath(outputRoot)
     local config = dokx._loadConfig(packagePath)
@@ -686,4 +663,30 @@ function dokx.browse(docLocation)
     dokx._openBrowser(docPath)
 end
 
+
+local function pruneFunctions(config, documentedFunctions, undocumentedFunctions)
+    if not config or not config.includeLocal then
+        local function notLocal(x)
+            if x:isLocal() then
+                dokx.logger:info("Excluding local function " .. x:fullname())
+                return false
+            end
+            return true
+        end
+        documentedFunctions = tablex.filter(documentedFunctions, notLocal)
+        undocumentedFunctions = tablex.filter(undocumentedFunctions, notLocal)
+    end
+    if not config or not config.includePrivate then
+        local function notPrivate(x)
+            if x:isPrivate() then
+                dokx.logger:info("Excluding private function " .. x:fullname())
+                return false
+            end
+            return true
+        end
+        documentedFunctions = tablex.filter(documentedFunctions, notPrivate)
+        undocumentedFunctions = tablex.filter(undocumentedFunctions, notPrivate)
+    end
+    return documentedFunctions, undocumentedFunctions
+end
 
