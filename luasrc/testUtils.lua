@@ -35,3 +35,11 @@ function dokx._checkClass(tester, package, sourceFile, entity, name, parent, lin
     tester:asserteq(entity:file(), sourceFile, "should have expected source file")
     tester:asserteq(entity:lineNo(), line, "should have expected line number")
 end
+
+function dokx._exitWithTester(tester)
+    local code = 0
+    if not tester.errors or #tester.errors ~= 0 then
+        code = 1
+    end
+    os.exit(code)
+end

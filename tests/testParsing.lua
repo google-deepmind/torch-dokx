@@ -114,3 +114,4 @@ end
 
 tester:add(myTests)
 tester:run()
+dokx._exitWithTester(tester)
