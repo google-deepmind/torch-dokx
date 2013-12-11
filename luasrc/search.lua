@@ -51,6 +51,17 @@ function dokx._runPythonScript(script, ...)
     os.execute(command)
 end
 
+--[[
+
+Build an SQLite3 search index from a directory of Markdown files (which must contain section anchors)
+
+Parameters:
+ * `input` - string; path to directory of Markdown files
+ * `output` - string; path to SQLite3 file to create / overwrite
+
+Returns nil.
+
+]]
 function dokx.buildSearchIndex(input, output)
     if not path.isdir(input) then
         dokx.logger:error("dokx.buildSearchIndex: input is not a directory - " .. tostring(input))
@@ -85,11 +96,24 @@ function dokx._webService(...)
     dokx._runPythonScript("web/dokx-service-web.py", ...)
 end
 
+--[[
+
+Stop the background processes that provide SQLite-backed full text search.
+
+]]
 function dokx.stopSearchServices()
   dokx._restService("stop")
   dokx._webService("stop")
 end
 
+--[[
+
+Start or restart the background processes that provide SQLite-backed full text search.
+
+Parameters:
+ * `docRoot` - string; path to the root of the documentation tree in which the search DB is located.
+
+]]
 function dokx.runSearchServices(docRoot)
     docRoot = docRoot or dokx._luarocksHtmlDir()
     if dokx._daemonIsRunning() then

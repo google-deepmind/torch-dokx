@@ -112,6 +112,17 @@ local function getRockspecPathForInstalledRock(rock)
     return result
 end
 
+--[[
+
+Wrapper for the standard 'luarocks install' command, which builds documentation
+and a search index in addition to building the package itself.
+
+Parameters:
+ * `args` - table; args for luarocks
+
+Returns nil.
+
+]]
 function dokx.luarocksInstall(args)
     assert(os.execute('luarocks ' .. table.concat(arg, ' ')) == 0, 'Error executing luarocks')
 	local package = args[#args]
@@ -136,6 +147,17 @@ function dokx.luarocksInstall(args)
     buildSearchIndex()
 end
 
+--[[
+
+Wrapper for the standard 'luarocks make' command, which builds documentation
+and a search index in addition to building the package itself.
+
+Parameters:
+ * `args` - table; args for luarocks
+
+Returns nil.
+
+]]
 function dokx.luarocksMake(args)
     assert(os.execute('luarocks ' .. table.concat(arg, ' ')) == 0, 'Error executing luarocks')
     local rockspecPath = args[#args]
