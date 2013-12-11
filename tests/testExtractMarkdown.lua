@@ -21,8 +21,8 @@ function myTests.testExtractMarkdown()
     if got == expected then
         tester:assert(true, "output does not match expected")
     else
-        -- TODO replace with diff ?
-        os.execute("colordiff -u " .. outputPath .. " " .. expectedPath)
+        local diff = dokx._chooseCommand {"colordiff", "diff"}
+        os.execute(diff .. " -u " .. outputPath .. " " .. expectedPath)
         tester:assert(false, "output does not match expected")
     end
 
