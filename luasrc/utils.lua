@@ -307,3 +307,14 @@ function dokx._openBrowser(url)
     end
     os.execute(browser .. " " .. url)
 end
+
+-- Calling this puts dokx into debug mode.
+function dokx.debugMode()
+    dokx.logger:setLevel(logging.DEBUG)
+    _inDebugMode = true
+end
+
+-- Return true if dokx is in debug mode.
+function dokx.inDebugMode()
+    return _inDebugMode
+end
