@@ -326,13 +326,14 @@ function dokx._openBrowser(url)
     os.execute(browser .. " " .. url)
 end
 
-function dokx._copyFilesToDir(files, dirPath)
+function dokx._copyFilesToDir(files, dirPath, copyFunc)
+    copyFunc = copyFunc or file.copy
     tablex.foreach(files, function(filePath)
         local dest = path.join(dirPath, path.basename(filePath))
         if path.isfile(dest) then
             dokx.logger:warn("*** Overwriting markdown file " .. dest .. " ***")
         end
-        file.copy(filePath, dest)
+        copyFunc(filePath, dest)
     end)
 end
 

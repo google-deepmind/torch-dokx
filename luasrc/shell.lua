@@ -2,6 +2,7 @@ local dir = require 'pl.dir'
 local func = require 'pl.func'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
+local file = require 'pl.file'
 
 --[[
 
@@ -190,6 +191,134 @@ function dokx._extractTOCLua(package, input, content)
     return output
 end
 
+function dokx._extractMarkdownHeadings(package, sourceName, content)
+
+    local headers = {}
+    local annotated = ""
+
+    local addAnchor = function(headerText)
+        annotated = annotated .. [[<a id="]] .. dokx._headerTag(package, sourceName, headerText) .. [["></a>]] .. "\n"
+    end
+
+    local lastLine
+    for _, line in ipairs(stringx.splitlines(content)) do
+        for k = 6,1,-1 do
+            if stringx.startswith(line, string.rep('#', k)) then
+                local headerText = string.sub(line, k+1)
+                headerText = headerText:gsub("#+$", "")
+                headerText = stringx.strip(headerText)
+                table.insert(headers, {
+                    level = k,
+                    text = headerText,
+                })
+                addAnchor(headerText)
+                break
+            end
+        end
+        if string.find(line, "^=+$") then
+            table.insert(headers, {
+                level = 1,
+                text = stringx.strip(lastLine),
+            })
+        end
+        if string.find(line, "^%-+$") then
+            table.insert(headers, {
+                level = 2,
+                text = stringx.strip(lastLine),
+            })
+        end
+        lastLine = line
+        annotated = annotated .. line .. "\n"
+    end
+    return headers, annotated
+end
+
+function dokx._computeHeadingHierarchy(headings)
+    local function makeNode(text, children)
+        return {
+            text = text or "",
+            children = children or {}
+        }
+    end
+    local hierarchy = makeNode()
+    local currentLevel = 0
+    local currentParent = hierarchy
+    local parents = {}
+    parents[1] = hierarchy
+    for _, header in ipairs(headings) do
+        local parent = parents[header.level]
+        if not parent then
+            for k = 1, header.level-1 do
+                if not parents[k+1] then
+                    local newSubNode = makeNode()
+                    table.insert(parents[k].children, newSubNode)
+                    parents[k+1] = newSubNode
+                end
+            end
+            parent = parents[header.level]
+        end
+
+        local child = makeNode(header.text)
+        table.insert(parent.children, child)
+        parents[header.level+1] = child
+        for k, p in ipairs(parents) do
+            if k > header.level+1 then
+                parents[k] = nil
+            end
+        end
+        currentLevel = header.level
+    end
+    return hierarchy
+end
+
+function dokx._normalizeTagName(headerText)
+    headerText = headerText:gsub("[-.~:/?#%[%]@!$&'()*+,;=]", "_")
+    return headerText:gsub("%s", "_")
+end
+
+function dokx._headerTag(package, sourceName, headerText)
+    return package .. "." .. sourceName .. "." .. dokx._normalizeTagName(headerText)
+end
+
+function dokx._headingHierarchyToHTML(package, sourceName, hierarchy)
+
+    local indent = "    "
+    local indents = function(level) return string.rep(indent, level) end
+    local function hierarchyToHTML(level, h)
+        local output = ""
+        local levelIndent = indents(level)
+        local anchor = '<a href="#' .. dokx._headerTag(package, sourceName, h.text) .. '">' .. h.text .. "</a>"
+        if #h.children ~= 0 then
+            if h.text ~= "" then
+                output = output .. anchor
+            end
+            output = output .. "\n" .. levelIndent .. "<ul>\n"
+            for _, item in ipairs(h.children) do
+                output = output .. levelIndent .. "<li>"
+                output = output .. hierarchyToHTML(level + 1, item)
+                output = output ..  "</li>\n"
+            end
+            output = output .. levelIndent .. "</ul>\n" .. indents(level - 1)
+        else
+            output = output .. anchor
+        end
+        return output
+    end
+
+    return hierarchyToHTML(0, hierarchy)
+end
+
+function dokx._extractTOCMarkdown(package, filePath, content)
+    assert(package)
+    assert(filePath)
+    assert(content)
+    local sourceName, ext = path.splitext(path.basename(filePath))
+    local headers, annotated = dokx._extractMarkdownHeadings(package, sourceName, content)
+    local hierarchy = dokx._computeHeadingHierarchy(headers)
+    local html = dokx._headingHierarchyToHTML(package, sourceName, hierarchy)
+    return html, annotated
+end
+
 --[[
 
 Given a set of Lua files, parse them and output corresponding HTML files with table-of-contents sections
@@ -213,11 +342,18 @@ function dokx.extractTOC(package, output, inputs, config)
 
         local basename = path.basename(input)
         local sectionName, ext = path.splitext(basename)
-        lapp.assert(ext == '.lua', "Expected .lua file for input")
+        lapp.assert(ext == '.lua' or ext == '.md', "Expected .lua or .md file for input")
         local outputPath = path.join(output, sectionName .. ".html")
-
         local content = dokx._readFile(input)
-        local output = dokx._extractTOCLua(package, input, content)
+        local output
+        if ext == '.lua' then
+            output = dokx._extractTOCLua(package, input, content)
+        elseif ext == '.md' then
+            output = dokx._extractTOCMarkdown(package, input, content)
+        else
+            assert(false)
+        end
+
         local outputFile = io.open(outputPath, 'w')
         outputFile:write(output)
         outputFile:close()
@@ -553,21 +689,33 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
 
     dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath, 'html')
     dokx.extractTOC(packageName, tocTmp, luaFiles, config)
+    dokx.extractTOC(packageName, tocTmp, extraMarkdownFiles, config)
     dokx.combineTOC(packageName, tocTmp, config)
     dokx.generateHTML(outputPackageDir, markdownFiles, config)
-    dokx.generateHTML(path.join(outputPackageDir, "extra"), extraMarkdownFiles, config)
-    dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
-
-    if packageSection or packageDescription then
-        dokx.generateMetadata(outputPackageDir, packageSection, packageDescription)
-    end
 
     local markdownDir = path.join(dokx._markdownPath(outputRoot), packageName)
     if not path.isdir(markdownDir) then
         dir.makepath(markdownDir)
     end
+
+    local function addAnchorsToMarkdown(input, output)
+        local content = file.read(input)
+        local _, annotated = dokx._extractTOCMarkdown(packageName, input, content)
+        dokx.logger:info("dokx.extractTOC: adding anchors to markdown file " .. output)
+        file.write(output, annotated)
+    end
+
+    dokx._copyFilesToDir(extraMarkdownFiles, markdownDir, addAnchorsToMarkdown)
+    local transformedExtraMarkdownFiles = dir.getallfiles(markdownDir, "*.md")
+
+    dokx.generateHTML(path.join(outputPackageDir, "extra"), transformedExtraMarkdownFiles, config)
+    dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
+
     dokx._copyFilesToDir(markdownFiles, markdownDir)
-    dokx._copyFilesToDir(extraMarkdownFiles, markdownDir)
+
+    if packageSection or packageDescription then
+        dokx.generateMetadata(outputPackageDir, packageSection, packageDescription)
+    end
 
     -- Find the path to the templates - it's relative to our installed location
     local dokxDir = dokx._getDokxDir()
