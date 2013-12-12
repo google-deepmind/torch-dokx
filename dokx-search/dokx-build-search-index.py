@@ -26,7 +26,7 @@ def makeSearchText(section):
     return buffer(re.sub(srcLinkPattern, "", section))
 
 def sections(path):
-    pattern = re.compile('<a name="(.*)"></a>')
+    pattern = re.compile('<a (name|id)="(.*)"></a>')
 
     for packageName in os.listdir(path):
         for filePath in glob.glob(os.path.join(path, packageName, "*.md")):
@@ -39,7 +39,7 @@ def sections(path):
                     if result:
                         section = makeSearchText(section)
                         yield packageName, tag, section
-                        tag = result.group(1)
+                        tag = result.group(2)
                         section = ""
                     else:
                         section += line
