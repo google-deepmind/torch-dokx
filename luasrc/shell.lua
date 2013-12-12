@@ -58,12 +58,12 @@ function dokx.combineHTML(tocPath, input, config)
         return true
     end)
 
-    local sortedExtra = tablex.sortv(extraSections)
+    local sortedExtra = dokx._sortExtraSections(extraSections, config.sectionOrder)
     local sorted = tablex.sortv(sectionPaths)
 
     local content = ""
 
-    for _, sectionPath in sortedExtra do
+    for _, sectionPath in ipairs(sortedExtra) do
         dokx.logger:info("Adding " .. sectionPath .. " to index")
         content = content .. makeSectionHTML(packageName, sectionPath)
     end
@@ -363,7 +363,39 @@ function dokx.extractTOC(package, output, inputs, config)
     end
 
 end
-
+function dokx._sortExtraSections(extraSectionPaths, ordering)
+    if not ordering then
+        table.sort(extraSectionPaths)
+        return extraSectionPaths
+    end
+    local function normalize(x)
+        local main, ext = path.splitext(path.basename(x))
+        return main
+    end
+    local sections = {}
+    local rank = {}
+    local k = 0
+    for _, path in ipairs(ordering) do
+        rank[normalize(path)] = k
+        k = k + 1
+    end
+    local function compare(a, b)
+        a = normalize(a)
+        b = normalize(b)
+        if rank[a] and not rank[b] then
+            return true
+        end
+        if rank[b] and not rank[a] then
+            return false
+        end
+        if rank[a] and rank[b] then
+            return rank[a] < rank[b]
+        end
+        return a < b
+    end
+    table.sort(extraSectionPaths, compare)
+    return extraSectionPaths
+end
 --[[
 
 Given a directory containing table-of-contents sections, combine them into a single table-of-contents snippet.
@@ -412,11 +444,11 @@ function dokx.combineTOC(package, input, config)
         packageName = config.packageName
     end
 
-    local sortedExtra = tablex.sortv(extraSectionPaths)
+    local sortedExtra = dokx._sortExtraSections(extraSectionPaths, config.sectionOrder)
     local sorted = tablex.sortv(sectionPaths)
 
     local toc = "<ul>\n"
-    for _, sectionPath in sortedExtra do
+    for _, sectionPath in ipairs(sortedExtra) do
         dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath, config.tocIncludeFilenames)
     end

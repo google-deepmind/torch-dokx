@@ -31,6 +31,11 @@ function dokx.configSpecification()
             default = "nil"
         },
         {
+            key = "sectionOrder",
+            description = "table; paths of .md files in order of priority",
+            default = "nil"
+        },
+        {
             key = "tocIncludeFilenames",
             description = "boolean; whether to include filenames as a top level in the table of contents",
             default = "false"
