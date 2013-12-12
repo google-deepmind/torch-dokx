@@ -197,33 +197,40 @@ function dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
     end
 
     local lastLine
+    local inCodeBlock = false
     for _, line in ipairs(stringx.splitlines(content)) do
-        for k = 6,1,-1 do
-            if stringx.startswith(line, string.rep('#', k)) then
-                local headerText = string.sub(line, k+1)
-                headerText = headerText:gsub("#+$", "")
-                headerText = stringx.strip(headerText)
-                table.insert(headers, {
-                    level = k,
-                    text = headerText,
-                })
-                addAnchor(headerText)
-                break
+        -- Ignore headings in code blocks
+        if stringx.startswith(stringx.strip(line), '```') then
+            inCodeBlock = not inCodeBlock
+        end
+        if not inCodeBlock then
+            for k = 6,1,-1 do
+                if stringx.startswith(line, string.rep('#', k)) then
+                    local headerText = string.sub(line, k+1)
+                    headerText = headerText:gsub("#+$", "")
+                    headerText = stringx.strip(headerText)
+                    table.insert(headers, {
+                        level = k,
+                        text = headerText,
+                    })
+                    addAnchor(headerText)
+                    break
+                end
             end
+            if string.find(line, "^=+$") then
+                table.insert(headers, {
+                    level = 1,
+                    text = stringx.strip(lastLine),
+                })
+            end
+            if string.find(line, "^%-+$") then
+                table.insert(headers, {
+                    level = 2,
+                    text = stringx.strip(lastLine),
+                })
+            end
+            lastLine = line
         end
-        if string.find(line, "^=+$") then
-            table.insert(headers, {
-                level = 1,
-                text = stringx.strip(lastLine),
-            })
-        end
-        if string.find(line, "^%-+$") then
-            table.insert(headers, {
-                level = 2,
-                text = stringx.strip(lastLine),
-            })
-        end
-        lastLine = line
         annotated = annotated .. line .. "\n"
     end
     headers = tablex.filter(headers, function(x) return x.level <= maxLevels end)

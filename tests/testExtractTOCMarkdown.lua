@@ -13,6 +13,17 @@ Here's some text
 
 ### D
 
+```
+# fake heading
+```
+
+    ## other fake heading
+
+```lua
+one more fake heading
+==
+```
+
 Some writing
 
 ##### E
