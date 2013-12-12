@@ -192,7 +192,12 @@ function dokx._normalizeComment(text)
 end
 
 function dokx._loadConfig(packagePath)
-    local configPath = path.join(packagePath, ".dokx")
+    local configPath
+    if path.isfile(packagePath) then
+        configPath = packagePath
+    else
+        configPath = path.join(packagePath, ".dokx")
+    end
     local configTable = {}
 
     -- If config file exists, try to load it

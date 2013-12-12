@@ -12,6 +12,7 @@ Check out a list of projects from git, and build docs for them in a central tree
     -b,--branch (default master)        branch to check out
     -d,--description (optional string)  package description
     -s,--section (optional string)      package section
+    -c,--config (optional string)       path to config file to override with
     <inputs...> (string)                git URL(s) (e.g. git@github.com:d11/torch-dokx.git)
     --debug                             debug mode
 ]]
@@ -38,7 +39,12 @@ local function main(args)
             os.execute("cd " .. cloneDir .. " && git checkout " .. args.branch)
         end
 
-        dokx.buildPackageDocs(args.output, cloneDir, args.repl, args.description, args.section)
+        local config
+        if args.config then
+            config = dokx._loadConfig(args.config)
+        end
+
+        dokx.buildPackageDocs(args.output, cloneDir, args.repl, args.description, args.section, config)
     end
 
     dir.rmtree(tempDir)

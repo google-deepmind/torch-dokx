@@ -633,7 +633,7 @@ Parameters:
  - `outputREPL` - optional path to write Markdown for consumption by the Torch REPL
 
 --]]
-function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescription, packageSection)
+function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescription, packageSection, config)
 
     local function luaToMd(luaFile)
         return dokx._convertExtension("lua", "md", luaFile)
@@ -641,7 +641,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
 
     packagePath = dokx._sanitizePath(packagePath)
     outputRoot = dokx._sanitizePath(outputRoot)
-    local config = dokx._loadConfig(packagePath)
+    config = config or dokx._loadConfig(packagePath)
     if not path.isdir(outputRoot) then
         error("dokx.buildPackageDocs: invalid documentation tree " .. outputRoot)
     end
