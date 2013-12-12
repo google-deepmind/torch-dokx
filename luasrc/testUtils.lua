@@ -1,3 +1,6 @@
+local path = require 'pl.path'
+local file = require 'pl.file'
+
 -- Check that the result is a table with the given size
 function dokx._checkTableSize(tester, result, size)
     tester:asserteq(type(result), 'table', "should be a table")
@@ -55,4 +58,33 @@ function dokx._exitWithTester(tester)
         code = 1
     end
     os.exit(code)
+end
+
+--[[
+
+Check that two strings are equal, and if they're not, print a diff.
+
+Parameters:
+ * `tester` - torch.Tester object
+ * `got` - first string
+ * `expected` - second string
+
+Returns nil.
+
+]]
+function dokx._assertEqualWithDiff(tester, got, expected, flags)
+    flags = flags or "-u"
+    if got == expected then
+        tester:assert(true, "output does not match expected")
+    else
+        local diff = dokx._chooseCommand {"colordiff", "diff"}
+        dokx._withTmpDir(function(tmpDir)
+            local outputPath = path.join(tmpDir, "output")
+            local expectedPath = path.join(tmpDir, "expected")
+            file.write(outputPath, got)
+            file.write(expectedPath, expected)
+            os.execute(diff .. " " .. flags .. "  " .. outputPath .. " " .. expectedPath)
+        end)
+        tester:assert(false, "output does not match expected")
+    end
 end
