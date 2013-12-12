@@ -205,6 +205,12 @@ the documentation, you can override it by setting `packageName` in the config
 file. For example, the repository for this project is called `'torch-dokx'`, but
 the namespace is `'dokx'`.
 
+#### section
+
+A string - the name of the section under which this package should be grouped
+in the main menu. If not given, the package will go into 'Miscellaneous' by
+default.
+
 #### githubURL
 
 If this is provided, then the generated documentation will include links to the
@@ -229,8 +235,30 @@ default, no files are excluded.
 
 A string indicating how detailed the table of contents in the generated HTML
 should be. The default is to generate an entry for every documented function,
-but in large projects, this might be excessive. Valid values are 'function' and
-'class'.
+but in large projects, this might be excessive. Valid values are 'function',
+'class' and 'none'.
+
+#### tocLevelTopSection
+
+An integer indicating the maximum depth of the top section of the generated
+table of contents (the part containing links for the standalone .md docs)
+
+#### sectionOrder
+
+A table containing the names of files in order of priority. The top section of
+the table of contents will list these markdown files first, followed by any
+others in alphabetical order, followed by extracted inline documentation.
+
+The filenames are case-sensitive and should *not* include the extension.
+
+For example:
+
+    sectionOrder = { 'README', 'tensor', 'maths' }
+
+#### tocIncludeFilenames
+
+A boolean; if true, include filenames as a top level in the table of contents
+(applies to the top, non-inline section only.)
 
 #### mathematics
 
