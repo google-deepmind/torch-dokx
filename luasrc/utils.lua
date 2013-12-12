@@ -1,6 +1,7 @@
 local textx = require 'pl.text'
 local stringx = require 'pl.stringx'
 local path = require 'pl.path'
+local dir = require 'pl.dir'
 
 --[[ Return a table describing the .dokx config format
 
@@ -79,6 +80,12 @@ function dokx._mkTemp()
     local name = stringx.strip(file:read("*all"))
     file:close()
     return name
+end
+
+function dokx._withTmpDir(func)
+    local tmpDir = dokx._mkTemp()
+    func(tmpDir)
+    dir.rmtree(tmpDir)
 end
 
 --[[ Read the whole of the given file's contents, and return it as a string.

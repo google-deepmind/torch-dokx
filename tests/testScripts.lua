@@ -9,12 +9,6 @@ local function runScript(script, ...)
     tester:asserteq(returnCode, 0, "Non-zero return code: " .. script)
 end
 
-local function withTmpDir(func)
-    local tmpDir = dokx._mkTemp()
-    func(tmpDir)
-    dir.rmtree(tmpDir)
-end
-
 function myTests:test_browse()
     runScript("env BROWSER=cat dokx-browse")
 end
