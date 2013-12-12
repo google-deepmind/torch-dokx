@@ -58,7 +58,11 @@ function dokx.combineHTML(tocPath, input, config)
         return true
     end)
 
-    local sortedExtra = dokx._sortExtraSections(extraSections, config.sectionOrder)
+    local sectionOrder
+    if config then
+        sectionOrder = config.sectionOrder
+    end
+    local sortedExtra = dokx._sortExtraSections(extraSections, sectionOrder)
     local sorted = tablex.sortv(sectionPaths)
 
     local content = ""
