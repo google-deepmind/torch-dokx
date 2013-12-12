@@ -372,8 +372,8 @@ function dokx.combineTOC(package, input, config)
     local function makeSectionTOC(namespace, sectionPath)
         local sectionName = path.splitext(path.basename(sectionPath))
         local sectionHTML = dokx._readFile(sectionPath)
-        local output = [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]] .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
-        return output
+        return [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]]
+               .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
     end
 
     dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
@@ -388,14 +388,21 @@ function dokx.combineTOC(package, input, config)
 
     -- Retrieve package name from path, by looking at the name of the last directory
     local sectionPaths = dir.getfiles(input, "*.html")
+    local extraSectionPaths = dir.getfiles(path.join(input, "_extra"), "*.html")
     local packageName = dokx._getLastDirName(input)
     if config and config.packageName then
         packageName = config.packageName
     end
 
+    local sortedExtra = tablex.sortv(extraSectionPaths)
     local sorted = tablex.sortv(sectionPaths)
 
     local toc = "<ul>\n"
+    for _, sectionPath in sortedExtra do
+        dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
+        toc = toc .. makeSectionTOC(package, sectionPath)
+    end
+    toc = toc .. "<hr>\n"
     for _, sectionPath in sorted do
         dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath)
@@ -680,7 +687,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
 
     dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath, 'html')
     dokx.extractTOC(packageName, tocTmp, luaFiles, config)
-    dokx.extractTOC(packageName, tocTmp, extraMarkdownFiles, config)
+    dokx.extractTOC(packageName, path.join(tocTmp, "_extra"), extraMarkdownFiles, config)
     dokx.combineTOC(packageName, tocTmp, config)
     dokx.generateHTML(outputPackageDir, markdownFiles, config)
 
