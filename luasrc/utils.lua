@@ -22,8 +22,13 @@ function dokx.configSpecification()
         },
         {
             key = "tocLevel",
-            description = "string; level of detail for table of contents: 'class' or 'function'",
+            description = "string; level of detail for table of contents for inline docs: 'class' or 'function'",
             default = "'function'"
+        },
+        {
+            key = "tocLevelTopSection",
+            description = "integer; max depth of table of contents for standalone .md docs",
+            default = "nil"
         },
         {
             key = "mathematics",

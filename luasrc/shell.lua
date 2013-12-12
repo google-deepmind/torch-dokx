@@ -186,7 +186,8 @@ function dokx._extractTOCLua(package, input, content)
     return output
 end
 
-function dokx._extractMarkdownHeadings(package, sourceName, content)
+function dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
+    maxLevels = maxLevels or math.huge
 
     local headers = {}
     local annotated = ""
@@ -225,6 +226,7 @@ function dokx._extractMarkdownHeadings(package, sourceName, content)
         lastLine = line
         annotated = annotated .. line .. "\n"
     end
+    headers = tablex.filter(headers, function(x) return x.level <= maxLevels end)
     return headers, annotated
 end
 
@@ -303,12 +305,13 @@ function dokx._headingHierarchyToHTML(package, sourceName, hierarchy)
     return hierarchyToHTML(0, hierarchy)
 end
 
-function dokx._extractTOCMarkdown(package, filePath, content)
+function dokx._extractTOCMarkdown(package, filePath, content, maxLevels)
     assert(package)
     assert(filePath)
     assert(content)
+    maxLevels = maxLevels or math.huge
     local sourceName, ext = path.splitext(path.basename(filePath))
-    local headers, annotated = dokx._extractMarkdownHeadings(package, sourceName, content)
+    local headers, annotated = dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
     local hierarchy = dokx._computeHeadingHierarchy(headers)
     local html = dokx._headingHierarchyToHTML(package, sourceName, hierarchy)
     return html, annotated
@@ -344,7 +347,7 @@ function dokx.extractTOC(package, output, inputs, config)
         if ext == '.lua' then
             output = dokx._extractTOCLua(package, input, content)
         elseif ext == '.md' then
-            output = dokx._extractTOCMarkdown(package, input, content)
+            output = dokx._extractTOCMarkdown(package, input, content, config.tocLevelTopSection)
         else
             assert(false)
         end
@@ -698,7 +701,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
 
     local function addAnchorsToMarkdown(input, output)
         local content = file.read(input)
-        local _, annotated = dokx._extractTOCMarkdown(packageName, input, content)
+        local _, annotated = dokx._extractTOCMarkdown(packageName, input, content, config.maxTOCLevels)
         dokx.logger:info("dokx.extractTOC: adding anchors to markdown file " .. output)
         file.write(output, annotated)
     end
