@@ -708,8 +708,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
         file.write(output, annotated)
     end
 
-    dokx._copyFilesToDir(extraMarkdownFiles, markdownDir, addAnchorsToMarkdown)
-    local transformedExtraMarkdownFiles = dir.getallfiles(markdownDir, "*.md")
+    local transformedExtraMarkdownFiles = dokx._copyFilesToDir(extraMarkdownFiles, markdownDir, addAnchorsToMarkdown)
 
     dokx.generateHTML(path.join(outputPackageDir, "extra"), transformedExtraMarkdownFiles, config)
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
