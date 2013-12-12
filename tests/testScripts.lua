@@ -9,6 +9,8 @@ local function runScript(script, ...)
     tester:asserteq(returnCode, 0, "Non-zero return code: " .. script)
 end
 
+local withTmpDir = dokx._withTmpDir
+
 function myTests:test_browse()
     runScript("env BROWSER=cat dokx-browse")
 end
