@@ -391,7 +391,11 @@ function dokx.combineTOC(package, input, config)
 
     -- Retrieve package name from path, by looking at the name of the last directory
     local sectionPaths = dir.getfiles(input, "*.html")
-    local extraSectionPaths = dir.getfiles(path.join(input, "_extra"), "*.html")
+    local extraSectionPaths = {}
+    local extraLocation = path.join(input, "_extra")
+    if path.isdir(extraLocation) then
+        extraSectionPaths = dir.getfiles(extraLocation, "*.html")
+    end
     local packageName = dokx._getLastDirName(input)
     if config and config.packageName then
         packageName = config.packageName
@@ -405,10 +409,12 @@ function dokx.combineTOC(package, input, config)
         dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath)
     end
-    toc = toc .. "<hr>\n"
-    for _, sectionPath in sorted do
-        dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
-        toc = toc .. makeSectionTOC(package, sectionPath)
+    if #extraSectionPaths ~= 0 then
+        toc = toc .. "<hr>\n"
+        for _, sectionPath in sorted do
+            dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
+            toc = toc .. makeSectionTOC(package, sectionPath)
+        end
     end
     toc = toc .. "</ul>\n"
 
