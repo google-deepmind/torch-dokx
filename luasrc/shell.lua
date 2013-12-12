@@ -379,11 +379,15 @@ Parameters:
 --]]
 function dokx.combineTOC(package, input, config)
 
-    local function makeSectionTOC(namespace, sectionPath)
+    local function makeSectionTOC(namespace, sectionPath, includeLink)
         local sectionName = path.splitext(path.basename(sectionPath))
         local sectionHTML = dokx._readFile(sectionPath)
-        return [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]]
-               .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
+        if includeLink then
+            return [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]]
+                    .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
+        else
+            return "<li>" .. sectionHTML .. "</li>\n"
+        end
     end
 
     dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
@@ -414,13 +418,15 @@ function dokx.combineTOC(package, input, config)
     local toc = "<ul>\n"
     for _, sectionPath in sortedExtra do
         dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
-        toc = toc .. makeSectionTOC(package, sectionPath)
+        toc = toc .. makeSectionTOC(package, sectionPath, config.tocIncludeFilenames)
     end
-    if #extraSectionPaths ~= 0 then
-        toc = toc .. "<hr>\n"
+    if config.tocLevel ~= 'none' then
+        if #extraSectionPaths ~= 0 then
+            toc = toc .. "<hr>\n"
+        end
         for _, sectionPath in sorted do
             dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
-            toc = toc .. makeSectionTOC(package, sectionPath)
+            toc = toc .. makeSectionTOC(package, sectionPath, true)
         end
     end
     toc = toc .. "</ul>\n"
