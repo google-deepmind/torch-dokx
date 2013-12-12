@@ -456,7 +456,9 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
                 package, input, content
             )
 
-        documentedFunctions, undocumentedFunctions = dokx._pruneFunctions(config, documentedFunctions, undocumentedFunctions)
+        documentedFunctions, undocumentedFunctions = dokx._pruneFunctions(
+                config, documentedFunctions, undocumentedFunctions
+            )
 
         -- Output markdown
         local writer = dokx.MarkdownWriter(outputPath, mode)
