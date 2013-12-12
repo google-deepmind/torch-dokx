@@ -110,9 +110,7 @@ function dokx.combineHTML(tocPath, input, config)
 
     dokx.logger:info("Writing to " .. outputPath)
 
-    local outputFile = io.open(outputPath, 'w')
-    outputFile:write(output)
-    outputFile:close()
+    file.write(outputPath, output)
 end
 
 --[[
@@ -142,11 +140,8 @@ function dokx.generateHTML(output, inputs, config)
         if path.isfile(outputPath) then
             dokx.logger:warn("*** dokx.generateHTML: overwriting existing html file " .. outputPath .. " ***")
         end
-        local outputFile = io.open(outputPath, 'w')
         dokx.logger:debug("dokx.generateHTML: writing to " .. outputPath)
-        lapp.assert(outputFile, "Could not open: " .. outputPath)
-        outputFile:write(rendered)
-        outputFile:close()
+        file.write(outputPath, rendered)
     end
 
     for i, input in ipairs(inputs) do
@@ -354,9 +349,7 @@ function dokx.extractTOC(package, output, inputs, config)
             assert(false)
         end
 
-        local outputFile = io.open(outputPath, 'w')
-        outputFile:write(output)
-        outputFile:close()
+        file.write(outputPath, output)
     end
 
 end
@@ -411,9 +404,7 @@ function dokx.combineTOC(package, input, config)
 
     dokx.logger:info("dokx.combineTOC: writing to " .. outputPath)
 
-    local outputFile = io.open(outputPath, 'w')
-    outputFile:write(toc)
-    outputFile:close()
+    file.write(outputPath, toc)
 end
 
 --[[
