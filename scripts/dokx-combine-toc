@@ -6,12 +6,13 @@ local function processArgs()
     return lapp [[
 Generate a combined ToC for a package
     -p,--package (string)    package name
-    <input> (string) input directory 
+    <input> (string) input directory
 ]]
 end
 
 local function main(args)
-    dokx.combineTOC(args.package, args.input)
+    local config = {}
+    dokx.combineTOC(args.package, args.input, config)
 end
 
 main(processArgs())
