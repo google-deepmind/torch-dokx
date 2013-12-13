@@ -17,7 +17,7 @@ local function runScript(script, ...)
     if not dokx._which(script) and optionalScripts[script] then
         return
     end
-    local returnCode = os.execute(script .. " " .. stringx.join(" ", { ... }))
+    local returnCode = os.execute(script .. " " .. stringx.join(" ", { ... }) .. " &> /dev/null")
     tester:asserteq(returnCode, 0, "Non-zero return code: " .. script)
 end
 
