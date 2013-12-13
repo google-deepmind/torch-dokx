@@ -53,8 +53,7 @@ local function main(args)
             os.execute("cd " .. cloneDir .. " && git checkout " .. args.branch)
         end
 
-        -- If args.config is nil, we get a default config
-        local config = dokx._loadConfig(args.config)
+        local config = dokx._loadConfig(args.config or cloneDir)
         if not config.githubURL then
             local githubURL = getGithubURLFromGitURL(gitURL)
             if githubURL then
