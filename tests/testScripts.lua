@@ -94,7 +94,7 @@ function myTests:test_search()
 end
 function myTests:test_update_from_git()
     withTmpDir(function(tmpDir)
-        local git = "git@github.com/d11/torch-dokx.git"
+        local git = "git@github.com:d11/torch-dokx.git"
         runScript("dokx-update-from-git", "--output", tmpDir, git)
     end)
 
