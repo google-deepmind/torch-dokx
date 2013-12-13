@@ -234,6 +234,9 @@ function dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
                 })
             end
             lastLine = line
+
+            -- Also convert any links to other markdown files
+            line = line:gsub("%[(.*)%]%((.*)%.md%)", "[%1](#" .. package .. ".%2.dok)")
         end
         annotated = annotated .. line .. "\n"
     end
