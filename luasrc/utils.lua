@@ -203,15 +203,17 @@ end
 
 function dokx._loadConfig(packagePath)
     local configPath
-    if path.isfile(packagePath) then
-        configPath = packagePath
-    else
-        configPath = path.join(packagePath, ".dokx")
+    if packagePath then
+        if path.isfile(packagePath) then
+            configPath = packagePath
+        else
+            configPath = path.join(packagePath, ".dokx")
+        end
     end
     local configTable = {}
 
     -- If config file exists, try to load it
-    if path.isfile(configPath) then
+    if configPath and path.isfile(configPath) then
         local configFunc, err = loadfile(configPath)
         if err then
             error("dokx._loadConfig: error loading dokx config " .. configPath .. ": " .. err)
