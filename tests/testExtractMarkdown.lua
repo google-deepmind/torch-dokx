@@ -12,9 +12,7 @@ function myTests.testExtractMarkdown()
     local inputPath = "tests/data/testInput1.lua"
     local outputPath = path.join(tmpDir, "testInput1.md")
     local expectedPath = "tests/data/testOutput1.markdown"
-    local cmd = "dokx-extract-markdown -p " .. package .. " -o " .. tmpDir .. " " .. inputPath
-    local exitCode = os.execute(cmd, "r")
-    tester:asserteq(exitCode, 0, "script should return exit code 0")
+    dokx.extractMarkdown(package, tmpDir, { inputPath })
     tester:assert(path.isfile(outputPath), "script did not produce the expected file")
     local got = dokx._readFile(outputPath)
     local expected = dokx._readFile(expectedPath)

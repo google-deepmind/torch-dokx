@@ -4,7 +4,19 @@ local dir = require 'pl.dir'
 local tester = torch.Tester()
 local myTests = {}
 
+local optionalScripts = {
+    ['dokx-combine-html'] = true,
+    ['dokx-combine-toc'] = true,
+    ['dokx-extract-toc'] = true,
+    ['dokx-extract-markdown'] = true,
+    ['dokx-generate-html'] = true,
+    ['dokx-generate-html-index'] = true,
+}
+
 local function runScript(script, ...)
+    if not dokx._which(script) and optionalScripts[script] then
+        return
+    end
     local returnCode = os.execute(script .. " " .. stringx.join(" ", { ... }))
     tester:asserteq(returnCode, 0, "Non-zero return code: " .. script)
 end
