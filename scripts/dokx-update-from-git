@@ -2,6 +2,7 @@
 local lapp = require 'pl.lapp'
 local dir = require 'pl.dir'
 local path = require 'pl.path'
+local stringx = require 'pl.stringx'
 require 'dokx'
 
 local function processArgs()
@@ -16,6 +17,19 @@ Check out a list of projects from git, and build docs for them in a central tree
     <inputs...> (string)                git URL(s) (e.g. git@github.com:d11/torch-dokx.git)
     --debug                             debug mode
 ]]
+end
+
+local function getGithubURLFromGitURL(gitURL)
+    gitURL = stringx.strip(gitURL)
+    local patterns = {
+        "git@github.com:(.*)/(.*).git",
+        "git://github.com/(.*)/(.*)",
+    }
+    for _, pattern in ipairs(patterns) do
+        if string.find(gitURL, pattern) then
+            return gitURL:gsub(pattern, "%1/%2")
+        end
+    end
 end
 
 local function main(args)
@@ -39,9 +53,13 @@ local function main(args)
             os.execute("cd " .. cloneDir .. " && git checkout " .. args.branch)
         end
 
-        local config
-        if args.config then
-            config = dokx._loadConfig(args.config)
+        -- If args.config is nil, we get a default config
+        local config = dokx._loadConfig(args.config)
+        if not config.githubURL then
+            local githubURL = getGithubURLFromGitURL(gitURL)
+            if githubURL then
+                config.githubURL = githubURL
+            end
         end
 
         dokx.buildPackageDocs(args.output, cloneDir, args.repl, args.description, args.section, config)
