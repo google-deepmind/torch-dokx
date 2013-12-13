@@ -210,6 +210,11 @@ Examples:
 
 ]]
 function dokx.search(query, browse, docRoot)
+    if not query or type(query) ~= 'string' then
+        dokx.logger:error("dokx.search: expected a query string!")
+        help(dokx.search)
+        return
+    end
     docRoot = docRoot or dokx._luarocksHtmlDir()
     local result = dokx._searchHTTP(query)
     if not result then
