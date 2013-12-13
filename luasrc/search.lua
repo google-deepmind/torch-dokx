@@ -193,8 +193,7 @@ end
 
 Results are printed on stdout.
 
-See the [SQLite documentation](http://www.sqlite.org/fts3.html#section_3) for
-details of permitted query forms.
+See the [SQLite documentation](http://www.sqlite.org/fts3.html#section_3) for details of permitted query forms.
 
 Parameters:
 
