@@ -15,6 +15,7 @@ parser.add_argument('input', type=str, help="Path to input directory of Markdown
 args = parser.parse_args()
 
 DB = sqlite3.connect(database=args.output)
+DB.text_factory = str
 path = args.input
 
 def debug(msg):
