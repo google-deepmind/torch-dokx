@@ -6,6 +6,7 @@ Utilities for extracting and rendering documentation for Torch packages.
 
 dokx = {}
 
+require 'dok'
 require 'logging.console'
 dokx.logger = logging.console()
 dokx.logger:setLevel(logging.WARN)
