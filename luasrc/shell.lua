@@ -655,6 +655,11 @@ function dokx._getPackageMdFiles(packagePath, config)
     return luaFiles
 end
 
+function dokx._getPackageImageFiles(packagePath, config)
+    local imageFiles = dir.getallfiles(packagePath, "*.png")
+    return imageFiles
+end
+
 --[[
 
 Create a .metadata file for a package. If such a file exists in a package's folder in the documentation tree, it will be used to adjust how that package is displayed in the main documentation index page. The file should be lua code that returns a table.
@@ -719,6 +724,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     local luaFiles = dokx._getPackageLuaFiles(packagePath, config)
     local extraMarkdownFiles = dokx._getPackageMdFiles(packagePath, config)
     local markdownFiles = tablex.map(func.compose(dokx._prependPath(docTmp), luaToMd), luaFiles)
+    local imageFiles = dokx._getPackageImageFiles(packagePath, config)
     local outputPackageDir = path.join(outputRoot, packageName)
 
     if path.isdir(outputPackageDir) then
@@ -772,6 +778,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
 
     dokx._copyFilesToDir(markdownFiles, markdownDir)
+    dokx._copyFilesToDir(imageFiles, outputPackageDir)
 
     if packageSection or packageDescription then
         dokx.generateMetadata(outputPackageDir, packageSection, packageDescription)
