@@ -9,7 +9,7 @@ source = {
 description = {
   summary = "Torch documentation scripts",
   homepage = "http://d11.github.io/torch-dokx",
-  detailed = "Work in progress",
+  detailed = "dokx creates nice documentation for your Torch packages",
   license = "BSD",
   maintainer = "Dan Horgan <danhgn+github@gmail.com>"
 }
