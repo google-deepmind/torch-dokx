@@ -22,7 +22,7 @@ install:
   - echo "==== Building torch-dokx with documentation, using doxk-luarocks ===="
   - sudo dokx-luarocks make &> /dev/null
 
-script: "for x in tests/test*.lua ; do th $x ; done"
+script: 'for x in tests/test*.lua ; do echo "==== $x ====" ; th $x ; done'
 
 notifications:
   recipients:
