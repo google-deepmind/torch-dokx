@@ -35,6 +35,25 @@ function dokx.createParser(packageName, file)
         func:setLocal(true)
         return true, func
     end
+    local function makeFunctionAsAssignment(content, pos, ...)
+        local lineNo = _calcLineNo(content, pos)
+        local args = {...}
+        if not #args == 2 then
+            return true
+        end
+        local funcName, funcBody = unpack(args)
+        local pattern = "^function%(([^)]*)%)"
+        local func
+        if not funcName or not funcBody or not type(funcName) == 'string' or not type(funcBody) == 'string' then
+            return true
+        end
+        if string.find(funcBody, pattern) then
+            local funcArgs = funcBody:match(pattern)
+            func = dokx.Function(funcName, funcArgs, packageName, file, lineNo)
+        end
+
+        return true, func
+    end
     local function makeClass(content, pos, funcname, classArgsString, ...)
         if funcname == 'torch.class' then
             local classArgs = loadstring("return " .. classArgsString:sub(2, -2))
@@ -164,8 +183,9 @@ function dokx.createParser(packageName, file)
         K "local" * V "space" * V "namelist" *
         (V "space" * P "=" * V "space" * V "explist")^-1 +
 
-        V "varlist" * V "space" * P "=" * V "space" * V "explist" +
-        V "functioncall";
+        -- Assign to global vars
+        Cmt(C(V "varlist") * V "space" * P "=" * V "space" * C(V "explist") +
+        V "functioncall", makeFunctionAsAssignment);
 
         laststat = K "return" * (V "space" * V "explist")^-1 + K "break";
 

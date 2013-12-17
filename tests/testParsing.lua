@@ -112,6 +112,67 @@ local MyClass, parent = torch.class('dummyPackageName.MyClass', 'otherPackage.Pa
     checkWhitespace(result[4])
 end
 
+function myTests:testFunctionAsAssignment()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[myFunction = function(a, b) end]]
+    local result = parser(testInput)
+    checkTableSize(result, 1)
+    checkFunction(result[1], "myFunction", false, 1)
+    tester:asserteq(result[1]:args(), "a, b", "function should have expected args")
+end
+function myTests:testFunctionAsAssignmentWithClass()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[myClass.myFunction = function(a, b) end]]
+    local result = parser(testInput)
+    checkTableSize(result, 1)
+    checkFunction(result[1], "myFunction", "myClass", 1)
+    tester:asserteq(result[1]:args(), "a, b", "function should have expected args")
+end
+
+function myTests:testIgnoreAssignment()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[myFunction = 3]]
+    local result = parser(testInput)
+    checkTableSize(result, 0)
+end
+
+function myTests:testIgnoreAssignmentString()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[a="function(a, b) return 1 end"]]
+    local result = parser(testInput)
+    checkTableSize(result, 0)
+end
+
+function myTests:testBadParse()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[a=function)"]]
+    local result = parser(testInput)
+    tester:asserteq(result, nil, "result of bad parse should be nil")
+end
+
+function myTests:testFunctionAsAssigmentWithDocs()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[
+-- a function
+module.aFunction = function(x, y)
+    x = y
+    z = function() end
+    local p = function(a)
+        return 2
+    end
+    return z
+end
+local f = function(z)
+
+end]]
+    local result = parser(testInput)
+    checkTableSize(result, 3)
+    checkComment(result[1], "a function\n", 2)
+    checkFunction(result[2], "aFunction", "module", 10)
+    tester:asserteq(result[2]:args(), "x, y", "function should have expected args")
+    checkWhitespace(result[3])
+end
+
 tester:add(myTests)
 tester:run()
 dokx._exitWithTester(tester)
