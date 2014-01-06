@@ -20,7 +20,9 @@ function MarkdownWriter:__init(outputPath, style)
         error("MarkdownWriter.__init: '" .. tostring(style) .. "' is not a valid style")
     end
     self._style = style
-    lapp.assert(self.outputFile, "could not open output file " .. outputPath)
+    if not self.outputFile then
+        error("could not open output file " .. outputPath)
+    end
 end
 
 --[[ Append a string to the output
