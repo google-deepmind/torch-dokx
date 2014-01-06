@@ -2,6 +2,7 @@ local path = require 'pl.path'
 local file = require 'pl.file'
 local stringx = require 'pl.stringx'
 local http = require 'socket.http'
+require 'dok'
 
 function dokx._getVirtualEnvPath()
     return path.join(dokx._getDokxDir(), "dokx-search", "virtualenv")
@@ -213,7 +214,7 @@ Examples:
 function dokx.search(query, browse, docRoot)
     if not query or type(query) ~= 'string' then
         dokx.logger:error("dokx.search: expected a query string!")
-        help(dokx.search)
+        dok.help(dokx.search)
         return
     end
     docRoot = docRoot or dokx._luarocksHtmlDir()
