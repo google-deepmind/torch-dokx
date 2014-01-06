@@ -21,5 +21,5 @@ torch.include('dokx', 'extract.lua')
 torch.include('dokx', 'luarocks.lua')
 torch.include('dokx', 'search.lua')
 
-local _inDebugMode = false
+dokx._inDebugMode = false
 

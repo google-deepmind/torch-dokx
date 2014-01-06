@@ -78,12 +78,12 @@ end
 -- Calling this puts dokx into debug mode.
 function dokx.debugMode()
     dokx.logger:setLevel(logging.DEBUG)
-    _inDebugMode = true
+    dokx._inDebugMode = true
 end
 
 -- Return true if dokx is in debug mode.
 function dokx.inDebugMode()
-    return _inDebugMode
+    return dokx._inDebugMode
 end
 
 --[[ Return true if x is an instance of the given class ]]
