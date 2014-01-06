@@ -1,5 +1,6 @@
 local path = require 'pl.path'
 local file = require 'pl.file'
+local stringx = require 'pl.stringx'
 local http = require 'socket.http'
 
 function dokx._getVirtualEnvPath()

@@ -1,5 +1,7 @@
+local file = require 'pl.file'
 local textx = require 'pl.text'
 local stringx = require 'pl.stringx'
+local tablex = require 'pl.tablex'
 local path = require 'pl.path'
 local dir = require 'pl.dir'
 

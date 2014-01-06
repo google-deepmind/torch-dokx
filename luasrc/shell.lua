@@ -3,6 +3,7 @@ local func = require 'pl.func'
 local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 local file = require 'pl.file'
+local tablex = require 'pl.tablex'
 
 --[[
 

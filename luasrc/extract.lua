@@ -1,4 +1,6 @@
 local List = require 'pl.List'
+local func = require 'pl.func'
+local tablex = require 'pl.tablex'
 
 --[[ Given a list of entities, combine runs of adjacent Comment objects
 

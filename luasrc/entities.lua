@@ -1,3 +1,5 @@
+local stringx = require 'pl.stringx'
+
 do
     local Entity, parent = torch.class('dokx.Entity')
 
