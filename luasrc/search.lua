@@ -30,7 +30,7 @@ local function explainSearch()
 *                                                                              *
 *   On OS X:                                                                   *
 *                                                                              *
-*   $ brew install pip                                                         *
+*   $ sudo easy_install pip                                                    *
 *   $ sudo pip install virtualenv                                              *
 *                                                                              *
 *   On Ubuntu:                                                                 *

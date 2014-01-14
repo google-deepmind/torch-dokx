@@ -291,7 +291,7 @@ You can pass the name of a package to `dokx-browse` to jump straight to it.
 
 OS/X installation:
 
-    brew install pip
+    sudo easy_install pip
     sudo pip install virtualenv
 
 Ubuntu installation:
