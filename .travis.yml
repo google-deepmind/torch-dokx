@@ -8,15 +8,14 @@ branches:
     - master
 
 install:
+  - echo "==== Installing pip ===="
+  - curl --silent --show-error --retry 5 https://raw.github.com/pypa/pip/master/contrib/get-pip.py | sudo python2.7
+  - echo "==== Installing virtualenv ===="
+  - sudo pip install virtualenv
   - echo "==== Installing dependencies ===="
   - curl -sk https://raw.github.com/torch/ezinstall/master/install-deps | sudo bash &> /dev/null
   - echo "==== Installing Torch ===="
   - curl -sk https://raw.github.com/torch/ezinstall/master/install-luajit+torch | sudo bash &> /dev/null
-  - echo "==== Installing pip ===="
-  - wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | sudo python2.7 &> /dev/null
-  - curl --silent --show-error --retry 5 https://raw.github.com/pypa/pip/master/contrib/get-pip.py | sudo python2.7
-  - echo "==== Installing virtualenv ===="
-  - sudo pip install virtualenv
   - echo "==== Building torch-dokx, using luarocks ===="
   - sudo luarocks make &> /dev/null
   - echo "==== Building torch-dokx with documentation, using doxk-luarocks ===="
