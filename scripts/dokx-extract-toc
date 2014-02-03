@@ -8,14 +8,19 @@ local function processArgs()
     return  lapp [[
 Extract inline documentation from Lua source
     -p,--package (string)    package name
+    --packagePath (string)   package path
     -o,--output (string)     output directory
     <inputs...>  (string)    input .lua files
+    --debug                  debug mode
 ]]
 end
 
 
 local function main(args)
-    dokx.extractTOC(args.package, args.output, args.inputs)
+    if args.debug then
+        dokx.debugMode()
+    end
+    dokx.extractTOC(args.package, args.output, args.inputs, args.packagePath)
 end
 
 main(processArgs())

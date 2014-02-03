@@ -61,7 +61,7 @@ function myTests:test_extract_toc()
         local package = "myPackage"
         local luaPath = path.join(tmpDir, "test.lua")
         file.write(luaPath, "--[[ Test file ]]")
-        runScript("dokx-extract-toc", "--output", tmpDir, "--package", package, luaPath)
+        runScript("dokx-extract-toc", "--output", tmpDir, "--package", package, "--packagePath", tmpDir, luaPath)
     end)
 end
 function myTests:test_generate_html()
