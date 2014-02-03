@@ -112,6 +112,42 @@ local MyClass, parent = torch.class('dummyPackageName.MyClass', 'otherPackage.Pa
     checkWhitespace(result[4])
 end
 
+function myTests:testParsePenlightClass()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [=[--[[
+
+This is a dummy class.
+
+--]]
+local MyClass = class()
+]=]
+
+    local result = parser(testInput)
+    checkTableSize(result, 4)
+    checkComment(result[1], "\n\nThis is a dummy class.\n\n\n", 6)
+    checkWhitespace(result[2])
+    checkClass(result[3], "MyClass", false, 7)
+    checkWhitespace(result[4])
+end
+
+function myTests:testParsePenlightClassWithParent()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [=[--[[
+
+This is a dummy class.
+
+--]]
+local MyClass = class(MyParent)
+]=]
+
+    local result = parser(testInput)
+    checkTableSize(result, 4)
+    checkComment(result[1], "\n\nThis is a dummy class.\n\n\n", 6)
+    checkWhitespace(result[2])
+    checkClass(result[3], "MyClass", "MyParent", 7)
+    checkWhitespace(result[4])
+end
+
 function myTests:testFunctionAsAssignment()
     local parser = dokx.createParser(package, sourceFile)
     local testInput = [[myFunction = function(a, b) end]]
