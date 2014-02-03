@@ -7,16 +7,19 @@ local filex = require 'pl.file'
 local stringx = require 'pl.stringx'
 local package = "testData"
 
-function myTests.testExtractMarkdown()
+dokx.debugMode()
+
+function myTests.testCombineTOC()
     local tmpDir = dokx._mkTemp()
-    local inputPath = "tests/data/testInput1.lua"
-    local outputPath = path.join(tmpDir, "testInput1.md")
-    local expectedPath = "tests/data/testOutput1.markdown"
-    dokx.extractMarkdown(package, tmpDir, { inputPath }, nil, "tests/data")
+    local inputPath = "tests/data/tocTest"
+    local outputPath = path.join(inputPath, "toc.html")
+    local expectedPath = "tests/data/expectedTOC.html"
+    dokx.combineTOC(package, inputPath, dokx._loadConfig())
     tester:assert(path.isfile(outputPath), "script did not produce the expected file")
     local got = dokx._readFile(outputPath)
     local expected = dokx._readFile(expectedPath)
-    dokx._assertEqualWithDiff(tester, got, expected)
+    print(got)
+    dokx._assertEqualWithDiff(tester, got, expected, '-u -w')
 
     filex.delete(outputPath)
     path.rmdir(tmpDir)

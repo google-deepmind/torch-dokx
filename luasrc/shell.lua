@@ -4,6 +4,7 @@ local path = require 'pl.path'
 local stringx = require 'pl.stringx'
 local file = require 'pl.file'
 local tablex = require 'pl.tablex'
+local List = require 'pl.List'
 
 --[[
 
@@ -20,7 +21,7 @@ function dokx.combineHTML(tocPath, input, config)
 
     local function makeSectionHTML(namespace, sectionPath)
         local basename = path.basename(sectionPath)
-        local sectionName = path.splitext(basename)
+        local sectionName = path.splitext(basename):gsub("+", ".")
         local anchorName = namespace .. "." .. sectionName .. ".dok"
         local sectionHTML = dokx._readFile(sectionPath)
         local output = [[<div class='docSection'>]]
@@ -52,7 +53,7 @@ function dokx.combineHTML(tocPath, input, config)
     end
 
     sectionPaths = tablex.filter(sectionPaths, function(x)
-        if stringx.endswith(x, 'init.html') then
+        if path.basename(x) == 'init.html' then
             table.insert(extraSections, 1, path.join(input, 'init.html'))
             return false
         end
@@ -124,7 +125,7 @@ Given a set of input Markdown files, render them to corresponding HTML files.
 
 Parameters:
 - `output` - path to a directory in which to write output HTML files
-- `inputs` - table of paths to Lua files
+- `inputs` - table of paths to markdown files
 - `config` - a dokx config table
 
 --]]
@@ -164,7 +165,7 @@ function dokx.generateHTML(output, inputs, config)
 end
 
 
-function dokx._extractTOCLua(package, input, content)
+function dokx._extractTOCLua(package, input, content, config)
     local classes, documentedFunctions, undocumentedFunctions = dokx.extractDocs(package, input, content)
 
     documentedFunctions, undocumentedFunctions = dokx._pruneFunctions(
@@ -179,7 +180,7 @@ function dokx._extractTOCLua(package, input, content)
             output = output .. "<ul>\n"
             local function handleFunction(entity)
                 if not entity:isPrivate() then
-                    anchorName = entity:fullname()
+                    local anchorName = entity:fullname()
                     output = output .. [[<li><a href="#]] .. anchorName .. [[">]]
                              .. entity:fullname() .. [[</a></li>]] .. "\n"
                 end
@@ -345,7 +346,10 @@ Parameters:
 - `config` - a dokx config table
 
 --]]
-function dokx.extractTOC(package, output, inputs, config)
+function dokx.extractTOC(package, output, inputs, packagePath, config)
+    packagePath = path.abspath(packagePath)
+    config = config or dokx._loadConfig(packagePath)
+
     if not path.isdir(output) then
         dokx.logger:info("Directory " .. output .. " not found; creating it.")
         path.mkdir(output)
@@ -355,8 +359,9 @@ function dokx.extractTOC(package, output, inputs, config)
         input = dokx._sanitizePath(input)
         dokx.logger:info("dokx.extractTOC: processing file " .. input)
 
-        local basename = path.basename(input)
-        local sectionName, ext = path.splitext(basename)
+        local relpath = path.relpath(input, packagePath)
+        local sectionName, ext = path.splitext(relpath)
+        sectionName = sectionName:gsub("/", "+")
         if not ext == '.lua' or not ext == '.md' then
             error("Expected .lua or .md file for input")
         end
@@ -364,7 +369,7 @@ function dokx.extractTOC(package, output, inputs, config)
         local content = dokx._readFile(input)
         local output
         if ext == '.lua' then
-            output = dokx._extractTOCLua(package, input, content)
+            output = dokx._extractTOCLua(package, input, content, config)
         elseif ext == '.md' then
             output = dokx._extractTOCMarkdown(package, input, content, config.tocLevelTopSection)
         else
@@ -424,20 +429,28 @@ Parameters:
 function dokx.combineTOC(package, input, config)
 
     local function makeSectionTOC(namespace, sectionPath, includeLink)
-        local sectionName = path.splitext(path.basename(sectionPath))
+        local sectionName = path.splitext(path.basename(sectionPath)):gsub("+", ".")
         local sectionHTML = dokx._readFile(sectionPath)
         if includeLink then
+            local _, last = path.splitext(sectionName)
             return [[<li><a href="#]] .. namespace .. "." .. sectionName .. ".dok" .. [[">]]
-                    .. sectionName .. "</a>\n" .. sectionHTML .. "</li>\n"
+                    .. last:sub(2) .. "</a>" .. sectionHTML .. "</li>\n"
         else
             return "<li>" .. sectionHTML .. "</li>\n"
         end
     end
 
+    local function getExtraSectionPaths(input)
+        local extraSectionPaths = {}
+        local extraLocation = path.join(assert(input), "_extra")
+        if path.isdir(extraLocation) then
+            extraSectionPaths = dir.getfiles(extraLocation, "*.html")
+        end
+        return extraSectionPaths
+    end
+
     dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
-
     local outputName = "toc.html"
-
     if not path.isdir(input) then
         error("dokx.combineTOC: not a directory: " .. input)
     end
@@ -446,11 +459,8 @@ function dokx.combineTOC(package, input, config)
 
     -- Retrieve package name from path, by looking at the name of the last directory
     local sectionPaths = dir.getfiles(input, "*.html")
-    local extraSectionPaths = {}
-    local extraLocation = path.join(input, "_extra")
-    if path.isdir(extraLocation) then
-        extraSectionPaths = dir.getfiles(extraLocation, "*.html")
-    end
+    local extraSectionPaths = getExtraSectionPaths(input)
+
     local packageName = dokx._getLastDirName(input)
     if config and config.packageName then
         packageName = config.packageName
@@ -460,6 +470,9 @@ function dokx.combineTOC(package, input, config)
     local sorted = tablex.sortv(sectionPaths)
 
     local toc = "<ul>\n"
+    function indent(level)
+        return string.rep("       ", level)
+    end
     for _, sectionPath in ipairs(sortedExtra) do
         dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath, config.tocIncludeFilenames)
@@ -468,11 +481,59 @@ function dokx.combineTOC(package, input, config)
         if #extraSectionPaths ~= 0 then
             toc = toc .. "<hr>\n"
         end
+        local stack = {}
         for _, sectionPath in sorted do
             dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
-            toc = toc .. makeSectionTOC(package, sectionPath, true)
+            local k = 1
+            local sectionName = path.splitext(path.basename(sectionPath))
+            local parts = stringx.split(sectionName, "+")
+            -- Remove old parts of stack that are not in the new item
+            for i, s in ipairs(stack) do
+                if s ~= parts[i] then
+                    toc = table.concat{
+                        toc, indent(i), "</ul>\n", indent(i), "</li>\n"
+                    }
+                end
+            end
+
+            for _, part in ipairs(parts) do
+                if part ~= stack[k] then
+                    stack[k] = part
+                    local label = stringx.join(".", List.new(stack):chop(k+1))
+                    local link = table.concat{
+                        "#",
+                        package,
+                        ".",
+                        label,
+                        ".dok"
+                    }
+                    toc = table.concat{
+                        toc,
+                        indent(k),
+                        '<li><a href="',
+                        link,
+                        '">',
+                        part,
+                        "</a>\n",
+                        indent(k),
+                        "<ul>\n"
+                    }
+                end
+                k = k + 1
+                if k == #parts then
+                    break
+                end
+            end
+            for j = k, #stack do
+                stack[j] = nil
+            end
+            toc = toc .. indent(#stack+1) .. makeSectionTOC(package, sectionPath, true)
+        end
+        for j = #stack, 1, -1 do
+            toc = toc .. indent(j) .. "</ul>\n" .. indent(j) .. "</li>\n"
         end
     end
+
     toc = toc .. "</ul>\n"
 
     dokx.logger:info("dokx.combineTOC: writing to " .. outputPath)
@@ -498,6 +559,7 @@ Parameters:
 function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode)
 
     mode = mode or 'html'
+    packagePath = path.abspath(packagePath or "")
 
     if not path.isdir(output) then
         dokx.logger:info("dokx.extractMarkdown: directory " .. output .. " not found; creating it.")
@@ -509,7 +571,9 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
         dokx.logger:info("dokx.extractMarkdown: processing file " .. input)
 
         local basename = path.basename(input)
-        local sectionName, ext = path.splitext(basename)
+        local relpath = path.relpath(input, packagePath)
+        local sectionName, ext = path.splitext(relpath)
+        sectionName = sectionName:gsub("/", "+")
         if not ext == '.lua' then
             error("Expected .lua file for input")
         end
@@ -706,6 +770,7 @@ Parameters:
 function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescription, packageSection, config)
 
     local function luaToMd(luaFile)
+        local luaFile = path.relpath(luaFile, packagePath):gsub("/", "+")
         return dokx._convertExtension("lua", "md", luaFile)
     end
 
@@ -762,8 +827,8 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     end
 
     dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath, 'html')
-    dokx.extractTOC(packageName, tocTmp, luaFiles, config)
-    dokx.extractTOC(packageName, path.join(tocTmp, "_extra"), extraMarkdownFiles, config)
+    dokx.extractTOC(packageName, tocTmp, luaFiles, packagePath, config)
+    dokx.extractTOC(packageName, path.join(tocTmp, "_extra"), extraMarkdownFiles, packagePath, config)
     dokx.combineTOC(packageName, tocTmp, config)
     dokx.generateHTML(outputPackageDir, markdownFiles, config)
 
