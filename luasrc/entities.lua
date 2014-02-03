@@ -77,6 +77,7 @@ do
     -- We keep a whitelist of methods that begin with an underscore but which
     -- nevertheless should be included in generated documentation
     local _metamethods = {
+            _init = true,
             __init = true,
             __index = true,
             __newindex = true,
@@ -148,7 +149,7 @@ do
     function Function:nameWithClass()
         local name = self._name
         if self._className then
-            if name == '__init' then
+            if name == '__init' or name == '_init' then
                 name = self._className
             else
                 if self._method then

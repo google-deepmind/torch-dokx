@@ -54,6 +54,38 @@ function dokx.createParser(packageName, file)
 
         return true, func
     end
+    local function makePenlightClass(content, pos, ...)
+        local lineNo = _calcLineNo(content, pos)
+        local args = {...}
+        if #args > 0 and torch.typename(args[#args]) == "dokx.Class" then
+            return true, args[#args]
+        end
+        if not #args == 2 then
+            return true
+        end
+        local className, classCall = unpack(args)
+        local pattern = "^class%(([^)]*)%)"
+        local class
+        if not className or not classCall or not type(className) == 'string' or not type(classCall) == 'string' then
+            return true
+        end
+        if string.find(classCall, pattern) then
+            local funcArgsString = classCall:match(pattern)
+            local classArgs = funcArgsString:gsub('"', '')
+            if classArgs == "" then
+                classArgs = nil
+            end
+
+            if classArgs and string.find(classArgs, '[, ]') then
+                dokx.logger:debug("Too many arguments to class() - ignoring")
+                return true
+            end
+            class = dokx.Class(className, classArgs or false, packageName, file, lineNo)
+            return true, class
+        end
+        return true
+
+    end
     local function makeClass(content, pos, funcname, classArgsString, ...)
         if funcname == 'torch.class' then
             local classArgs = loadstring("return " .. classArgsString:sub(2, -2))
@@ -180,8 +212,8 @@ function dokx.createParser(packageName, file)
         V "space" * V "funcbody", makeLocalFunction) +
 
         -- Assign to local vars
-        K "local" * V "space" * V "namelist" *
-        (V "space" * P "=" * V "space" * V "explist")^-1 +
+        K "local" * V "space" * Cmt(C(V "namelist") *
+        (V "space" * P "=" * V "space" * C(V "explist"))^-1, makePenlightClass) +
 
         -- Assign to global vars
         Cmt(C(V "varlist") * V "space" * P "=" * V "space" * C(V "explist") +
