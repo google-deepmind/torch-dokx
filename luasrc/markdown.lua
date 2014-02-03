@@ -60,7 +60,7 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:heading(level, text, rhs)
-    self:write(string.rep("#", level) .. " ".. text .. " " .. string.rep("#", level) .. "\n\n")
+    self:write("\n\n" .. string.rep("#", level) .. " ".. text .. " " .. string.rep("#", level) .. "\n\n")
 end
 
 --[[ Add markdown for a documented class
