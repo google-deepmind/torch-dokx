@@ -147,7 +147,7 @@ function dokx._convertExtension(extension, newExtension, filePath)
     if not stringx.endswith(filePath, "." .. extension)  then
         error("Expected ." .. extension .. " file")
     end
-    return path.basename(filePath):sub(1, -string.len(extension) - 1) .. newExtension
+    return filePath:sub(1, -string.len(extension) - 1) .. newExtension
 end
 
 function dokx._searchDBPath(docRoot)
