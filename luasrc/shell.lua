@@ -688,7 +688,7 @@ function dokx.generateHTMLIndex(input)
                 name = packageName,
                 description = packageDescription,
             }
-            table.insert(sections[section], packageInfo)
+            sections[section][packageName] = packageInfo
         end
     end
 
