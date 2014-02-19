@@ -204,7 +204,7 @@ function dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
         annotated = annotated .. [[<a id="]] .. dokx._headerTag(package, sourceName, headerText) .. [["></a>]] .. "\n"
     end
 
-    local lastLine
+    local lastLine = ""
     local inCodeBlock = false
     for _, line in ipairs(stringx.splitlines(content)) do
         -- Ignore headings in code blocks
