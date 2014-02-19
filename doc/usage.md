@@ -11,6 +11,9 @@ The following is a general example of how to you might write documentation for d
     --[[ This file defines an example class, for demonstrating usage of dokx.
 
     This comment could contain some general documentation for the whole file.
+
+    [Example of a hyperlink.](http://example.com)
+
     ]]
 
     require 'somelibrary'
