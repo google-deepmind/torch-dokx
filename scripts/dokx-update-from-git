@@ -1,8 +1,5 @@
 #!/usr/bin/env th
 local lapp = require 'pl.lapp'
-local dir = require 'pl.dir'
-local path = require 'pl.path'
-local stringx = require 'pl.stringx'
 require 'dokx'
 
 local function processArgs()
@@ -19,52 +16,11 @@ Check out a list of projects from git, and build docs for them in a central tree
 ]]
 end
 
-local function getGithubURLFromGitURL(gitURL)
-    gitURL = stringx.strip(gitURL)
-    local patterns = {
-        "git@github.com:(.*)/(.*).git",
-        "git://github.com/(.*)/(.*)",
-    }
-    for _, pattern in ipairs(patterns) do
-        if string.find(gitURL, pattern) then
-            return gitURL:gsub(pattern, "%1/%2")
-        end
-    end
-end
-
 local function main(args)
-
     if args.debug then
         dokx.debugMode()
     end
-
-    local tempDir = dokx._mkTemp()
-
-    for _, input in ipairs(args.inputs) do
-        local gitURL = input
-        local name = path.basename(gitURL):gsub("%.git$","")
-        local cloneDir = path.join(tempDir, name)
-        dir.makepath(cloneDir)
-        local gitCmd = "git clone " .. gitURL .. " " .. cloneDir
-        local result = os.execute(gitCmd)
-        lapp:assert(result, "Git checkout of " .. input .. " failed.")
-
-        if args.branch then
-            os.execute("cd " .. cloneDir .. " && git checkout " .. args.branch)
-        end
-
-        local config = dokx._loadConfig(args.config or cloneDir)
-        if not config.githubURL then
-            local githubURL = getGithubURLFromGitURL(gitURL)
-            if githubURL then
-                config.githubURL = githubURL
-            end
-        end
-
-        dokx.buildPackageDocs(args.output, cloneDir, args.repl, args.description, args.section, config)
-    end
-
-    dir.rmtree(tempDir)
+    dokx.updateFromGit(args.inputs, args.branch, args.config, args.output, args.repl, args.description, args.section)
 end
 
 main(processArgs())

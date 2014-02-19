@@ -745,10 +745,10 @@ function dokx.generateMetadata(packageOutputPath, packageSection, packageDescrip
     local outputPath = path.join(packageOutputPath, ".metadata")
     local output = "return {\n"
     if packageDescription then
-        output = output .. "   description = '" .. packageDescription .. "',\n"
+        output = output .. "   description = [[" .. packageDescription .. "]],\n"
     end
     if packageSection then
-        output = output .. "   section = '" .. packageSection .. "',\n"
+        output = output .. "   section = [[" .. packageSection .. "]],\n"
     end
     output = output .. "}"
     local outputFile = io.open(outputPath, 'w')
@@ -921,6 +921,65 @@ function dokx.initPackage(packagePath)
     dokxFile:write(output)
     dokxFile:close()
 end
+
+local function getGithubURLFromGitURL(gitURL)
+    gitURL = stringx.strip(gitURL)
+    local patterns = {
+        "git@github.com:(.*)/(.*).git",
+        "git://github.com/(.*)/(.*)",
+    }
+    for _, pattern in ipairs(patterns) do
+        if string.find(gitURL, pattern) then
+            return gitURL:gsub(pattern, "%1/%2")
+        end
+    end
+end
+
+--[[ Check out a list of projects from git, and build docs for them in a central tree
+
+Parameters:
+* `inputs`      - table of git urls, indexed by integers from 1
+* `branch`      - name of branch to use (default master)
+* `config`      - path to config file (optional)
+* `output`      - path to root of documentation tree
+* `repl`        - path to install markdown for REPL (optional)
+* `description` - package description string (optional)
+* `section`     - package section, string (optional)
+
+Returns: nil
+
+]]
+function dokx.updateFromGit(inputs, branch, config, output, repl, description, section)
+
+    local tempDir = dokx._mkTemp()
+
+    for _, input in ipairs(inputs) do
+        local gitURL = input
+        local name = path.basename(gitURL):gsub("%.git$","")
+        local cloneDir = path.join(tempDir, name)
+        dir.makepath(cloneDir)
+        local gitCmd = "git clone " .. gitURL .. " " .. cloneDir
+        local result = os.execute(gitCmd)
+        lapp:assert(result, "Git checkout of " .. input .. " failed.")
+
+        if branch then
+            os.execute("cd " .. cloneDir .. " && git checkout " .. branch)
+        end
+
+        local config = dokx._loadConfig(config or cloneDir)
+        if not config.githubURL then
+            local githubURL = getGithubURLFromGitURL(gitURL)
+            if githubURL then
+                config.githubURL = githubURL
+            end
+        end
+
+        dokx.buildPackageDocs(output, cloneDir, repl, description, section, config)
+    end
+
+    dir.rmtree(tempDir)
+end
+
 
 --[[
 

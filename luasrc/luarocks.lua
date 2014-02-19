@@ -133,17 +133,7 @@ function dokx.luarocksInstall(args)
     end
 	local url, branch = repository(package)
 	local dir = dokx._luarocksHtmlDir()
-	local cmd = table.concat({
-		'dokx-update-from-git',
-		'--output', dokx._luarocksHtmlDir(),
-		'--branch', branch,
-		'--repl', replDir(package),
-        '--description', "'" .. getDescription(rockspecEnv) .. "'",
-		url
-	}, ' ')
-	os.execute(cmd)
-
-
+    dokx.updateFromGit({url}, branch, nil, dokx._luarocksHtmlDir(), replDir(package), getDescription(rockspecEnv), nil)
     buildSearchIndex()
 end
 
@@ -170,13 +160,11 @@ function dokx.luarocksMake(args)
         end
     end
     local rockspecEnv = getRockspecVars(rockspecPath)
-	local cmd = dokx.buildPackageDocs(
+	dokx.buildPackageDocs(
             dokx._luarocksHtmlDir(),
             pathx.currentdir(),
             replDir(rockspecEnv.package),
             getDescription(rockspecEnv)
         )
-	os.execute(cmd)
-
     buildSearchIndex()
 end
