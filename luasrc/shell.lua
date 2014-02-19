@@ -936,11 +936,16 @@ function dokx.browse(docLocation)
         docLocation = path.join(docLocation, "index.html")
     end
 
+    local docRoot
+    if not path.isfile(path.join(dokx._luarocksHtmlDir(), docLocation)) then
+        dokx.logger:error("dokx.browse: could not find local docs.")
+        return
+    end
+
     dokx.runSearchServices()
     -- Wait for process to start... (ick!)
     os.execute("sleep 1")
 
-    local docRoot
     if dokx._daemonIsRunning() then
         docRoot = "http://localhost:5000"
     else
