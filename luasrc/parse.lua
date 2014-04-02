@@ -165,7 +165,7 @@ function dokx.createParser(packageName, file)
         Number = (P "-")^-1 * V "space" * P "0x" * locale.xdigit^1 *
         -(locale.alnum + P "_") +
         (P "-")^-1 * V "space" * locale.digit^1 *
-        (P "." * locale.digit^1)^-1 * (S "eE" * (P "-")^-1 *
+        (P "." * locale.digit^0)^-1 * (S "eE" * (P "-")^-1 *
         locale.digit^1)^-1 * -(locale.alnum + P "_") +
         (P "-")^-1 * V "space" * P "." * locale.digit^1 *
         (S "eE" * (P "-")^-1 * locale.digit^1)^-1 *

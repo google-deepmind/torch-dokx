@@ -209,6 +209,16 @@ end]]
     checkWhitespace(result[3])
 end
 
+function myTests:testNumberParsing()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = "return 1.0"
+    tester:assertne(parser(testInput), nil, "float should parse")
+    testInput = "return 1."
+    tester:assertne(parser(testInput), nil, "float with no fractional part should parse")
+    testInput = "return 1"
+    tester:assertne(parser(testInput), nil, "integer should parse")
+end
+
 tester:add(myTests)
 tester:run()
 dokx._exitWithTester(tester)
