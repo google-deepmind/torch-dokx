@@ -194,7 +194,7 @@ do
                 )
             end
         else
-            dokx.logger:warn("Class " .. name ..
+            dokx.logger:info("Class " .. name ..
             " should be defined in the " .. self._package .. " namespace! Expected " .. self._package .. "." .. name
             )
             self._name = name
