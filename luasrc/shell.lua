@@ -31,7 +31,7 @@ function dokx.combineHTML(tocPath, input, config)
         return output
     end
 
-    dokx.logger:info("Generating package documentation index for " .. input)
+    dokx.logger.info("Generating package documentation index for " .. input)
 
     local outputName = "index.html"
 
@@ -70,12 +70,12 @@ function dokx.combineHTML(tocPath, input, config)
     local content = ""
 
     for _, sectionPath in ipairs(sortedExtra) do
-        dokx.logger:info("Adding " .. sectionPath .. " to index")
+        dokx.logger.info("Adding " .. sectionPath .. " to index")
         content = content .. makeSectionHTML(packageName, sectionPath)
     end
 
     for _, sectionPath in sorted do
-        dokx.logger:info("Adding " .. sectionPath .. " to index")
+        dokx.logger.info("Adding " .. sectionPath .. " to index")
         content = content .. makeSectionHTML(packageName, sectionPath)
     end
 
@@ -114,7 +114,7 @@ function dokx.combineHTML(tocPath, input, config)
         githubURL = githubURL
     }
 
-    dokx.logger:info("Writing to " .. outputPath)
+    dokx.logger.info("Writing to " .. outputPath)
 
     file.write(outputPath, output)
 end
@@ -131,7 +131,7 @@ Parameters:
 --]]
 function dokx.generateHTML(output, inputs, config)
     if not path.isdir(output) then
-        dokx.logger:info("Directory " .. output .. " not found; creating it.")
+        dokx.logger.info("Directory " .. output .. " not found; creating it.")
         path.mkdir(output)
     end
 
@@ -144,15 +144,15 @@ function dokx.generateHTML(output, inputs, config)
         end
         local rendered = sundown.render(content)
         if path.isfile(outputPath) then
-            dokx.logger:warn("*** dokx.generateHTML: overwriting existing html file " .. outputPath .. " ***")
+            dokx.logger.warn("*** dokx.generateHTML: overwriting existing html file " .. outputPath .. " ***")
         end
-        dokx.logger:debug("dokx.generateHTML: writing to " .. outputPath)
+        dokx.logger.debug("dokx.generateHTML: writing to " .. outputPath)
         file.write(outputPath, rendered)
     end
 
     for i, input in ipairs(inputs) do
         input = dokx._sanitizePath(input)
-        dokx.logger:info("dokx.generateHTML: processing file " .. input)
+        dokx.logger.info("dokx.generateHTML: processing file " .. input)
         local basename = path.basename(input)
         local sectionName, ext = path.splitext(basename)
         if not ext == '.md' then
@@ -351,13 +351,13 @@ function dokx.extractTOC(package, output, inputs, packagePath, config)
     config = config or dokx._loadConfig(packagePath)
 
     if not path.isdir(output) then
-        dokx.logger:info("Directory " .. output .. " not found; creating it.")
+        dokx.logger.info("Directory " .. output .. " not found; creating it.")
         path.mkdir(output)
     end
 
     for i, input in ipairs(inputs) do
         input = dokx._sanitizePath(input)
-        dokx.logger:info("dokx.extractTOC: processing file " .. input)
+        dokx.logger.info("dokx.extractTOC: processing file " .. input)
 
         local relpath = path.relpath(input, packagePath)
         local sectionName, ext = path.splitext(relpath)
@@ -449,7 +449,7 @@ function dokx.combineTOC(package, input, config)
         return extraSectionPaths
     end
 
-    dokx.logger:info("dokx.combineTOC: generating HTML ToC for " .. input)
+    dokx.logger.info("dokx.combineTOC: generating HTML ToC for " .. input)
     local outputName = "toc.html"
     if not path.isdir(input) then
         error("dokx.combineTOC: not a directory: " .. input)
@@ -474,7 +474,7 @@ function dokx.combineTOC(package, input, config)
         return string.rep("       ", level)
     end
     for _, sectionPath in ipairs(sortedExtra) do
-        dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
+        dokx.logger.info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
         toc = toc .. makeSectionTOC(package, sectionPath, config.tocIncludeFilenames)
     end
     if config.tocLevel ~= 'none' then
@@ -483,7 +483,7 @@ function dokx.combineTOC(package, input, config)
         end
         local stack = {}
         for _, sectionPath in sorted do
-            dokx.logger:info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
+            dokx.logger.info("dokx.combineTOC: adding " .. sectionPath .. " to ToC")
             local k = 1
             local sectionName = path.splitext(path.basename(sectionPath))
             local parts = stringx.split(sectionName, "+")
@@ -536,7 +536,7 @@ function dokx.combineTOC(package, input, config)
 
     toc = toc .. "</ul>\n"
 
-    dokx.logger:info("dokx.combineTOC: writing to " .. outputPath)
+    dokx.logger.info("dokx.combineTOC: writing to " .. outputPath)
 
     file.write(outputPath, toc)
 end
@@ -562,13 +562,13 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
     packagePath = path.abspath(packagePath or "")
 
     if not path.isdir(output) then
-        dokx.logger:info("dokx.extractMarkdown: directory " .. output .. " not found; creating it.")
+        dokx.logger.info("dokx.extractMarkdown: directory " .. output .. " not found; creating it.")
         path.mkdir(output)
     end
 
     for i, input in ipairs(inputs) do
         input = dokx._sanitizePath(input)
-        dokx.logger:info("dokx.extractMarkdown: processing file " .. input)
+        dokx.logger.info("dokx.extractMarkdown: processing file " .. input)
 
         local basename = path.basename(input)
         local relpath = path.relpath(input, packagePath)
@@ -578,7 +578,7 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
             error("Expected .lua file for input")
         end
         local outputPath = path.join(output, sectionName .. ".md")
-        dokx.logger:info("dokx.extractMarkdown: writing to " .. outputPath)
+        dokx.logger.info("dokx.extractMarkdown: writing to " .. outputPath)
 
         local content = dokx._readFile(input)
         local classes, documentedFunctions, undocumentedFunctions, fileString = dokx.extractDocs(
@@ -615,7 +615,7 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
                 githubURL = githubURL .. "#L" .. entity:lineNo()
                 writer:write('\n<a class="entityLink" href="' .. githubURL .. '">' .. "[src]</a>\n")
             else
-                dokx.logger:info("dokx.extractMarkdown: not adding source links")
+                dokx.logger.info("dokx.extractMarkdown: not adding source links")
             end
             return entity
         end
@@ -642,7 +642,7 @@ The output is written to index.html in the root of the documentation tree, overw
 
 --]]
 function dokx.generateHTMLIndex(input)
-    dokx.logger:info("dokx.generateHTMLIndex: generating global documentation index for " .. input)
+    dokx.logger.info("dokx.generateHTMLIndex: generating global documentation index for " .. input)
 
     if not path.isdir(input) then
         error("dokx.generateHTMLIndex: not a directory: " .. input)
@@ -671,14 +671,14 @@ function dokx.generateHTMLIndex(input)
         local packageMetaPath = path.join(packageDir, ".metadata")
         local packageMeta = {}
         if path.isfile(packageMetaPath) then
-            dokx.logger:debug("dokx.generateHTMLIndex: reading metadata from " .. packageMetaPath)
+            dokx.logger.debug("dokx.generateHTMLIndex: reading metadata from " .. packageMetaPath)
             packageMeta = dofile(packageMetaPath)
         end
         local packageName = path.basename(packageDir)
         if stringx.startswith(packageName, "_") then
-            dokx.logger:info("dokx.generateHTMLIndex: skipping " .. packageName)
+            dokx.logger.info("dokx.generateHTMLIndex: skipping " .. packageName)
         else
-            dokx.logger:info("dokx.generateHTMLIndex: adding " .. packageName .. " to index")
+            dokx.logger.info("dokx.generateHTMLIndex: adding " .. packageName .. " to index")
             local packageDescription = packageMeta.description
             local section = packageMeta.section or "Miscellaneous"
             if not sections[section] then
@@ -706,7 +706,7 @@ function dokx.generateHTMLIndex(input)
     packageList = packageList .. "</div>"
 
     local output = template:safe_substitute { packageList = packageList }
-    dokx.logger:info("dokx.generateHTMLIndex: writing to " .. outputPath)
+    dokx.logger.info("dokx.generateHTMLIndex: writing to " .. outputPath)
 
     local outputFile = io.open(outputPath, 'w')
     outputFile:write(output)
@@ -800,16 +800,16 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     local outputPackageDir = path.join(outputRoot, packageName)
 
     if path.isdir(outputPackageDir) then
-        dokx.logger:warn("Output directory " .. outputPackageDir .. " exists - removing!")
+        dokx.logger.warn("Output directory " .. outputPackageDir .. " exists - removing!")
         dir.rmtree(outputPackageDir)
     end
 
-    dokx.logger:info("dokx.buildPackageDocs: examining package " .. packagePath)
-    dokx.logger:info("dokx.buildPackageDocs: package name = " .. packageName)
-    dokx.logger:info("dokx.buildPackageDocs: output root = " .. outputRoot)
-    dokx.logger:info("dokx.buildPackageDocs: output dir = " .. outputPackageDir)
+    dokx.logger.info("dokx.buildPackageDocs: examining package " .. packagePath)
+    dokx.logger.info("dokx.buildPackageDocs: package name = " .. packageName)
+    dokx.logger.info("dokx.buildPackageDocs: output root = " .. outputRoot)
+    dokx.logger.info("dokx.buildPackageDocs: output dir = " .. outputPackageDir)
     if outputREPL then
-        dokx.logger:info("dokx.buildPackageDocs: output REPL markdown = " .. outputPackageDir)
+        dokx.logger.info("dokx.buildPackageDocs: output REPL markdown = " .. outputPackageDir)
     end
 
     path.mkdir(outputPackageDir)
@@ -821,7 +821,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
             combined = combined .. dokx._readFile(mdFile)
         end)
         local combinedPath = path.join(outputREPL, "init.md")
-        dokx.logger:info("dokx.buildPackageDocs: writing combined markdown to " .. combinedPath)
+        dokx.logger.info("dokx.buildPackageDocs: writing combined markdown to " .. combinedPath)
         local outFile = io.open(combinedPath, "w")
         outFile:write(combined)
     end
@@ -840,7 +840,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     local function addAnchorsToMarkdown(input, output)
         local content = file.read(input)
         local _, annotated = dokx._extractTOCMarkdown(packageName, input, content, config.maxTOCLevels)
-        dokx.logger:info("dokx.extractTOC: adding anchors to markdown file " .. output)
+        dokx.logger.info("dokx.extractTOC: adding anchors to markdown file " .. output)
         file.write(output, annotated)
     end
 
@@ -867,7 +867,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     file.copy(dokx._getTemplate("style-index.css"), path.join(outputRoot, "style.css"))
 
     if not path.isdir(path.join(outputRoot, "_highlight")) then
-        dokx.logger:warn("highlight.js not found - installing it...")
+        dokx.logger.warn("highlight.js not found - installing it...")
         local highlightDir = dokx._getTemplate("highlight")
         local installDir = path.join(outputRoot, "_highlight")
         dir.makepath(installDir)
@@ -876,7 +876,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
         for _, fileName in ipairs(highlightFiles) do
             local relPath = path.relpath(fileName, highlightDir)
             local destPath = path.join(installDir, relPath)
-            dokx.logger:debug(destPath)
+            dokx.logger.debug(destPath)
             dir.copyfile(path.join(highlightDir, fileName), destPath)
         end
     end
@@ -886,7 +886,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     dir.rmtree(docTmp)
     dir.rmtree(tocTmp)
 
-    dokx.logger:info("Installed docs for " .. packagePath)
+    dokx.logger.info("Installed docs for " .. packagePath)
 end
 
 --[[
@@ -901,7 +901,7 @@ function dokx.initPackage(packagePath)
 
     local dokxPath = path.join(packagePath, ".dokx")
     if path.isfile(dokxPath) then
-        dokx.logger:error("dokx.initPackage: .dokx file already exists for package " .. tostring(packagePath))
+        dokx.logger.error("dokx.initPackage: .dokx file already exists for package " .. tostring(packagePath))
         os.exit(1)
     end
 
@@ -916,7 +916,7 @@ function dokx.initPackage(packagePath)
 
     output = output .. "}"
 
-    dokx.logger:info("dokx.initPackage: creating default .dokx config file for package " .. tostring(packagePath))
+    dokx.logger.info("dokx.initPackage: creating default .dokx config file for package " .. tostring(packagePath))
     local dokxFile = io.open(dokxPath, 'w')
     dokxFile:write(output)
     dokxFile:close()
@@ -997,7 +997,7 @@ function dokx.browse(docLocation)
 
     local docRoot
     if not path.isfile(path.join(dokx._luarocksHtmlDir(), docLocation)) then
-        dokx.logger:error("dokx.browse: could not find local docs.")
+        dokx.logger.error("dokx.browse: could not find local docs.")
         return
     end
 
@@ -1010,7 +1010,7 @@ function dokx.browse(docLocation)
     else
         docRoot = dokx._luarocksHtmlDir()
         if not path.isdir(docRoot) then
-            dokx.logger:error("dokx.browse: could not find local docs.")
+            dokx.logger.error("dokx.browse: could not find local docs.")
             return
         end
     end

@@ -77,7 +77,7 @@ function dokx.createParser(packageName, file)
             end
 
             if classArgs and string.find(classArgs, '[, ]') then
-                dokx.logger:debug("Too many arguments to class() - ignoring")
+                dokx.logger.debug("Too many arguments to class() - ignoring")
                 return true
             end
             class = dokx.Class(className, classArgs or false, packageName, file, lineNo)
@@ -102,7 +102,7 @@ function dokx.createParser(packageName, file)
                     return true, dokx.Class(name, parent or false, packageName, file, lineNo)
                 end
                 if not valid then
-                    dokx.logger:error("Could not understand class declaration " .. funcname .. classArgsString)
+                    dokx.logger.error("Could not understand class declaration " .. funcname .. classArgsString)
                     return true
                 end
             end

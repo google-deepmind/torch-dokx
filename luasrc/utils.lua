@@ -77,7 +77,7 @@ end
 
 -- Calling this puts dokx into debug mode.
 function dokx.debugMode()
-    dokx.logger:setLevel(logging.DEBUG)
+    dokx.logger.level = logroll.DEBUG
     dokx._inDebugMode = true
 end
 
@@ -117,7 +117,7 @@ function dokx._readFile(inputPath)
     if not path.isfile(inputPath) then
         error("Not a file: " .. tostring(inputPath))
     end
-    dokx.logger:debug("Opening " .. tostring(inputPath))
+    dokx.logger.debug("Opening " .. tostring(inputPath))
     local inputFile = io.open(inputPath, "rb")
     if not inputFile then
         error("Could not open: " .. tostring(inputPath))
@@ -246,7 +246,7 @@ function dokx._loadConfig(packagePath)
     for key, _ in pairs(allowedKeys) do
         if configTable[key] == nil then
             local default = loadstring("return " .. defaultValues[key])()
-            dokx.logger:info("dokx._loadConfig: no value specified for key '" .. key .. "' - using default: " .. tostring(default))
+            dokx.logger.info("dokx._loadConfig: no value specified for key '" .. key .. "' - using default: " .. tostring(default))
             configTable[key] = default
         end
     end
@@ -269,7 +269,7 @@ function dokx._filterFiles(files, pattern, invert)
                 admit = not admit
             end
             if not admit then
-                dokx.logger:info("dokx.buildPackageDocs: skipping file excluded by filter: " .. x)
+                dokx.logger.info("dokx.buildPackageDocs: skipping file excluded by filter: " .. x)
             end
             return admit
         end)
@@ -344,7 +344,7 @@ end
 function dokx._openBrowser(url)
     local browser = dokx._chooseCommand { "open", "xdg-open", "firefox" }
     if not browser then
-        dokx.logger:error("dokx.browse: could not find a browser")
+        dokx.logger.error("dokx.browse: could not find a browser")
         return
     end
     os.execute(browser .. " " .. url)
@@ -356,7 +356,7 @@ function dokx._copyFilesToDir(files, dirPath, copyFunc)
     tablex.foreach(files, function(filePath)
         local dest = path.join(dirPath, path.basename(filePath))
         if path.isfile(dest) then
-            dokx.logger:warn("*** Overwriting markdown file " .. dest .. " ***")
+            dokx.logger.warn("*** Overwriting markdown file " .. dest .. " ***")
         end
         copyFunc(filePath, dest)
         table.insert(outputs, dest)
@@ -368,7 +368,7 @@ function dokx._pruneFunctions(config, documentedFunctions, undocumentedFunctions
     if not config or not config.includeLocal then
         local function notLocal(x)
             if x:isLocal() then
-                dokx.logger:info("Excluding local function " .. x:fullname())
+                dokx.logger.info("Excluding local function " .. x:fullname())
                 return false
             end
             return true
@@ -379,7 +379,7 @@ function dokx._pruneFunctions(config, documentedFunctions, undocumentedFunctions
     if not config or not config.includePrivate then
         local function notPrivate(x)
             if x:isPrivate() then
-                dokx.logger:info("Excluding private function " .. x:fullname())
+                dokx.logger.info("Excluding private function " .. x:fullname())
                 return false
             end
             return true

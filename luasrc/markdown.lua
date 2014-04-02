@@ -71,7 +71,7 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:class(entity)
-    dokx.logger:debug("Outputting markdown for " .. entity:name())
+    dokx.logger.debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname() .. ".dok")
     if self._style == 'repl' then
         self:heading(3, entity:name())
@@ -91,7 +91,7 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:documentedFunction(entity)
-    dokx.logger:debug("Outputting markdown for " .. entity:name())
+    dokx.logger.debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname())
     if self._style == 'repl' then
         self:heading(4, entity:name() .. "(" .. entity:args() .. ")")
@@ -109,7 +109,7 @@ Args:
 Returns: nil
 --]]
 function MarkdownWriter:undocumentedFunction(entity)
-    dokx.logger:debug("Outputting markdown for " .. entity:name())
+    dokx.logger.debug("Outputting markdown for " .. entity:name())
     self:anchor(entity:fullname())
     if self._style == 'repl' then
         self:write(" * `" .. entity:name() .. "`\n")

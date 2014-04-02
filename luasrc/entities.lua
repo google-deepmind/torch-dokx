@@ -189,12 +189,12 @@ do
             local package = name:sub(1, pos-1)
             self._name = name:sub(pos+1, -1)
             if package ~= self._package then
-                dokx.logger:warn("Class " .. name ..
+                dokx.logger.warn("Class " .. name ..
                 " is defined in the wrong module!? Expected " .. self._package .. "." .. self._name
                 )
             end
         else
-            dokx.logger:info("Class " .. name ..
+            dokx.logger.info("Class " .. name ..
             " should be defined in the " .. self._package .. " namespace! Expected " .. self._package .. "." .. name
             )
             self._name = name

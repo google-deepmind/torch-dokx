@@ -8,9 +8,9 @@ dokx = {}
 
 require 'torch'
 require 'dok'
-require 'logging.console'
-dokx.logger = logging.console()
-dokx.logger:setLevel(logging.WARN)
+require 'logroll'
+dokx.logger = logroll.print_logger()
+dokx.logger.level = logroll.WARN
 
 torch.include('dokx', 'markdown.lua')
 torch.include('dokx', 'parse.lua')
