@@ -8,8 +8,6 @@ branches:
     - master
 
 install:
-  - echo "==== Installing pip ===="
-  - curl --silent --show-error --retry 5 https://raw.github.com/pypa/pip/master/contrib/get-pip.py | sudo python2.7
   - echo "==== Installing virtualenv ===="
   - sudo pip install virtualenv
   - echo "==== Installing dependencies ===="
