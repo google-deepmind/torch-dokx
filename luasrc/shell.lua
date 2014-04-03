@@ -106,6 +106,13 @@ function dokx.combineHTML(tocPath, input, config)
     if config and config.githubURL then
         githubURL = "https://github.com/" .. config.githubURL
     end
+    -- Unfortunately, penlight's template system will do *two* rounds of
+    -- substitution - which causes any words preceded with a dollar sign in the
+    -- *content* to be treated as variables, as well as those in the actual
+    -- template. The upshot is that dollar signs in the documentation may get
+    -- eaten. To compensate for this, we will double any dollar signs we come
+    -- across.
+    content = content:gsub("%$(%w)", "$$%1")
     local output = template:safe_substitute {
         packageName = packageName,
         toc = toc,
