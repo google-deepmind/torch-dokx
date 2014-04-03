@@ -241,6 +241,15 @@ function dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
 
             -- Also convert any links to other markdown files
             line = line:gsub("%[(.*)%]%((.*)%.md%)", "[%1](#" .. package .. ".%2.dok)")
+
+            -- Convert any links to images, to a 'flattened' form
+            -- e.g. ![foo](path/to/bar.png) ---> ![foo](path+to+bar.png)
+            local start, alt, link, rest = line:match("(.*)!%[(.*)%]%((.*)%)(.*)")
+            if start and alt and link and rest then
+                local newLink = link:gsub("/", "+")
+                newTag = "![" .. alt .. "](" .. newLink .. ")"
+                line = start .. newTag .. rest
+            end
         end
         annotated = annotated .. line .. "\n"
     end
@@ -850,7 +859,16 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     dokx.combineHTML(path.join(tocTmp, "toc.html"), outputPackageDir, config)
 
     dokx._copyFilesToDir(markdownFiles, markdownDir)
-    dokx._copyFilesToDir(imageFiles, outputPackageDir)
+
+    for _, imagePathOriginal in ipairs(imageFiles) do
+        local flattenedImagePath = path.relpath(imagePathOriginal, packagePath):gsub("/", "+")
+        local imagePath = dokx._prependPath(outputPackageDir)(flattenedImagePath)
+        dokx.logger.debug(
+            table.concat{ "dokx.buildPackageDocs: copying ",
+                imagePathOriginal, " -> ", imagePath }
+        )
+        file.copy(imagePathOriginal, imagePath)
+    end
 
     if packageSection or packageDescription then
         dokx.generateMetadata(outputPackageDir, packageSection, packageDescription)
