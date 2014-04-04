@@ -572,18 +572,17 @@ generate Markdown for the extracted functions and classes.
 
 Parameters:
 
- - `package` - name of the package
+ - `package` - a dokx.Package object
  - `output` - directory in which to write output Markdown files
  - `inputs` - table of input .lua files
  - `config` - a dokx config table
- - `packagePath`- path to the package
  - `mode` - either 'html' or 'repl', depending on the flavour of Markdown to extract
 
 --]]
-function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode)
+function dokx.extractMarkdown(package, output, inputs, config, mode)
 
     mode = mode or 'html'
-    packagePath = path.abspath(packagePath or "")
+    packagePath = path.abspath(package:path() or "")
 
     if not path.isdir(output) then
         dokx.logger.info("dokx.extractMarkdown: directory " .. output .. " not found; creating it.")
@@ -606,7 +605,7 @@ function dokx.extractMarkdown(package, output, inputs, config, packagePath, mode
 
         local content = dokx._readFile(input)
         local classes, documentedFunctions, undocumentedFunctions, fileString = dokx.extractDocs(
-                package, input, content
+                package:name(), input, content
             )
 
         documentedFunctions, undocumentedFunctions = dokx._pruneFunctions(
@@ -737,24 +736,6 @@ function dokx.generateHTMLIndex(input)
     outputFile:close()
 end
 
-function dokx._getPackageLuaFiles(packagePath, config)
-    local luaFiles = dir.getallfiles(packagePath, "*.lua")
-    luaFiles = dokx._filterFiles(luaFiles, config.filter, false)
-    luaFiles = dokx._filterFiles(luaFiles, config.exclude, true)
-    return luaFiles
-end
-
-function dokx._getPackageMdFiles(packagePath, config)
-    local luaFiles = dir.getallfiles(packagePath, "*.md")
-    luaFiles = dokx._filterFiles(luaFiles, config.exclude, true)
-    return luaFiles
-end
-
-function dokx._getPackageImageFiles(packagePath, config)
-    local imageFiles = dir.getallfiles(packagePath, "*.png")
-    return imageFiles
-end
-
 --[[
 
 Create a .metadata file for a package. If such a file exists in a package's folder in the documentation tree, it will be used to adjust how that package is displayed in the main documentation index page. The file should be lua code that returns a table.
@@ -817,10 +798,11 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     if not packageSection and config.section then
         packageSection = config.section
     end
-    local luaFiles = dokx._getPackageLuaFiles(packagePath, config)
-    local extraMarkdownFiles = dokx._getPackageMdFiles(packagePath, config)
+    local package = dokx.Package(packageName, packagePath)
+    local luaFiles = package:luaFiles(config)
+    local extraMarkdownFiles = package:mdFiles(config)
     local markdownFiles = tablex.map(func.compose(dokx._prependPath(docTmp), luaToMd), luaFiles)
-    local imageFiles = dokx._getPackageImageFiles(packagePath, config)
+    local imageFiles = package:imageFiles(config)
     local outputPackageDir = path.join(outputRoot, packageName)
 
     if path.isdir(outputPackageDir) then
@@ -839,7 +821,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     path.mkdir(outputPackageDir)
 
     if outputREPL then
-        dokx.extractMarkdown(packageName, outputREPL, luaFiles, config, packagePath, 'repl')
+        dokx.extractMarkdown(package, outputREPL, luaFiles, config, 'repl')
         local combined = '<a name="#' .. packageName .. '.dok"/>' .. "\n"
         tablex.foreach(extraMarkdownFiles, function(mdFile)
             combined = combined .. dokx._readFile(mdFile)
@@ -850,7 +832,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
         outFile:write(combined)
     end
 
-    dokx.extractMarkdown(packageName, docTmp, luaFiles, config, packagePath, 'html')
+    dokx.extractMarkdown(package, docTmp, luaFiles, config, 'html')
     dokx.extractTOC(packageName, tocTmp, luaFiles, packagePath, config)
     dokx.extractTOC(packageName, path.join(tocTmp, "_extra"), extraMarkdownFiles, packagePath, config)
     dokx.combineTOC(packageName, tocTmp, config)
@@ -864,8 +846,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     local function addAnchorsToMarkdown(input, output)
         local content = file.read(input)
         local _, annotated = dokx._extractTOCMarkdown(
-                dokx.Package(packageName, packagePath),
-                input, content, config.maxTOCLevels
+                package, input, content, config.maxTOCLevels
             )
         dokx.logger.info("dokx.extractTOC: adding anchors to markdown file " .. output)
         file.write(output, annotated)

@@ -15,7 +15,7 @@ end
 
 
 local function main(args)
-    dokx.extractMarkdown(args.package, args.output, args.inputs)
+    dokx.extractMarkdown(dokx.Package(args.package, nil), args.output, args.inputs)
 end
 
 main(processArgs())
