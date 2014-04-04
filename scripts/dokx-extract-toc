@@ -20,7 +20,8 @@ local function main(args)
     if args.debug then
         dokx.debugMode()
     end
-    dokx.extractTOC(args.package, args.output, args.inputs, args.packagePath)
+    local package = dokx.Package(args.package, args.packagePath)
+    dokx.extractTOC(package, args.output, args.inputs)
 end
 
 main(processArgs())

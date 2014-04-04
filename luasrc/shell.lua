@@ -361,14 +361,14 @@ end
 Given a set of Lua files, parse them and output corresponding HTML files with table-of-contents sections
 
 Parameters:
-- `packageName` - name of the package
+- `package` - a dokx.Package object
 - `output` - path to directory in which to output HTML
 - `inputs` - table of paths to input Lua files
 - `config` - a dokx config table
 
 --]]
-function dokx.extractTOC(packageName, output, inputs, packagePath, config)
-    packagePath = path.abspath(packagePath)
+function dokx.extractTOC(package, output, inputs, config)
+    packagePath = path.abspath(package:path())
     config = config or dokx._loadConfig(packagePath)
 
     if not path.isdir(output) then
@@ -390,11 +390,10 @@ function dokx.extractTOC(packageName, output, inputs, packagePath, config)
         local content = dokx._readFile(input)
         local output
         if ext == '.lua' then
-            output = dokx._extractTOCLua(packageName, input, content, config)
+            output = dokx._extractTOCLua(package:name(), input, content, config)
         elseif ext == '.md' then
             output = dokx._extractTOCMarkdown(
-                    dokx.Package(packageName, packagePath),
-                    input, content, config.tocLevelTopSection
+                    package, input, content, config.tocLevelTopSection
                 )
         else
             assert(false)
@@ -833,8 +832,8 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
     end
 
     dokx.extractMarkdown(package, docTmp, luaFiles, config, 'html')
-    dokx.extractTOC(packageName, tocTmp, luaFiles, packagePath, config)
-    dokx.extractTOC(packageName, path.join(tocTmp, "_extra"), extraMarkdownFiles, packagePath, config)
+    dokx.extractTOC(package, tocTmp, luaFiles, config)
+    dokx.extractTOC(package, path.join(tocTmp, "_extra"), extraMarkdownFiles, config)
     dokx.combineTOC(packageName, tocTmp, config)
     dokx.generateHTML(outputPackageDir, markdownFiles, config)
 
