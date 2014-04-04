@@ -85,10 +85,9 @@ function myTests:testHierarchy()
 end
 
 function myTests:testExtractTOCMarkdown()
-    local package = "myPackage"
+    local package = dokx.Package("myPackage", "")
     local filePath = "README.md"
-    local packagePath = ""
-    local output = dokx._extractTOCMarkdown(package, packagePath, filePath, sampleMarkdown1)
+    local output = dokx._extractTOCMarkdown(package, filePath, sampleMarkdown1)
 
     local expected = [[
 
