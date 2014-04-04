@@ -201,14 +201,14 @@ function dokx._extractTOCLua(package, input, content, config)
     return output
 end
 
-function dokx._extractMarkdownHeadings(package, packagePath, filePath, sourceName, content, maxLevels)
+function dokx._extractMarkdownHeadings(package, filePath, sourceName, content, maxLevels)
     maxLevels = maxLevels or math.huge
 
     local headers = {}
     local annotated = ""
 
     local addAnchor = function(headerText)
-        annotated = annotated .. [[<a id="]] .. dokx._headerTag(package, sourceName, headerText) .. [["></a>]] .. "\n"
+        annotated = annotated .. [[<a id="]] .. dokx._headerTag(package:name(), sourceName, headerText) .. [["></a>]] .. "\n"
     end
 
     local lastLine = ""
@@ -247,13 +247,13 @@ function dokx._extractMarkdownHeadings(package, packagePath, filePath, sourceNam
             lastLine = line
 
             -- Also convert any links to other markdown files
-            line = line:gsub("%[(.*)%]%((.*)%.md%)", "[%1](#" .. package .. ".%2.dok)")
+            line = line:gsub("%[(.*)%]%((.*)%.md%)", "[%1](#" .. package:name() .. ".%2.dok)")
 
             -- Convert any links to images, to a 'flattened' form
             -- e.g. ![foo](path/to/bar.png) ---> ![foo](path+to+bar.png)
             local start, alt, link, rest = line:match("(.*)!%[(.*)%]%((.*)%)(.*)")
             if start and alt and link and rest then
-                local markdownPath = path.relpath(filePath, packagePath)
+                local markdownPath = path.relpath(filePath, package:path())
                 local markdownDir = path.dirname(markdownPath)
                 if markdownDir ~= "" then
                     link = markdownDir .. "/" .. link
@@ -350,7 +350,7 @@ function dokx._extractTOCMarkdown(package, packagePath, filePath, content, maxLe
     assert(content)
     maxLevels = maxLevels or math.huge
     local sourceName, ext = path.splitext(path.basename(filePath))
-    local headers, annotated = dokx._extractMarkdownHeadings(package, packagePath, filePath, sourceName, content, maxLevels)
+    local headers, annotated = dokx._extractMarkdownHeadings(dokx.Package(package, packagePath), filePath, sourceName, content, maxLevels)
     local hierarchy = dokx._computeHeadingHierarchy(headers)
     local html = dokx._headingHierarchyToHTML(package, sourceName, hierarchy)
     return html, annotated

@@ -51,7 +51,7 @@ function myTests:testHierarchy()
     local filePath = "README.md"
     local packagePath = ""
     local sourceName = ""
-    local headings = dokx._extractMarkdownHeadings(package, packagePath, filePath, sourceName, sampleMarkdown1)
+    local headings = dokx._extractMarkdownHeadings(dokx.Package(package, packagePath), filePath, sourceName, sampleMarkdown1)
     tester:asserteq(#headings, 11)
     tester:assertTableEq(headings[1], { text = "A", level = 1 })
     tester:assertTableEq(headings[2], { text = "B", level = 2 })
