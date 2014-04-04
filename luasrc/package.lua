@@ -1,3 +1,4 @@
+local dir = require 'pl.dir'
 do
     --[[ Information about a package ]]
     local Package, parent = torch.class("dokx.Package")
