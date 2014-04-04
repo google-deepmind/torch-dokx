@@ -201,7 +201,7 @@ function dokx._extractTOCLua(package, input, content, config)
     return output
 end
 
-function dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
+function dokx._extractMarkdownHeadings(package, packagePath, filePath, sourceName, content, maxLevels)
     maxLevels = maxLevels or math.huge
 
     local headers = {}
@@ -253,7 +253,12 @@ function dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
             -- e.g. ![foo](path/to/bar.png) ---> ![foo](path+to+bar.png)
             local start, alt, link, rest = line:match("(.*)!%[(.*)%]%((.*)%)(.*)")
             if start and alt and link and rest then
-                local newLink = link:gsub("/", "+")
+                local markdownPath = path.relpath(filePath, packagePath)
+                local markdownDir = path.dirname(markdownPath)
+                if markdownDir ~= "" then
+                    link = markdownDir .. "/" .. link
+                end
+                local newLink = path.normpath(link):gsub("/", "+")
                 newTag = "![" .. alt .. "](" .. newLink .. ")"
                 line = start .. newTag .. rest
             end
@@ -339,13 +344,13 @@ function dokx._headingHierarchyToHTML(package, sourceName, hierarchy)
     return hierarchyToHTML(0, hierarchy)
 end
 
-function dokx._extractTOCMarkdown(package, filePath, content, maxLevels)
+function dokx._extractTOCMarkdown(package, packagePath, filePath, content, maxLevels)
     assert(package)
     assert(filePath)
     assert(content)
     maxLevels = maxLevels or math.huge
     local sourceName, ext = path.splitext(path.basename(filePath))
-    local headers, annotated = dokx._extractMarkdownHeadings(package, sourceName, content, maxLevels)
+    local headers, annotated = dokx._extractMarkdownHeadings(package, packagePath, filePath, sourceName, content, maxLevels)
     local hierarchy = dokx._computeHeadingHierarchy(headers)
     local html = dokx._headingHierarchyToHTML(package, sourceName, hierarchy)
     return html, annotated
@@ -387,7 +392,7 @@ function dokx.extractTOC(package, output, inputs, packagePath, config)
         if ext == '.lua' then
             output = dokx._extractTOCLua(package, input, content, config)
         elseif ext == '.md' then
-            output = dokx._extractTOCMarkdown(package, input, content, config.tocLevelTopSection)
+            output = dokx._extractTOCMarkdown(package, packagePath, input, content, config.tocLevelTopSection)
         else
             assert(false)
         end
@@ -855,7 +860,7 @@ function dokx.buildPackageDocs(outputRoot, packagePath, outputREPL, packageDescr
 
     local function addAnchorsToMarkdown(input, output)
         local content = file.read(input)
-        local _, annotated = dokx._extractTOCMarkdown(packageName, input, content, config.maxTOCLevels)
+        local _, annotated = dokx._extractTOCMarkdown(packageName, packagePath, input, content, config.maxTOCLevels)
         dokx.logger.info("dokx.extractTOC: adding anchors to markdown file " .. output)
         file.write(output, annotated)
     end

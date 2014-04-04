@@ -49,7 +49,9 @@ function myTests:testHierarchy()
 
     local package = "myPackage"
     local filePath = "README.md"
-    local headings = dokx._extractMarkdownHeadings(package, filePath, sampleMarkdown1)
+    local packagePath = ""
+    local sourceName = ""
+    local headings = dokx._extractMarkdownHeadings(package, packagePath, filePath, sourceName, sampleMarkdown1)
     tester:asserteq(#headings, 11)
     tester:assertTableEq(headings[1], { text = "A", level = 1 })
     tester:assertTableEq(headings[2], { text = "B", level = 2 })
@@ -85,7 +87,8 @@ end
 function myTests:testExtractTOCMarkdown()
     local package = "myPackage"
     local filePath = "README.md"
-    local output = dokx._extractTOCMarkdown(package, filePath, sampleMarkdown1)
+    local packagePath = ""
+    local output = dokx._extractTOCMarkdown(package, packagePath, filePath, sampleMarkdown1)
 
     local expected = [[
 
