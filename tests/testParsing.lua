@@ -219,6 +219,22 @@ function myTests:testNumberParsing()
     tester:assertne(parser(testInput), nil, "integer should parse")
 end
 
+function myTests:testInterposingComment()
+  local parser = dokx.createParser(package, sourceFile)
+  local testInput = [[
+
+local foo =
+    -- my very special number
+    3
+
+bar =
+    -- another number
+    4
+
+  ]]
+  tester:assertne(parser(testInput), nil, "interposing comment should parse")
+end
+
 tester:add(myTests)
 tester:run()
 dokx._exitWithTester(tester)

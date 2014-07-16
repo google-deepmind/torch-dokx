@@ -44,7 +44,7 @@ function dokx.createParser(packageName, file)
         local funcName, funcBody = unpack(args)
         local pattern = "^function%(([^)]*)%)"
         local func
-        if not funcName or not funcBody or not type(funcName) == 'string' or not type(funcBody) == 'string' then
+        if not funcName or not funcBody or type(funcName) ~= 'string' or type(funcBody) ~= 'string' then
             return true
         end
         if string.find(funcBody, pattern) then
@@ -66,7 +66,7 @@ function dokx.createParser(packageName, file)
         local className, classCall = unpack(args)
         local pattern = "^class%(([^)]*)%)"
         local class
-        if not className or not classCall or not type(className) == 'string' or not type(classCall) == 'string' then
+        if not className or not classCall or type(className) ~= 'string' or type(classCall) ~= 'string' then
             return true
         end
         if string.find(classCall, pattern) then
