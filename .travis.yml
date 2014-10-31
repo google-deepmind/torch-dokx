@@ -1,5 +1,8 @@
 language: erlang
 
+before_script:
+  - export PATH=$PATH:/usr/local/bin/
+
 env:
   - LUA="th"
 
