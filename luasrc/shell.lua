@@ -1002,9 +1002,10 @@ end
 Open a web browser pointing to the documentation
 
 --]]
-function dokx.browse(docLocation)
+function dokx.browse(docLocation, docHTMLRoot)
 
     docLocation = docLocation or ""
+    docHTMLRoot = docHTMLRoot or dokx._luarocksHtmlDir()
 
     -- If going to a directory rather than a file, append index page to url
     if not string.find(docLocation, "%.") then
@@ -1012,7 +1013,7 @@ function dokx.browse(docLocation)
     end
 
     local docRoot
-    if not path.isfile(path.join(dokx._luarocksHtmlDir(), docLocation)) then
+    if not path.isfile(path.join(docHTMLRoot, docLocation)) then
         dokx.logger.error("dokx.browse: could not find local docs.")
         return
     end
@@ -1024,7 +1025,7 @@ function dokx.browse(docLocation)
     if dokx._daemonIsRunning() then
         docRoot = "http://localhost:5000"
     else
-        docRoot = dokx._luarocksHtmlDir()
+        docRoot = docHTMLRoot
         if not path.isdir(docRoot) then
             dokx.logger.error("dokx.browse: could not find local docs.")
             return
