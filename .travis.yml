@@ -1,8 +1,5 @@
 language: erlang
 
-before_script:
-  - export PATH=$PATH:/usr/local/bin/
-
 env:
   - LUA="th"
 
@@ -10,15 +7,14 @@ branches:
   only:
     - master
 
-install:
-  - echo "==== Installing gfortran ===="
-  - sudo apt-get install gfortran
-  - echo "==== Installing virtualenv ===="
+before_script:
+  - export PATH=$PATH:/usr/local/bin/
+  - sudo apt-get update -qq >/dev/null
+  - sudo apt-get install -qq gfortran  >/dev/null
+  - sudo apt-get install -qq  gcc-multilib gfortran-multilib  >/dev/null
+  - sudo apt-get install -qq liblapack-dev >/dev/null
   - sudo pip install virtualenv
-  - echo "==== Installing dependencies ===="
-  - curl -skL https://raw.github.com/torch/ezinstall/master/install-deps | sudo bash &> /dev/null
-  - echo "==== Installing Torch ===="
-  - curl -skL https://raw.github.com/torch/ezinstall/master/install-luajit+torch | sudo bash &> /dev/null
+  - curl -s https://raw.githubusercontent.com/torch/ezinstall/master/install-all | bash
   - echo "==== Building torch-dokx, using luarocks ===="
   - sudo /usr/local/bin/luarocks make
   - echo "==== Building torch-dokx with documentation, using doxk-luarocks ===="
@@ -27,8 +23,6 @@ install:
 script: 'for x in tests/test*.lua ; do echo "==== $x ====" ; th $x ; done'
 
 notifications:
-  recipients:
-    - danhgn@gmail.com
   email:
     on_success: change
     on_failure: always
