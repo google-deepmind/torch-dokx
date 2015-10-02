@@ -36,13 +36,14 @@ end
 --[[ Information about a comment string, as extracted from lua source ]]
 do
     local Comment, parent = torch.class("dokx.Comment", "dokx.Entity")
-    function Comment:__init(text, ...)
+    function Comment:__init(text, isFirst, ...)
         parent.__init(self, ...)
+        self._isFirst = isFirst
         self._text = dokx._normalizeComment(text)
     end
     -- Return a new dokx.Comment by concatenating this with another comment
     function Comment:combine(other)
-        return dokx.Comment(self._text .. other._text, self._package, self._file, self._lineNo)
+        return dokx.Comment(self._text .. other._text, self._isFirst, self._package, self._file, self._lineNo)
     end
     -- Return a string representation of this Comment entity
     function Comment:str()
@@ -51,6 +52,10 @@ do
     -- Return this comment's text
     function Comment:text()
         return self._text
+    end
+    -- Returns true if this comment is the first in the file
+    function Comment:isFirst()
+        return self._isFirst
     end
 end
 

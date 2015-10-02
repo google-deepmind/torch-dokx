@@ -98,8 +98,10 @@ end
 -- Given a list of entities, if the first element is a Comment, mark it as a File comment
 local function getFileString(entities)
     if entities:len() ~= 0 and dokx._is_a(entities[1], 'dokx.Comment') then
-        local fileComment = entities[1]
-        entities[1] = dokx.File(fileComment:text(), fileComment:package(), fileComment:file(), fileComment:lineNo())
+        local comment = entities[1]
+        if comment:isFirst() then
+            entities[1] = dokx.File(comment:text(), comment:package(), comment:file(), comment:lineNo())
+        end
     end
     return entities
 end

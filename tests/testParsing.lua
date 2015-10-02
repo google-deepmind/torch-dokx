@@ -112,6 +112,42 @@ local MyClass, parent = torch.class('dummyPackageName.MyClass', 'otherPackage.Pa
     checkWhitespace(result[4])
 end
 
+function myTests:testParseClassicClass()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [=[--[[
+
+This is a dummy class.
+
+--]]
+local MyClass, parent = classic.class('dummyPackageName.MyClass', 'otherPackage.Parent')
+]=]
+
+    local result = parser(testInput)
+    checkTableSize(result, 4)
+    checkComment(result[1], "\n\nThis is a dummy class.\n\n\n", 6)
+    checkWhitespace(result[2])
+    checkClass(result[3], "MyClass", "otherPackage.Parent", 7)
+    checkWhitespace(result[4])
+end
+
+function myTests:testParseClassicClassWithEllipsis()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [=[--[[
+
+This is a dummy class.
+
+--]]
+local MyClass, parent = classic.class(..., otherPackage.Parent)
+]=]
+
+    local result = parser(testInput)
+    checkTableSize(result, 4)
+    checkComment(result[1], "\n\nThis is a dummy class.\n\n\n", 6)
+    checkWhitespace(result[2])
+    checkClass(result[3], "dummySourceFile", "otherPackage.Parent", 7)
+    checkWhitespace(result[4])
+end
+
 function myTests:testParsePenlightClass()
     local parser = dokx.createParser(package, sourceFile)
     local testInput = [=[--[[

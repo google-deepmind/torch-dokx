@@ -5,6 +5,7 @@ local class = require 'pl.class'
 local stringx = require 'pl.stringx'
 local tablex = require 'pl.tablex'
 local func = require 'pl.func'
+local path = require 'pl.path'
 
 local function _calcLineNo(text, pos)
 	local line = 1
@@ -20,7 +21,10 @@ function dokx.createParser(packageName, file)
     assert(file)
     local function makeComment(content, pos, text)
         local lineNo = _calcLineNo(content, pos)
-        return true, dokx.Comment(text, packageName, file, lineNo)
+        local textBefore = content:sub(1, pos - #text):gsub('\n', '')
+        textBefore = stringx.strip(textBefore)
+        local isFirst = textBefore == "" or textBefore == '--' or textBefore == '--['
+        return true, dokx.Comment(text, isFirst, packageName, file, lineNo)
     end
     local function makeFunction(content, pos, name, funcArgs)
         local lineNo = _calcLineNo(content, pos)
@@ -86,25 +90,36 @@ function dokx.createParser(packageName, file)
         return true
 
     end
-    local function makeClass(content, pos, funcname, classArgsString, ...)
-        if funcname == 'torch.class' then
-            local classArgs = loadstring("return " .. classArgsString:sub(2, -2))
-            local valid = true
-            if not classArgs then
-                valid = false
+    local function inferClassName(fileName)
+        local dir, name = path.splitpath(fileName)
+        local base, ext = path.splitext(name)
+        return base
+    end
+    local function parseStringOrIdentifier(str)
+        if not str then
+            return
+        end
+        str = stringx.strip(str)
+        if str:sub(1,1) == '"' or str:sub(1,1) == "'" then
+            local func = loadstring("return " .. str)
+            if not func then 
+                return
             end
-            if valid then
-                local name, parent = classArgs()
-                if not name then
-                    valid = false
-                else
-                    local lineNo = _calcLineNo(content, pos)
-                    return true, dokx.Class(name, parent or false, packageName, file, lineNo)
+            return func()
+        end
+        return str
+    end
+    local function makeClass(content, pos, funcname, classArgsString, ...)
+        if funcname == 'torch.class' or funcname == 'classic.class' then
+            local name, parent = stringx.splitv(classArgsString:sub(2, -2), ',')
+            name = parseStringOrIdentifier(name)
+            parent = parseStringOrIdentifier(parent)
+            if name then
+                if name == '...' then
+                    name = inferClassName(file)
                 end
-                if not valid then
-                    dokx.logger.error("Could not understand class declaration " .. funcname .. classArgsString)
-                    return true
-                end
+                local lineNo = _calcLineNo(content, pos)
+                return true, dokx.Class(name, parent or false, packageName, file, lineNo)
             end
         end
         return true
