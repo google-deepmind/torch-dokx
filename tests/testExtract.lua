@@ -149,6 +149,23 @@ end
     tester:asserteq(fileString, "This is a module\n", "file string does not match expected")
 end
 
+function myTests:testExtractNoFileComment()
+    local testInput = [=[
+require 'module'
+
+-- This is some random comment
+]=]
+    local classes, documentedFunctions, undocumentedFunctions, fileString = dokx.extractDocs(
+            package, sourceFile, testInput
+        )
+    local parser = dokx.createParser(package, sourceFile)
+    local result = parser(testInput)
+    checkTableSize(classes, 0)
+    checkTableSize(documentedFunctions, 0)
+    checkTableSize(undocumentedFunctions, 0)
+    tester:asserteq(fileString, false, "no file string expected")
+end
+
 tester:add(myTests)
 tester:run()
 dokx._exitWithTester(tester)
