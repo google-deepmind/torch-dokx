@@ -45,6 +45,9 @@ function dokx.createParser(packageName, file)
         if not #args == 2 then
             return true
         end
+        if torch.typename(args[1]) ~= nil then
+            return true, args[1]
+        end
         local funcName, funcBody = unpack(args)
         local pattern = "^function%(([^)]*)%)"
         local func
@@ -120,6 +123,17 @@ function dokx.createParser(packageName, file)
                 end
                 local lineNo = _calcLineNo(content, pos)
                 return true, dokx.Class(name, parent or false, packageName, file, lineNo)
+            end
+        end
+        if type(classArgsString) == "string" then
+            local _, _, name1 = classArgsString:find(':mustHave%("([%w_]*)"%)')
+            local _, _, name2 = classArgsString:find(":mustHave%('([%w_]*)'%)")
+            if name1 or name2 then
+                local lineNo = _calcLineNo(content, pos)
+                local className = parseStringOrIdentifier(funcname)
+                local funcName = className .. "." .. (name1 or name2)
+                func = dokx.Function(funcName, "", packageName, file, lineNo)
+                return true, func
             end
         end
         return true

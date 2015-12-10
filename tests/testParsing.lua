@@ -61,6 +61,13 @@ function myTests:testParseClassMethod()
     checkTableSize(result, 1)
     checkFunction(result[1], "foo", "myClass", 1)
 end
+function myTests:testParseMustHave()
+    local parser = dokx.createParser(package, sourceFile)
+    local testInput = [[myClass:mustHave("step")]]
+    local result = parser(testInput)
+    checkTableSize(result, 1)
+    checkFunction(result[1], "step", "myClass", 1)
+end
 function myTests:testParseSeparateComments()
     local parser = dokx.createParser(package, sourceFile)
     local testInput = [=[
