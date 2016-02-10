@@ -279,7 +279,7 @@ function dokx._filterFiles(files, pattern, invert)
 end
 
 function dokx._getDokxDir()
-    return path.dirname(debug.getinfo(1, 'S').source:gsub('^[@=]', '')):sub(2)
+    return path.dirname(debug.getinfo(1, 'S').source:gsub('^[@=]', ''))
 end
 
 function dokx._getTemplate(templateFile)
