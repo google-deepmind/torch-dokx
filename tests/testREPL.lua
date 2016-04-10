@@ -53,6 +53,4 @@ function myTests:testREPL()
     end
 end
 
-tester:add(myTests)
-tester:run()
-dokx._exitWithTester(tester)
+tester:add(myTests):run()

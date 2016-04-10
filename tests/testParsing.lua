@@ -278,6 +278,4 @@ bar =
   tester:assertne(parser(testInput), nil, "interposing comment should parse")
 end
 
-tester:add(myTests)
-tester:run()
-dokx._exitWithTester(tester)
+tester:add(myTests):run()

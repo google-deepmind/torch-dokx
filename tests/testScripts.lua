@@ -100,6 +100,4 @@ function myTests:test_update_from_git()
 
 end
 
-tester:add(myTests)
-tester:run()
-dokx._exitWithTester(tester)
+tester:add(myTests):run()
