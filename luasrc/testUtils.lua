@@ -41,27 +41,6 @@ end
 
 --[[
 
-Stop execution, with exit code:
-
-* 0 if the given torch.Tester had no errors
-* 1 if there were errors
-
-Parameters:
-* `tester` - torch.Tester, after 'tester:run()' has been called.
-
-DOES NOT RETURN!
-
-]]
-function dokx._exitWithTester(tester)
-    local code = 0
-    if not tester.errors or #tester.errors ~= 0 then
-        code = 1
-    end
-    os.exit(code)
-end
-
---[[
-
 Check that two strings are equal, and if they're not, print a diff.
 
 Parameters:

@@ -131,6 +131,4 @@ function myTests:testExtractTOCMarkdown()
     dokx._assertEqualWithDiff(tester, output, expected, "-u")
 end
 
-tester:add(myTests)
-tester:run()
-dokx._exitWithTester(tester)
+tester:add(myTests):run()

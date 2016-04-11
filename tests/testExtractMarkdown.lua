@@ -22,6 +22,4 @@ function myTests.testExtractMarkdown()
     path.rmdir(tmpDir)
 end
 
-tester:add(myTests)
-tester:run()
-dokx._exitWithTester(tester)
+tester:add(myTests):run()

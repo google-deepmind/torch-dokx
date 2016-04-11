@@ -166,6 +166,4 @@ require 'module'
     tester:asserteq(fileString, false, "no file string expected")
 end
 
-tester:add(myTests)
-tester:run()
-dokx._exitWithTester(tester)
+tester:add(myTests):run()
