@@ -14,7 +14,10 @@ before_script:
   - sudo apt-get install -qq  gcc-multilib gfortran-multilib  >/dev/null
   - sudo apt-get install -qq liblapack-dev >/dev/null
   - sudo pip install virtualenv
-  - curl -s https://raw.githubusercontent.com/torch/ezinstall/master/install-all | bash
+  - git clone https://github.com/torch/distro.git ~/torch --recursive
+  - cd ~/torch; sudo bash install-deps;
+  - sudo ./install.sh -b
+  - cd ../
   - echo "==== Building torch-dokx, using luarocks ===="
   - sudo /usr/local/bin/luarocks make
   - echo "==== Building torch-dokx with documentation, using doxk-luarocks ===="
