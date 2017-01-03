@@ -1,5 +1,6 @@
 local search = require 'luarocks.search'
 local cfg = require 'luarocks.cfg'
+local site_config = require 'luarocks.site_config'
 local deps = require 'luarocks.deps'
 local path = require("luarocks.path")
 local util = require 'luarocks.util'
@@ -73,12 +74,12 @@ end
 
 
 local function replDir(package)
-	return validDirectory(cfg.site_config.LUAROCKS_ROCKS_TREE .. cfg.lua_modules_path .. '/' .. package .. '/doc')
+	return validDirectory(site_config.LUAROCKS_ROCKS_TREE .. cfg.lua_modules_path .. '/' .. package .. '/doc')
 end
 
 
 function dokx._luarocksHtmlDir()
-	return validDirectory(cfg.site_config.LUAROCKS_ROCKS_TREE .. 'share/doc/dokx')
+	return validDirectory(site_config.LUAROCKS_ROCKS_TREE .. 'share/doc/dokx')
 end
 
 function dokx._luarocksSearchDB()

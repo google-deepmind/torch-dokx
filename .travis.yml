@@ -1,24 +1,66 @@
-language: erlang
-
+language: c
+os: linux
+compiler:
+  - gcc
+cache:
+  directories:
+    - $HOME/OpenBlasInstall
+sudo: false
 env:
-  - LUA="th"
-
+  - TORCH_LUA_VERSION=LUA51
 branches:
   only:
     - master
+addons:
+  apt:
+    packages:
+      - cmake
+      - curl
+      - g++
+      - gcc
+      - gcc-multilib
+      - git-core
+      - libreadline-dev
+      - ncurses-dev
+      - unzip
+      - build-essential
+      - cmake
+      - curl
+      - g++
+      - gfortran
+      - gfortran-multilib
+      - git-core
+      - liblapack-dev
+      - libpng-dev
 
 before_script:
-  - export PATH=$PATH:/usr/local/bin/
-  - sudo apt-get update -qq >/dev/null
-  - sudo apt-get install -qq gfortran  >/dev/null
-  - sudo apt-get install -qq  gcc-multilib gfortran-multilib  >/dev/null
-  - sudo apt-get install -qq liblapack-dev >/dev/null
-  - sudo pip install virtualenv
-  - curl -s https://raw.githubusercontent.com/torch/ezinstall/master/install-all | bash
+  - echo "==== Building OpenBlas ==== "
+  - export ROOT_TRAVIS_DIR=$(pwd)
+  - export INSTALL_PREFIX=~/torch/install
+  - ls $HOME/OpenBlasInstall/lib || (cd /tmp/ && git clone https://github.com/xianyi/OpenBLAS.git -b master && cd OpenBLAS && (make NO_AFFINITY=1 -j$(getconf _NPROCESSORS_ONLN) 2>/dev/null >/dev/null) && make PREFIX=$HOME/OpenBlasInstall install)
+  - echo "==== Building torch ===="
+  - git clone https://github.com/torch/distro.git ~/torch --recursive
+  - cd ~/torch && git submodule update --init --recursive
+  - mkdir build && cd build
+  - export CMAKE_LIBRARY_PATH=$HOME/OpenBlasInstall/include:$HOME/OpenBlasInstall/lib:$CMAKE_LIBRARY_PATH
+  - cmake .. -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" -DCMAKE_BUILD_TYPE=Release -DWITH_${TORCH_LUA_VERSION}=ON
+  - make && make install
+  - ${INSTALL_PREFIX}/bin/luarocks install logroll
+  - ${INSTALL_PREFIX}/bin/luarocks install lpeg
+  - ${INSTALL_PREFIX}/bin/luarocks install json
+  - ${INSTALL_PREFIX}/bin/luarocks install luasocket
+  - ${INSTALL_PREFIX}/bin/luarocks install dok
+  - ${INSTALL_PREFIX}/bin/luarocks install util
+  - ${INSTALL_PREFIX}/bin/luarocks install luaffi
+  - ${INSTALL_PREFIX}/bin/luarocks install luabitop
+  - ${INSTALL_PREFIX}/bin/luarocks install sundown
+  - cd $ROOT_TRAVIS_DIR
+  - export LD_LIBRARY_PATH=${INSTALL_PREFIX}/lib:$LD_LIBRARY_PATH
+  - export PATH=${INSTALL_PREFIX}/bin:$PATH
   - echo "==== Building torch-dokx, using luarocks ===="
-  - sudo /usr/local/bin/luarocks make
+  - ${INSTALL_PREFIX}/bin/luarocks make
   - echo "==== Building torch-dokx with documentation, using doxk-luarocks ===="
-  - sudo /usr/local/bin/dokx-luarocks make
+  - ${INSTALL_PREFIX}/bin/dokx-luarocks make
 
 script: 'for x in tests/test*.lua ; do echo "==== $x ====" ; th $x ; done'
 

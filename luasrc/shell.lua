@@ -5,6 +5,7 @@ local stringx = require 'pl.stringx'
 local file = require 'pl.file'
 local tablex = require 'pl.tablex'
 local List = require 'pl.List'
+local sundown = require 'sundown'
 
 --[[
 
@@ -143,7 +144,6 @@ function dokx.generateHTML(output, inputs, config)
     end
 
     local function handleFile(markdownFile, outputPath)
-        local sundown = require 'sundown'
         local content = dokx._readFile(markdownFile)
         if config and config.mathematics then
             content = content:gsub("$${", " ` $${"):gsub("[^$]${", " ` ${")
